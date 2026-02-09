@@ -1,0 +1,369 @@
+<div class="help-grid">
+  <div class="help-category">
+    <h4><i class="fas fa-cloud"></i> Synchronisation</h4>
+    <dl>
+      <dt><i class="fas fa-link"></i> Remote (origin)</dt>
+      <dd>L'adresse du dépôt distant (GitHub). Lie votre dépôt local à GitHub pour synchroniser vos fichiers. Sans
+        remote, pas de Push/Pull possible.</dd>
+      <dt><i class="fas fa-upload"></i> Push</dt>
+      <dd>Envoie vos commits locaux vers GitHub. Vos modifications deviennent visibles pour tous.</dd>
+      <dt><i class="fas fa-download"></i> Pull</dt>
+      <dd>Récupère les dernières modifications depuis GitHub et les fusionne avec votre code local.</dd>
+      <dt><i class="fas fa-sync"></i> Fetch</dt>
+      <dd>Vérifie s'il y a des nouveautés sur GitHub sans modifier vos fichiers locaux.</dd>
+      <dd>Vous créez une nouvelle branche sur Github, ensuite Fetch et bouton <i class="fas fa-sync"></i> elle
+        apparaîtra en branche distante.</dd>
+    </dl>
+    <div
+      style="margin-top: 15px; font-size: 0.85em; background: var(--bg-secondary); padding: 10px; border-radius: 6px;">
+      <div style="margin-bottom: 8px;"><strong><i class="fas fa-code-branch"></i> Option --rebase (Pull)</strong></div>
+      <div>Quand vous avez des commits locaux <strong>et</strong> des commits distants, <code>git pull</code> crée un
+        <strong>commit de fusion</strong> (merge). Avec <code>--rebase</code>, vos commits locaux sont <strong>rejoués
+          après</strong> les commits distants, sans merge commit :</div>
+      <div
+        style="margin-top: 10px; font-family: 'Consolas', monospace; background: #1e1e1e; color: #d4d4d4; padding: 10px; border-radius: 6px; line-height: 1.6;">
+        <div><span style="color: #6a9955;">Sans rebase (merge) :</span></div>
+        <div>distant : A --- B --- <span style="color: #569cd6;">C</span></div>
+        <div>local &nbsp;: A --- B --- <span style="color: #ce9178;">D</span></div>
+        <div>résultat: A --- B --- <span style="color: #569cd6;">C</span> --- <span style="color: #ce9178;">D</span> ---
+          <span style="color: #ff9800;">M</span> <span style="color: #6a9955;">(merge commit en plus)</span></div>
+        <div style="margin-top: 8px;"><span style="color: #6a9955;">Avec --rebase :</span></div>
+        <div>distant : A --- B --- <span style="color: #569cd6;">C</span></div>
+        <div>local &nbsp;: A --- B --- <span style="color: #ce9178;">D</span></div>
+        <div>résultat: A --- B --- <span style="color: #569cd6;">C</span> --- <span style="color: #ce9178;">D'</span>
+          <span style="color: #6a9955;">(D rejoué après C, pas de merge)</span></div>
+      </div>
+      <div style="margin-top: 10px;"><strong><i class="fas fa-exclamation-triangle"
+            style="color: var(--warning-color);"></i> Ordre important :</strong> Toujours <strong>Pull avant
+          Push</strong>, avec ou sans rebase. Si le dépôt distant contient des commits que vous n'avez pas, Git refusera
+        le Push. L'option <code>--rebase</code> change la <em>manière</em> dont Pull intègre les commits, pas l'ordre
+        des opérations.</div>
+      <div style="margin-top: 8px;"><strong>Recommandé</strong> pour un usage personnel : historique propre et linéaire,
+        pas de merge commits inutiles.</div>
+    </div>
+  </div>
+  <div class="help-category">
+    <h4><i class="fas fa-file-alt"></i> Statuts des fichiers</h4>
+    <dl>
+      <dt><span class="status-badge modified">M</span> Modifié</dt>
+      <dd>Fichier déjà suivi par Git dont le contenu a changé depuis le dernier commit. Cochez-le et faites un commit
+        pour enregistrer les modifications.</dd>
+      <dt><span class="status-badge added">A</span> Ajouté (stagé)</dt>
+      <dd>Nouveau fichier ajouté à la zone de staging, prêt à être inclus dans le prochain commit. Il sera versionné dès
+        le commit.</dd>
+      <dt><span class="status-badge deleted">D</span> Supprimé</dt>
+      <dd>Fichier qui existait dans le dernier commit mais qui a été supprimé. Le commit enregistrera cette suppression
+        dans l'historique.</dd>
+      <dt><span class="status-badge untracked">U</span> Non suivi</dt>
+      <dd>Fichier présent sur le disque mais inconnu de Git. Il ne sera pas inclus dans les commits tant que vous ne le
+        cochez pas. Vous pouvez aussi l'ajouter au <strong>.gitignore</strong> pour l'ignorer définitivement.</dd>
+    </dl>
+    <div
+      style="margin-top: 15px; font-size: 0.85em; background: var(--bg-secondary); padding: 10px; border-radius: 6px;">
+      <div style="margin-bottom: 8px;"><strong><i class="fas fa-info-circle"></i> Fichiers suivis</strong></div>
+      <div>Le compteur <strong>Suivis</strong> dans le statut indique le nombre total de fichiers versionnés par Git. Ce
+        sont les fichiers qui ont été committés au moins une fois et dont Git surveille les modifications.</div>
+      <div style="margin-top: 8px;"><strong><i class="fas fa-eye-slash"></i> Arrêter le suivi</strong></div>
+      <div>Retirer un fichier du suivi Git le conserve sur le disque mais Git ne le versionne plus. Utile pour les
+        fichiers de configuration locale.</div>
+    </div>
+  </div>
+  <div class="help-category">
+    <h4><i class="fas fa-undo"></i> Récupération</h4>
+    <dl>
+      <dt>HEAD</dt>
+      <dd>La version actuelle (dernier commit).</dd>
+      <dt>HEAD~1</dt>
+      <dd>La version du commit précédent.</dd>
+      <dt>HEAD~2</dt>
+      <dd>La version d'il y a 2 commits.</dd>
+      <dt>origin/main</dt>
+      <dd>La version sur GitHub (serveur distant).</dd>
+    </dl>
+    <div
+      style="margin-top: 15px; font-size: 0.85em; background: var(--bg-secondary); padding: 10px; border-radius: 6px;">
+      <div style="margin-bottom: 8px;"><strong>3 façons de revenir en arrière :</strong></div>
+      <table style="width: 100%; font-size: 0.95em; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 4px 8px;"><strong><i class="fas fa-undo"></i> Récupérer</strong></td>
+          <td style="padding: 4px 8px;">Restaure <strong>1 fichier</strong> à une version précise</td>
+          <td style="padding: 4px 8px; color: var(--text-secondary);">Reste sur la branche</td>
+        </tr>
+        <tr>
+          <td style="padding: 4px 8px;"><strong><i class="fas fa-sign-in-alt"></i> Checkout commit</strong></td>
+          <td style="padding: 4px 8px;">Revient sur un ancien commit (<strong>tout le projet</strong>)</td>
+          <td style="padding: 4px 8px; color: #ff9800;">HEAD détaché</td>
+        </tr>
+        <tr>
+          <td style="padding: 4px 8px;"><strong><i class="fas fa-trash"></i> Annuler tout</strong></td>
+          <td style="padding: 4px 8px;">Remet <strong>tous</strong> les fichiers modifiés au dernier commit</td>
+          <td style="padding: 4px 8px; color: #f44336;">Irréversible</td>
+        </tr>
+      </table>
+      <div style="margin-top: 8px; color: var(--text-secondary);"><i class="fas fa-info-circle"></i> En cas de doute,
+        utilisez le <strong>Stash</strong> pour sauvegarder vos modifications avant de revenir en arrière.</div>
+    </div>
+  </div>
+  <div class="help-category">
+    <h4><i class="fas fa-arrows-alt-v"></i> Avance / Retard</h4>
+    <dl>
+      <dt><span class="ahead">↑</span> Commits en avance</dt>
+      <dd>Commits locaux non encore envoyés sur GitHub. → Faire un <strong>Push</strong></dd>
+      <dt><span class="behind">↓</span> Commits en retard</dt>
+      <dd>Commits sur GitHub non encore récupérés. → Faire un <strong>Pull</strong></dd>
+    </dl>
+    <div
+      style="margin-top: 15px; font-size: 0.85em; font-family: monospace; background: var(--bg-secondary); padding: 10px; border-radius: 6px;">
+      <div style="margin-bottom: 8px;"><strong>ex. 2 en avance :</strong></div>
+      <div>PC: A→B→C→<span class="ahead">D→E</span></div>
+      <div>GitHub: A→B→C</div>
+      <div style="margin-top: 10px; margin-bottom: 8px;"><strong>ex. 2 en retard :</strong></div>
+      <div>PC: A→B→C</div>
+      <div>GitHub: A→B→C→<span class="behind">D→E</span></div>
+      <div style="margin-top: 10px; margin-bottom: 8px;"><strong>ex. Cas mixte (après un fetch ↑1 ↓2) :</strong></div>
+      <div>PC: A→B→C→<span class="ahead">X</span></div>
+      <div>GitHub: A→B→C→<span class="behind">Y→Z</span></div>
+      <div style="margin-top: 5px; font-style: italic;">→ Pull puis Push</div>
+    </div>
+  </div>
+  <div class="help-category">
+    <h4><i class="fas fa-archive"></i> Stash (Mettre de côté)</h4>
+    <dl>
+      <dt><i class="fas fa-archive"></i> Mettre de côté</dt>
+      <dd>Sauvegarde temporairement vos modifications en cours sans faire de commit. Utile pour changer de branche
+        rapidement ou tester quelque chose sur un code propre.</dd>
+      <dt><i class="fas fa-redo"></i> Pop (Restaurer)</dt>
+      <dd>Réapplique les modifications sauvegardées et supprime le stash. C'est l'action la plus courante.</dd>
+      <dt><i class="fas fa-copy"></i> Appliquer</dt>
+      <dd>Réapplique les modifications sauvegardées mais conserve le stash pour une utilisation ultérieure.</dd>
+      <dt><i class="fas fa-trash"></i> Supprimer un stash</dt>
+      <dd>Supprime définitivement un stash. Les modifications sauvegardées seront <strong>perdues</strong>.</dd>
+    </dl>
+    <div
+      style="margin-top: 15px; font-size: 0.85em; background: var(--bg-secondary); padding: 10px; border-radius: 6px;">
+      <div style="margin-bottom: 8px;"><strong>Exemple :</strong></div>
+      <div>1. Vous travaillez sur une feature, code pas fini</div>
+      <div style="margin-top: 5px;">2. Urgence : corriger un bug sur <em>main</em></div>
+      <div style="margin-top: 5px;">3. <strong>Mettre de côté</strong> → vos modifications sont sauvegardées</div>
+      <div style="margin-top: 5px;">4. Basculer sur <em>main</em>, corriger, commit, push</div>
+      <div style="margin-top: 5px;">5. Revenir sur votre branche → <strong>Pop</strong></div>
+      <div style="margin-top: 5px;">6. Vos modifications sont de retour !</div>
+    </div>
+  </div>
+  <div class="help-category">
+    <h4><i class="fas fa-exclamation-triangle"></i> Actions dangereuses</h4>
+    <dl>
+      <dt><i class="fas fa-trash"></i> Annuler toutes les modifications</dt>
+      <dd>Supprime TOUTES les modifications non committées. <strong>Irréversible !</strong></dd>
+      <dt><i class="fas fa-trash-alt"></i> Supprimer (dépôt + disque)</dt>
+      <dd>Supprime le fichier du dépôt ET de votre disque. <strong>Définitif !</strong></dd>
+      <dt><i class="fas fa-eye-slash"></i> Arrêter le suivi</dt>
+      <dd>Retire le fichier du dépôt mais le conserve sur le disque.</dd>
+    </dl>
+  </div>
+  <div class="help-category">
+    <h4><i class="fas fa-code-branch"></i> Fusionner (Merge)</h4>
+    <dl>
+      <dt><i class="fas fa-code-branch" style="color: #2196f3;"></i> Bouton Fusionner</dt>
+      <dd>Le bouton bleu <i class="fas fa-code-branch" style="color: #2196f3;"></i> apparaît à côté des branches qui ne
+        sont pas la branche courante.</dd>
+      <dt>Que fait le merge ?</dt>
+      <dd>Il intègre les commits de la branche sélectionnée <strong>dans</strong> la branche courante.</dd>
+    </dl>
+    <div
+      style="margin-top: 15px; font-size: 0.85em; background: var(--bg-secondary); padding: 10px; border-radius: 6px;">
+      <div style="margin-bottom: 8px;"><strong>Exemple :</strong></div>
+      <div>Vous êtes sur <span class="ahead">main</span></div>
+      <div>Vous cliquez <i class="fas fa-code-branch" style="color: #2196f3;"></i> sur <span
+          class="behind">feature</span></div>
+      <div style="margin-top: 5px;">→ Les commits de <em>feature</em> sont ajoutés à <em>main</em></div>
+      <div style="margin-top: 10px; font-style: italic;">Workflow : Basculer sur main → Merge de feature → Push</div>
+    </div>
+    <dl style="margin-top: 15px;">
+      <dt><i class="fas fa-exclamation-triangle" style="color: #ff9800;"></i> Conflits de fusion</dt>
+      <dd>Si le même fichier a été modifié sur les deux branches :</dd>
+    </dl>
+    <div
+      style="margin-top: 10px; font-size: 0.85em; background: var(--bg-secondary); padding: 10px; border-radius: 6px;">
+      <div><strong>Lignes différentes</strong> → Git fusionne automatiquement</div>
+      <div style="margin-top: 8px;"><strong>Mêmes lignes</strong> → <span style="color: #ff9800;">Conflit !</span> Git
+        marque le fichier :</div>
+      <div
+        style="margin-top: 5px; font-family: monospace; background: var(--bg-color); padding: 8px; border-radius: 4px; font-size: 0.9em;">
+        &lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD<br>
+        Code sur main<br>
+        =======<br>
+        Code sur feature<br>
+        &gt;&gt;&gt;&gt;&gt;&gt;&gt; feature
+      </div>
+      <div style="margin-top: 8px;"><strong>Résolution :</strong></div>
+      <div>1. Ouvrir le fichier et choisir quelle version garder</div>
+      <div>2. Supprimer les marqueurs &lt;&lt;&lt;, ===, &gt;&gt;&gt;</div>
+      <div>3. Sauvegarder → Commit</div>
+    </div>
+  </div>
+  <div class="help-category">
+    <h4><i class="fas fa-code-branch"></i> Fork (contribution)</h4>
+    <dl>
+      <dt>Qu'est-ce qu'un fork ?</dt>
+      <dd>Une copie d'un dépôt GitHub vers votre propre compte. Permet de contribuer à un projet sans avoir les droits
+        d'écriture ou créer votre propre version, le fork devient votre point de départ indépendant.</dd>
+    </dl>
+    <div
+      style="margin-top: 15px; font-size: 0.85em; font-family: monospace; background: var(--bg-secondary); padding: 12px; border-radius: 6px; text-align: center;">
+      <div style="color: var(--text-secondary);">Dépôt original (autre utilisateur)</div>
+      <div style="color: var(--accent-color); margin: 5px 0;">↓ <span style="font-size: 0.8em;">Fork (sur GitHub)</span>
+      </div>
+      <div style="color: var(--text-primary);">Votre fork (votre compte GitHub)</div>
+      <div style="color: var(--accent-color); margin: 5px 0;">↓ <span style="font-size: 0.8em;">Clone</span></div>
+      <div style="color: var(--text-primary);">Votre PC (travail local)</div>
+      <div style="color: var(--accent-color); margin: 5px 0;">↓ <span style="font-size: 0.8em;">Push</span></div>
+      <div style="color: var(--text-primary);">Votre fork</div>
+      <div style="color: var(--accent-color); margin: 5px 0;">↓ <span style="font-size: 0.8em;">Pull Request</span>
+      </div>
+      <div style="color: var(--text-secondary);">Dépôt original (proposition)</div>
+    </div>
+    <div style="margin-top: 10px; font-size: 0.85em; color: var(--text-secondary);">
+      <i class="fas fa-info-circle"></i> Le fork se fait sur GitHub.com (bouton "Fork"). Utilisez ensuite <a
+        href="git-clone.html" style="color: var(--accent-color);">Cloner un dépôt</a> pour récupérer votre fork.
+    </div>
+  </div>
+  <div class="help-category">
+    <h4><i class="fas fa-code-branch"></i> Gestion des branches</h4>
+    <dl>
+      <dt><i class="fas fa-download"></i> Récupérer une branche distante</dt>
+      <dd>Cliquer sur une branche distante crée automatiquement une branche locale qui suit la branche distante.</dd>
+      <dt><i class="fas fa-trash"></i> Supprimer une branche distante</dt>
+      <dd>Le bouton poubelle à côté des branches distantes permet de les supprimer directement sur GitHub.</dd>
+      <dt><i class="fas fa-exclamation-triangle" style="color: #ff9800;"></i> Forcer le basculement</dt>
+      <dd>Si des fichiers non suivis bloquent le changement de branche, une option "Forcer" est proposée.
+        <strong>Attention :</strong> les fichiers en conflit seront écrasés.</dd>
+      <dt><i class="fas fa-pen" style="color: #ff9800;"></i> Renommer une branche</dt>
+      <dd>Le crayon <i class="fas fa-pen" style="color: #ff9800;"></i> permet de renommer une branche. Si la branche est
+        publiée sur le remote, Git Manager renomme localement, publie le nouveau nom et supprime l'ancien
+        automatiquement.</dd>
+      <dd>La branche par défaut (<strong>main</strong> ou <strong>master</strong>) ne peut pas être renommée <i
+          class="fas fa-pen" style="color:#b0b9c2;opacity:0.5;"></i> car c'est la branche principale du dépôt distant.
+      </dd>
+    </dl>
+    <div
+      style="margin-top: 15px; font-size: 0.85em; background: var(--bg-secondary); padding: 10px; border-radius: 6px;">
+      <div style="margin-bottom: 8px;"><strong>Créer une branche :</strong></div>
+      <table style="width: 100%; font-size: 0.95em; border-collapse: collapse;">
+        <tr>
+          <td style="padding: 4px 8px;"><strong>Branche actuelle</strong></td>
+          <td style="padding: 4px 8px; color: var(--text-secondary);">Copie avec historique</td>
+        </tr>
+        <tr>
+          <td style="padding: 4px 8px;">&#x1F195; <strong>Branche vide</strong></td>
+          <td style="padding: 4px 8px; color: var(--text-secondary);">Sans fichiers, sans historique</td>
+        </tr>
+        <tr>
+          <td style="padding: 4px 8px;">&#x1F504; <strong>Nouveau départ</strong></td>
+          <td style="padding: 4px 8px; color: var(--text-secondary);">Fichiers actuels, sans historique</td>
+        </tr>
+        <tr>
+          <td style="padding: 4px 8px;"><strong>Autre branche</strong></td>
+          <td style="padding: 4px 8px; color: var(--text-secondary);">Copie d'une branche spécifique</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+  <div class="help-category">
+    <h4><i class="fas fa-exclamation-triangle" style="color: #ff9800;"></i> HEAD détaché</h4>
+    <dl>
+      <dt>Qu'est-ce que le HEAD détaché ?</dt>
+      <dd>Normalement, vous êtes toujours sur une branche (ex: <em>main</em>). Le HEAD détaché signifie que vous vous
+        êtes placé directement sur un ancien commit, sans être sur aucune branche. C'est un mode d'exploration
+        temporaire.</dd>
+      <dt><i class="fas fa-sign-in-alt"></i> Se placer sur un commit</dt>
+      <dd>Dans l'historique des commits, cliquez sur le bouton <i class="fas fa-sign-in-alt"></i> à droite d'un commit
+        pour vous y placer. Vous verrez vos fichiers tels qu'ils étaient à ce moment-là.</dd>
+      <dt><i class="fas fa-code-branch" style="color: #2196f3;"></i> Créer une branche ici</dt>
+      <dd>Si le code vous convient, cliquez sur <strong>Créer une branche ici</strong> pour transformer cet état en
+        branche officielle. Vous pourrez ensuite la fusionner où vous voulez.</dd>
+    </dl>
+    <div
+      style="margin-top: 15px; font-size: 0.85em; background: var(--bg-secondary); padding: 12px; border-radius: 6px;">
+      <div style="margin-bottom: 10px;"><strong>Exemple de workflow :</strong></div>
+      <div>1. Vous explorez l'historique et trouvez un ancien commit intéressant</div>
+      <div style="margin-top: 5px;">2. Vous cliquez <i class="fas fa-sign-in-alt"></i> → Vous êtes en <span
+          style="color: #ff9800;">HEAD détaché</span></div>
+      <div style="margin-top: 5px;">3. Vous vérifiez le code : il est parfait !</div>
+      <div style="margin-top: 5px;">4. Vous cliquez <strong>Créer une branche ici</strong> → ex: <em>ma-version</em>
+      </div>
+      <div style="margin-top: 5px;">5. Maintenant <em>ma-version</em> est une branche officielle</div>
+      <div style="margin-top: 5px;">6. Vous pouvez la fusionner dans <em>main</em> ou la publier sur GitHub</div>
+    </div>
+    <div style="margin-top: 10px; font-size: 0.85em; color: var(--text-secondary);">
+      <i class="fas fa-info-circle"></i> Pour revenir à la normale, basculez simplement sur une branche existante (ex:
+      <em>main</em>).
+    </div>
+  </div>
+  <div class="help-category">
+    <h4><i class="fas fa-clone"></i> Cloner un dépôt</h4>
+    <dl>
+      <dt><a href="git-clone.html" style="color: var(--accent-color);">Page de clonage</a></dt>
+      <dd>Permet de cloner un dépôt GitHub existant vers votre machine. Les fichiers Git Manager sont automatiquement
+        copiés dans le nouveau dépôt.</dd>
+    </dl>
+    <div
+      style="margin-top: 10px; font-size: 0.85em; background: var(--bg-secondary); padding: 10px; border-radius: 6px;">
+      <div><strong>Fichiers copiés :</strong></div>
+      <div style="margin-top: 5px;">git-manager.html, git-api.php, git-config.example.php, git-clone.html,
+        git-reset-remote.html, git-auth.html, index.html, flavicon.svg, git-help.html, README.md</div>
+      <div style="margin-top: 8px; padding: 8px; background: rgba(255, 152, 0, 0.1); border-radius: 4px;">
+        <strong><i class="fas fa-exclamation-triangle" style="color: var(--warning-color);"></i> Configuration requise
+          :</strong>
+        Après le clonage, renommez <code>git-config.example.php</code> en <code>git-config.php</code> et renseignez vos
+        informations (identité Git, chemin vers votre clé SSH).
+      </div>
+    </div>
+  </div>
+  <div class="help-category">
+    <h4><i class="fas fa-eraser"></i> Réinitialiser le dépôt distant</h4>
+    <dl>
+      <dt><a href="git-reset-remote.html" style="color: var(--accent-color);">Page de réinitialisation</a></dt>
+      <dd>Crée une nouvelle branche vide (sans historique) et supprime les branches sélectionnées sur GitHub.
+        <strong>Irréversible !</strong></dd>
+    </dl>
+
+    <h4><i class="fas fa-key"></i> Authentification (SSH / Token)</h4>
+    <dl>
+      <dt><a href="git-auth.html" style="color: var(--accent-color);">Guide d'authentification</a></dt>
+      <dd>Configure l'accès à GitHub via SSH (clés) ou Token HTTPS. Nécessaire pour push/pull.</dd>
+    </dl>
+    <div
+      style="margin-top: 10px; font-size: 0.85em; background: var(--bg-secondary); padding: 10px; border-radius: 6px;">
+      <div><strong>Cas d'usage :</strong></div>
+      <ul style="margin: 5px 0 0 15px; padding: 0;">
+        <li>Nettoyer un dépôt contenant des fichiers sensibles dans l'historique</li>
+        <li>Repartir de zéro sans supprimer/recréer le dépôt GitHub</li>
+        <li>Supprimer des branches obsolètes en masse</li>
+      </ul>
+    </div>
+  </div>
+</div>
+<div class="help-workflow">
+  <h4><i class="fas fa-project-diagram"></i> Workflow typique</h4>
+  <ol>
+    <li><strong>Modifier</strong> vos fichiers dans votre éditeur de code</li>
+    <li><strong>Vérifier</strong> les changements dans la section "Fichiers modifiés" — vos fichiers apparaissent avec
+      le statut <span class="status-badge modified">M</span> (modifié), <span class="status-badge added">A</span>
+      (ajouté) ou <span class="status-badge untracked">U</span> (non suivi) ou <span
+        class="status-badge deleted">D</span> (supprimé).</li>
+    <li><strong>Stager</strong> les fichiers à inclure dans le commit en cochant les cases — les fichiers passent dans
+      la zone de staging (zone de préparation)</li>
+    <li><strong>Écrire</strong> un message clair décrivant les changements (ex: "Ajout du formulaire de contact")</li>
+    <li><strong>Commit</strong> pour enregistrer un instantané de vos fichiers stagés dans l'historique local</li>
+    <li><strong>Push</strong> pour envoyer vos commits vers GitHub et les partager</li>
+  </ol>
+  <div style="margin-top: 10px; font-size: 0.85em; background: var(--bg-secondary); padding: 10px; border-radius: 6px;">
+    <strong><i class="fas fa-lightbulb" style="color: var(--warning-color);"></i> Bon à savoir :</strong>
+    <ul style="margin: 5px 0 0 15px; padding: 0;">
+      <li><strong>Fetch</strong> avant de travailler pour récupérer les dernières modifications distantes</li>
+      <li><strong>Pull</strong> pour fusionner les modifications distantes dans votre branche locale</li>
+      <li>Un commit reste <strong>local</strong> tant que vous n'avez pas fait de Push</li>
+    </ul>
+  </div>
+</div>

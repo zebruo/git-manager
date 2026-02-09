@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Réinitialiser le dépôt distant</title>
+  <link rel="icon" href="flavicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    :root {
+      --bg-color: #f5f5f5;
+      --bg-secondary: #ffffff;
+      --text-primary: #333333;
+      --text-secondary: #666666;
+      --accent-color: #45b7af;
+      --border-color: #e0e0e0;
+      --danger-color: #f44336;
+      --success-color: #4caf50;
+      --warning-color: #ff9800;
+      --info-color: #2196f3;
+    }
+
+    .dark-mode {
+      --bg-color: #1a1a2e;
+      --bg-secondary: #16213e;
+      --text-primary: #e0e0e0;
+      --text-secondary: #a0a0a0;
+      --border-color: #2a2a4a;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: var(--bg-color);
+      color: var(--text-primary);
+      min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .header {
+      background: var(--bg-secondary);
+      padding: 15px 20px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header h1 {
+      font-size: 1.3em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-primary);
+    }
+
+    .header h1 i {
+      color: var(--danger-color);
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .header-actions button {
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s;
+    }
+
+    .header-actions button:hover {
+      background: var(--accent-color);
+      color: white;
+      border-color: var(--accent-color);
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .card {
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border-color);
+    }
+
+    .card h2 {
+      font-size: 1.2em;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-primary);
+    }
+
+    .card h2 i {
+      color: var(--danger-color);
+    }
+
+    .warning-box {
+      background: rgba(244, 67, 54, 0.1);
+      border: 2px solid var(--danger-color);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .warning-box h3 {
+      color: var(--danger-color);
+      margin: 0 0 10px 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .warning-box ul {
+      margin: 10px 0;
+      padding-left: 20px;
+      color: var(--text-primary);
+    }
+
+    .warning-box li {
+      margin-bottom: 8px;
+    }
+
+    .info-box {
+      background: var(--bg-secondary);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .info-box h4 {
+      margin: 0 0 15px 0;
+      color: var(--accent-color);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .step {
+      display: flex;
+      align-items: flex-start;
+      gap: 15px;
+      margin-bottom: 15px;
+      padding: 10px;
+      background: var(--bg-color);
+      border-radius: 6px;
+    }
+
+    .step-number {
+      background: var(--accent-color);
+      color: white;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 0.9em;
+      flex-shrink: 0;
+    }
+
+    .step-content {
+      flex: 1;
+    }
+
+    .step-content strong {
+      color: var(--text-primary);
+    }
+
+    .step-content code {
+      background: var(--bg-secondary);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.9em;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      color: var(--text-secondary);
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .form-group input[type="text"] {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      background: var(--bg-color);
+      color: var(--text-primary);
+      font-size: 1em;
+    }
+
+    .form-group input[type="text"]:focus {
+      outline: none;
+      border-color: var(--danger-color);
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin: 15px 0;
+      padding: 15px;
+      background: rgba(244, 67, 54, 0.05);
+      border: 1px solid var(--danger-color);
+      border-radius: 8px;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      margin-top: 2px;
+    }
+
+    .checkbox-group label {
+      color: var(--text-primary);
+      cursor: pointer;
+      line-height: 1.4;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1em;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .btn-danger {
+      background: var(--danger-color);
+      color: white;
+    }
+
+    .btn-danger:hover:not(:disabled) {
+      filter: brightness(0.9);
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background: var(--bg-color);
+      color: var(--text-primary);
+      border: 2px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--accent-color);
+      transform: translateY(-2px);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      justify-content: center;
+    }
+
+    .alert {
+      padding: 15px 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .alert-success {
+      background: rgba(76, 175, 80, 0.1);
+      border: 1px solid #4caf50;
+      color: #4caf50;
+    }
+
+    .alert-error {
+      background: rgba(244, 67, 54, 0.1);
+      border: 1px solid #f44336;
+      color: #f44336;
+    }
+
+    .loading {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: var(--text-secondary);
+    }
+
+    .loading.visible {
+      display: flex;
+    }
+
+    .loading i {
+      font-size: 1.5em;
+      animation: spin 1s linear infinite;
+      margin-right: 10px;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .terminal-output {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      border-radius: 8px;
+      padding: 15px;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 0.9em;
+      max-height: 200px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      margin-top: 15px;
+      display: none;
+    }
+
+    .terminal-output.visible {
+      display: block;
+    }
+
+    .terminal-output .success {
+      color: #4caf50;
+    }
+
+    .terminal-output .error {
+      color: #f44336;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(120, 120, 120, 0.4);
+      border-radius: 10px;
+    }
+
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(120, 120, 120, 0.4) transparent;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <h1>
+      <i class="fas fa-exclamation-triangle"></i>
+      <span>Réinitialiser le dépôt distant</span>
+    </h1>
+    <div class="header-actions">
+      <button onclick="window.location.href='git-manager.html'" title="Retour au gestionnaire">
+        <i class="fas fa-arrow-left"></i>
+        <span>Retour</span>
+      </button>
+      <button onclick="toggleDarkMode()" id="darkModeBtn" title="Mode sombre">
+        <i class="fas fa-moon"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div id="alertContainer"></div>
+
+    <div class="card">
+      <div class="warning-box">
+        <h3><i class="fas fa-skull-crossbones"></i> Opération IRRÉVERSIBLE</h3>
+        <p>Cette action va :</p>
+        <ul>
+          <li><strong>Créer une nouvelle branche vide</strong> (sans fichiers, sans historique)</li>
+          <li><strong>Supprimer les branches sélectionnées</strong> sur GitHub (au choix)</li>
+          <li><strong>Conserver vos fichiers locaux</strong> intacts</li>
+        </ul>
+        <p style="margin-top: 15px; font-weight: bold;">
+          <i class="fas fa-info-circle"></i> Après cette opération, vous devrez reconfigurer la branche par défaut sur GitHub.
+        </p>
+      </div>
+
+      <div class="info-box">
+        <h4><i class="fas fa-list-ol"></i> Étapes qui seront exécutées</h4>
+        <div class="step">
+          <span class="step-number">1</span>
+          <div class="step-content">
+            <strong>Créer une branche orpheline</strong><br>
+            <code>git checkout --orphan {nom_branche}</code>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-number">2</span>
+          <div class="step-content">
+            <strong>Retirer tous les fichiers de l'index Git</strong><br>
+            <code>git rm -rf --cached .</code><br>
+            <small style="color: var(--text-secondary);">(vos fichiers locaux restent sur le disque)</small>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-number">3</span>
+          <div class="step-content">
+            <strong>Créer un commit vide</strong><br>
+            <code>git commit --allow-empty -m "Initial commit"</code>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-number">4</span>
+          <div class="step-content">
+            <strong>Forcer le push vers GitHub</strong><br>
+            <code>git push -f origin {nom_branche}</code>
+          </div>
+        </div>
+      </div>
+
+      <h2><i class="fas fa-cog"></i> Configuration</h2>
+
+      <div class="form-group">
+        <label for="branchName">Nom de la nouvelle branche</label>
+        <input type="text" id="branchName" value="clean" placeholder="clean">
+        <small style="color: var(--text-secondary);">Cette branche remplacera l'historique existant</small>
+      </div>
+
+      <div class="info-box" id="remoteBranchesBox" style="display: none;">
+        <h4><i class="fas fa-code-branch"></i> Branches distantes à supprimer</h4>
+        <p style="color: var(--text-secondary); font-size: 0.9em; margin-bottom: 10px;">
+          <i class="fas fa-info-circle"></i> Cochez les branches à <strong>supprimer</strong>. Décochez celles à <strong>conserver</strong>.
+        </p>
+        <div id="remoteBranchesList" style="margin-bottom: 15px;">
+          <i class="fas fa-spinner fa-spin"></i> Chargement...
+        </div>
+      </div>
+
+      <div class="checkbox-group">
+        <input type="checkbox" id="confirmAll">
+        <label for="confirmAll">
+          Je comprends que cette action est <strong>IRRÉVERSIBLE</strong>, que l'historique des branches supprimées sera perdu, et j'ai fait une sauvegarde si nécessaire.
+        </label>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn btn-danger" onclick="resetRemote()" id="resetBtn" disabled>
+          <i class="fas fa-bomb"></i> Réinitialiser le dépôt distant
+        </button>
+      </div>
+
+      <div class="loading" id="loadingIndicator">
+        <i class="fas fa-spinner"></i> Opération en cours...
+      </div>
+
+      <div class="terminal-output" id="terminalOutput"></div>
+    </div>
+
+    <div class="card">
+      <h2><i class="fas fa-tasks"></i> Après l'opération</h2>
+      <p style="color: var(--text-secondary);">Sur GitHub :</p>
+      <ol style="color: var(--text-primary); padding-left: 20px;">
+        <li>Aller dans <strong>Settings → Branches</strong></li>
+        <li>Changer la branche par défaut vers la nouvelle branche (ex: "clean")</li>
+      </ol>
+      <p style="color: var(--text-secondary); margin-top: 15px;">
+        <i class="fas fa-lightbulb" style="color: var(--accent-color);"></i>
+        <strong>Astuce :</strong> Vous pouvez aussi supprimer des branches distantes depuis
+        <a href="git-manager.html" style="color: var(--accent-color);">Git Manager</a>
+        (section Branches distantes → bouton <i class="fas fa-trash"></i>).
+      </p>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'git-api.php';
+
+    let remoteBranches = [];
+
+    document.addEventListener('DOMContentLoaded', function() {
+      if (localStorage.getItem('gitManagerDarkMode') === 'true') {
+        document.body.classList.add('dark-mode');
+        updateDarkModeIcon();
+      }
+
+      // Activer le bouton seulement si toutes les cases sont cochées
+      const checkboxes = document.querySelectorAll('.checkbox-group input[type="checkbox"]');
+      checkboxes.forEach(cb => {
+        cb.addEventListener('change', updateButtonState);
+      });
+
+      // Charger les branches distantes
+      loadRemoteBranches();
+    });
+
+    async function loadRemoteBranches() {
+      const box = document.getElementById('remoteBranchesBox');
+      const list = document.getElementById('remoteBranchesList');
+
+      const result = await apiCall('listRemoteBranches');
+
+      if (result.success && result.data.branches.length > 0) {
+        remoteBranches = result.data.branches;
+        box.style.display = 'block';
+
+        let html = '<div style="display: flex; flex-direction: column; gap: 8px;">';
+
+        // Boutons sélectionner tout / aucun
+        if (remoteBranches.length > 1) {
+          html += `<div style="display: flex; gap: 10px; margin-bottom: 5px;">
+            <button type="button" onclick="selectAllBranches(true)" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.8em;">
+              <i class="fas fa-check-square"></i> Tout sélectionner
+            </button>
+            <button type="button" onclick="selectAllBranches(false)" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.8em;">
+              <i class="fas fa-square"></i> Tout désélectionner
+            </button>
+          </div>`;
+        }
+
+        html += '<div style="display: flex; flex-wrap: wrap; gap: 8px;">';
+        remoteBranches.forEach(branch => {
+          html += `<label style="background: var(--bg-color); padding: 8px 12px; border-radius: 8px; font-size: 0.9em; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; border: 2px solid var(--border-color); transition: all 0.2s;">
+            <input type="checkbox" class="branch-checkbox" value="${branch}" checked onchange="updateBranchSelection(this)" style="width: 16px; height: 16px;">
+            <i class="fas fa-code-branch" style="color: var(--accent-color);"></i> ${branch}
+          </label>`;
+        });
+        html += '</div>';
+
+        if (remoteBranches.length > 1) {
+          html += `<p style="margin-top: 10px; color: var(--text-secondary); font-size: 0.9em;">
+            <i class="fas fa-info-circle"></i> ${remoteBranches.length} branches trouvées.
+            <span id="selectedCount">Cochez les branches à <strong>supprimer</strong>.</span>
+          </p>`;
+        }
+
+        html += '</div>';
+        list.innerHTML = html;
+      } else {
+        // Pas de branches ou erreur
+        list.innerHTML = '<span style="color: var(--text-secondary);">Aucune branche distante trouvée</span>';
+        box.style.display = 'block';
+      }
+    }
+
+    function selectAllBranches(select) {
+      const checkboxes = document.querySelectorAll('.branch-checkbox');
+      checkboxes.forEach(cb => {
+        cb.checked = select;
+        updateBranchSelection(cb);
+      });
+    }
+
+    function updateBranchSelection(checkbox) {
+      const label = checkbox.parentElement;
+      if (checkbox.checked) {
+        label.style.borderColor = 'var(--danger-color)';
+        label.style.background = 'rgba(244, 67, 54, 0.1)';
+      } else {
+        label.style.borderColor = 'var(--accent-color)';
+        label.style.background = 'rgba(69, 183, 175, 0.1)';
+      }
+      updateSelectedCount();
+    }
+
+    function updateSelectedCount() {
+      const checkboxes = document.querySelectorAll('.branch-checkbox');
+      const checked = document.querySelectorAll('.branch-checkbox:checked');
+      const countEl = document.getElementById('selectedCount');
+      if (countEl) {
+        const toDelete = checked.length;
+        const toKeep = checkboxes.length - toDelete;
+        countEl.innerHTML = `<strong style="color: var(--danger-color);">${toDelete}</strong> à supprimer, <strong style="color: var(--accent-color);">${toKeep}</strong> à conserver.`;
+      }
+    }
+
+    function getSelectedBranchesToDelete() {
+      const checkboxes = document.querySelectorAll('.branch-checkbox:checked');
+      return Array.from(checkboxes).map(cb => cb.value);
+    }
+
+    function updateButtonState() {
+      const confirmAll = document.getElementById('confirmAll').checked;
+      const resetBtn = document.getElementById('resetBtn');
+
+      resetBtn.disabled = !confirmAll;
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+      const isDark = document.body.classList.contains('dark-mode');
+      localStorage.setItem('gitManagerDarkMode', isDark);
+      updateDarkModeIcon();
+    }
+
+    function updateDarkModeIcon() {
+      const btn = document.getElementById('darkModeBtn');
+      const isDark = document.body.classList.contains('dark-mode');
+      btn.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+      btn.title = isDark ? 'Mode clair' : 'Mode sombre';
+    }
+
+    function showAlert(type, message) {
+      const container = document.getElementById('alertContainer');
+      const alert = document.createElement('div');
+      alert.className = `alert alert-${type}`;
+      alert.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+        <div>${message}</div>
+      `;
+      container.innerHTML = '';
+      container.appendChild(alert);
+    }
+
+    function terminalLog(text, type = '') {
+      const terminal = document.getElementById('terminalOutput');
+      terminal.classList.add('visible');
+      const line = document.createElement('div');
+      line.className = type;
+      line.textContent = text;
+      terminal.appendChild(line);
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    async function apiCall(action, params = {}) {
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action, ...params })
+        });
+        return await response.json();
+      } catch (error) {
+        return { success: false, error: error.message };
+      }
+    }
+
+    async function resetRemote() {
+      const branchName = document.getElementById('branchName').value.trim() || 'clean';
+      const selectedBranchesToDelete = getSelectedBranchesToDelete();
+
+      // Filtrer pour ne pas supprimer la nouvelle branche
+      const branchesToDelete = selectedBranchesToDelete.filter(b => b !== branchName);
+
+      // Construire le message de confirmation
+      let confirmMsg = `⚠️ DERNIÈRE CONFIRMATION ⚠️\n\n` +
+        `Vous êtes sur le point de :\n` +
+        `• Créer une branche "${branchName}" vide (sans historique)\n`;
+
+      if (branchesToDelete.length > 0) {
+        confirmMsg += `• Supprimer ${branchesToDelete.length} branche(s): ${branchesToDelete.join(', ')}\n`;
+      } else {
+        confirmMsg += `• Aucune branche ne sera supprimée\n`;
+      }
+
+      confirmMsg += `\nCette action est IRRÉVERSIBLE !\n\nVoulez-vous vraiment continuer ?`;
+
+      // Dernière confirmation
+      const finalConfirm = confirm(confirmMsg);
+
+      if (!finalConfirm) return;
+
+      const btn = document.getElementById('resetBtn');
+      const loading = document.getElementById('loadingIndicator');
+      const terminal = document.getElementById('terminalOutput');
+
+      btn.disabled = true;
+      loading.classList.add('visible');
+      terminal.innerHTML = '';
+      terminal.classList.remove('visible');
+
+      terminalLog('Démarrage de la réinitialisation...', '');
+
+      // Préparer les paramètres
+      const params = { branchName };
+      if (branchesToDelete.length > 0) {
+        params.deleteOtherBranches = true;
+        params.branchesToDelete = branchesToDelete;
+      }
+
+      const result = await apiCall('resetRemote', params);
+
+      loading.classList.remove('visible');
+
+      if (result.success) {
+        showAlert('success', 'Dépôt distant réinitialisé avec succès !');
+        terminalLog(result.output, 'success');
+        terminalLog('\n✅ Opération terminée. Allez sur GitHub pour finaliser.', 'success');
+      } else {
+        showAlert('error', 'Erreur : ' + result.error);
+        terminalLog(result.error, 'error');
+        // Réactiver le bouton en cas d'erreur
+        updateButtonState();
+      }
+    }
+  </script>
+</body>
+
+</html>

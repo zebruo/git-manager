@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Git Manager - Accueil</title>
+  <link rel="icon" href="flavicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    :root {
+      --bg-color: #fdfdfd;
+      --bg-primary: #f0f2f5;
+      --bg-secondary: #becddd;
+      --text-primary: #1c3641;
+      --text-secondary: #6c757d;
+      --border-color: #b0b9c2;
+      --accent-color: #45b7af;
+      --accent-hover: #3ca29a;
+      /* Couleurs Code */
+      --code-bg: #1e1e1e;
+      --code-inline-bg: #eaedef;
+      --code-inline-color: #d63384;
+      --code-keyword: #569cd6;
+      --code-string: #ce9178;
+      --code-comment: #6a9955;
+      --code-tag: #808080;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-color);
+      color: var(--text-primary);
+      margin: 0;
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    .git-container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .git-header {
+      background: var(--bg-primary);
+      border-radius: 12px;
+      padding: 30px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    .git-header h1 {
+      margin: 0;
+      color: var(--accent-color);
+      font-size: 2.5em;
+    }
+
+    .git-layout {
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
+    }
+
+    .git-section {
+      background: var(--bg-primary);
+      border-radius: 12px;
+      padding: 25px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .git-section h2 {
+      margin: 0 0 20px 0;
+      border-bottom: 2px solid var(--border-color);
+      padding-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .git-section h2 i { color: var(--accent-color); }
+
+    /* Sélecteur code inline */
+    code {
+      color: var(--code-inline-color);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Consolas', monospace;
+    }
+
+    /* Bloc de code multi-ligne */
+    pre {
+      background: var(--code-bg);
+      color: #d4d4d4;
+      padding: 20px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .code-keyword { color: var(--code-keyword); }
+    .code-string { color: var(--code-string); }
+    .code-comment { color: var(--code-comment); }
+    .code-tag { color: var(--code-tag); }
+
+    .use-cases {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .card {
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 15px 30px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s;
+      font-size: 1.1em;
+    }
+
+    .btn-primary { background: var(--accent-color); color: white; border: none; cursor: pointer; }
+    .btn-primary:hover { background: var(--accent-hover); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(69, 183, 175, 0.3); }
+
+    .tree-view {
+      font-family: 'Consolas', monospace;
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      border-left: 4px solid var(--accent-color);
+      white-space: pre;
+      overflow-x: auto;
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="git-container">
+    <header class="git-header">
+      <h1><i class="fab fa-git-alt"></i> Git Manager</h1>
+      <p>Interface web intuitive pour la gestion de vos dépôts Git locaux.</p>
+    </header>
+
+    <main class="git-layout">
+      <section class="git-section">
+        <h2><i class="fas fa-download"></i> Installation</h2>
+        <h3>Au préalable</h3>
+        <ol>
+          <li>Copiez le dossier <code>git-manager/</code> à la racine de votre projet.</li>
+          <li>Renommez <code>git-config.example.php</code> en <code>git-config.php</code>et renseignez vos informations dans <code>git-config.php</code> :</li>
+          <li>Token dans l'URL (https://TOKEN@github.com/user/repo.git) : fonctionne sans <code>git-config.php</code>car l'authentification est dans l'URL du remote elle-même.</li>
+          <li>Credential Manager (git config --global credential.helper store ou wincred) : fonctionne sans <code>git-config.php</code>car les identifiants sont stockés au niveau global de Git.</li>
+          <li>Le <code>git-config.php</code>est vraiment indispensable pour le SSH (qui ne fonctionnera pas si <code>sshKeyPath</code>est vide, le processus PHP ne trouvera pas les clés).</li>
+        </ol>
+        <pre><code><span class="code-tag">&lt;?php</span>
+<span class="code-keyword">return</span> [
+    <span class="code-comment">// Identité Git pour les commits</span>
+    <span class="code-string">'userName'</span> => <span class="code-string">'votre-username'</span>,
+    <span class="code-string">'userEmail'</span> => <span class="code-string">'votre-email@example.com'</span>,
+
+    <span class="code-comment">// Clé SSH pour l'authentification GitHub (facultatif)</span>
+    <span class="code-comment">// Clé RSA : C:/Users/votre-nom/.ssh/id_rsa</span>
+    <span class="code-comment">// Clé ED25519 : C:/Users/votre-nom/.ssh/id_ed25519</span>
+    <span class="code-string">'sshKeyPath'</span> => <span class="code-string">'C:/Users/votre-nom/.ssh/id_rsa'</span>,
+
+    <span class="code-comment">// Options d'affichage (facultatif)</span>
+    <span class="code-string">'options'</span> => [
+        <span class="code-string">'maxHistoryItems'</span> => <span class="code-keyword">20</span>,      <span class="code-comment">// Nombre de commits dans l'historique</span>
+        <span class="code-string">'maxFileLogItems'</span> => <span class="code-keyword">10</span>,      <span class="code-comment">// Nombre de commits par fichier</span>
+    ]
+];</code></pre>
+        <p style="margin-top: 10px; font-size: 0.9em; color: var(--text-secondary);"><i class="fas fa-exclamation-triangle" style="color: #ff9800;"></i> <strong>Note :</strong> <code>git-config.php</code> contient vos données personnelles et ne doit pas être versionné. Il est automatiquement ajouté au <code>.gitignore</code>.</p>
+
+        <h3 style="margin-top: 25px;">Via Git Manager</h3>
+        <p style="margin-top: 15px;"><strong>Lancez l'interface (en bas de page)</strong> — Rappel : Le dossier <code>git-manager/</code> doit être copié dans le répertoire du projet :</p>
+        <ul>
+          <li>Lancez <strong>git init</strong> depuis l'interface git-manager</li>
+          <li>Le <code>.gitignore</code> est automatiquement créé avec <code>git-manager/</code></li>
+          <li>Copiez <code>git-config.example.php</code> en <code>git-config.php</code> et renseignez vos informations</li>
+        </ul>
+        <p><strong>Clone</strong> — Git Manager s'occupe de tout :</p>
+        <ul>
+          <li>Les fichiers de l'application sont automatiquement copiés dans le dossier <code>git-manager/</code> du nouveau projet</li>
+          <li>Le <code>.gitignore</code> est complété avec <code>git-manager/</code> pour que le dossier ne soit jamais versionné</li>
+          <li>Il ne reste plus qu'à renommer <code>git-config.example.php</code> en <code>git-config.php</code> et renseigner vos informations</li>
+        </ul>
+      </section>
+
+      <section class="git-section">
+        <h2><i class="fas fa-folder-tree"></i> Exemple de projet</h2>
+        <div class="tree-view">mon-projet/                    &lt;- Dépôt Git géré
+├── .git/                      &lt;- Dossier Git (créé automatiquement par git init)
+├── <strong>git-manager/</strong>               &lt;- Dossier de l'interface (non versionné)
+│   ├── git-manager.html
+│   ├── git-api.php
+│   ├── git-config.example.php &lt;- Modèle de configuration
+│   ├── git-config.php         &lt;- Votre configuration (à créer)
+│   ├── git-auth.html
+│   ├── git-clone.html
+│   ├── git-reset-remote.html
+│   ├── git-help.html
+│   ├── index.html
+│   ├── flavicon.svg
+│   └── README.md
+├── index.html                 (M) modifié
+├── style.css                  (A) stagé
+├── script.js                  (U) non suivi
+├── images/
+│   ├── logo.png               (M) modifié
+│   └── banner.jpg             (U) non suivi
+└── .gitignore</div>
+      </section>
+
+      <section class="git-section">
+        <h2><i class="fas fa-lightbulb"></i> Cas d'utilisation</h2>
+        <div class="use-cases">
+          <div class="card">
+            <i class="fas fa-plus-circle fa-2x" style="color: var(--accent-color);"></i>
+            <h3>Nouveau Projet</h3>
+            <p>Initialisez un nouveau dépôt ou clonez une source existante.</p>
+          </div>
+          <div class="card">
+            <i class="fas fa-code-branch fa-2x" style="color: var(--accent-color);"></i>
+            <h3>Branches</h3>
+            <p>Créez, basculez et fusionnez vos branches de développement.</p>
+          </div>
+          <div class="card">
+            <i class="fas fa-history fa-2x" style="color: var(--accent-color);"></i>
+            <h3>Historique</h3>
+            <p>Parcourez vos commits et restaurez des versions précédentes.</p>
+          </div>
+          <div class="card">
+            <i class="fas fa-cloud-sync fa-2x" style="color: var(--accent-color);"></i>
+            <h3>Synchronisation</h3>
+            <p>Push et Pull pour synchroniser avec GitHub ou GitLab.</p>
+          </div>
+        </div>
+      </section>
+
+      <section style="text-align: center; padding: 20px 0;">
+        <a href="git-manager.html" class="btn btn-primary">
+          <i class="fas fa-rocket"></i> Interface Git-manager
+        </a>
+      </section>
+    </main>
+
+    <footer style="text-align: center; margin-top: 30px; color: var(--text-secondary); font-size: 0.9em; border-top: 1px solid var(--border-color); padding-top: 20px;">
+      <p>Git Manager &copy; 2026 - Interface de gestion simplifiée</p>
+    </footer>
+  </div>
+</body>
+</html>

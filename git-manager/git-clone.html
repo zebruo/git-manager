@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cloner un dépôt Git</title>
+  <link rel="icon" href="flavicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    :root {
+      --bg-color: #f5f5f5;
+      --bg-secondary: #ffffff;
+      --text-primary: #333333;
+      --text-secondary: #666666;
+      --accent-color: #45b7af;
+      --border-color: #e0e0e0;
+      --danger-color: #f44336;
+      --success-color: #4caf50;
+      --warning-color: #ff9800;
+      --info-color: #2196f3;
+    }
+
+    .dark-mode {
+      --bg-color: #1a1a2e;
+      --bg-secondary: #16213e;
+      --text-primary: #e0e0e0;
+      --text-secondary: #a0a0a0;
+      --border-color: #2a2a4a;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: var(--bg-color);
+      color: var(--text-primary);
+      min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .header {
+      background: var(--bg-secondary);
+      padding: 15px 20px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header h1 {
+      font-size: 1.3em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-primary);
+    }
+
+    .header h1 i {
+      color: var(--accent-color);
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .header-actions button {
+      background: var(--bg-color);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s;
+    }
+
+    .header-actions button:hover {
+      background: var(--accent-color);
+      color: white;
+      border-color: var(--accent-color);
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .card {
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      border: 1px solid var(--border-color);
+    }
+
+    .card h2 {
+      font-size: 1.2em;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-primary);
+    }
+
+    .card h2 i {
+      color: var(--accent-color);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      color: var(--text-secondary);
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .form-group input[type="text"] {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      background: var(--bg-color);
+      color: var(--text-primary);
+      font-size: 1em;
+    }
+
+    .form-group input[type="text"]:focus {
+      outline: none;
+      border-color: var(--accent-color);
+    }
+
+    .form-group input[type="text"]::placeholder {
+      color: var(--text-secondary);
+    }
+
+    .form-group small {
+      display: block;
+      margin-top: 5px;
+      color: var(--text-secondary);
+      font-size: 0.85em;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 15px;
+      padding: 15px;
+      background: var(--bg-secondary);
+      border-radius: 8px;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+    }
+
+    .checkbox-group label {
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+
+    .checkbox-group small {
+      display: block;
+      color: var(--text-secondary);
+      font-size: 0.85em;
+      margin-top: 3px;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1em;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary {
+      background: var(--accent-color);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      filter: brightness(0.9);
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background: var(--bg-color);
+      color: var(--text-primary);
+      border: 2px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--accent-color);
+      transform: translateY(-2px);
+    }
+
+    .btn-success {
+      background: #4caf50;
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #388e3c;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+      justify-content: center;
+    }
+
+    .alert {
+      padding: 15px 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .alert-success {
+      background: rgba(76, 175, 80, 0.1);
+      border: 1px solid #4caf50;
+      color: #4caf50;
+    }
+
+    .alert-error {
+      background: rgba(244, 67, 54, 0.1);
+      border: 1px solid #f44336;
+      color: #f44336;
+    }
+
+    .alert-info {
+      background: rgba(33, 150, 243, 0.1);
+      border: 1px solid #2196f3;
+      color: #2196f3;
+    }
+
+    .result-box {
+      display: none;
+      margin-top: 20px;
+      padding: 20px;
+      background: var(--bg-secondary);
+      border-radius: 8px;
+    }
+
+    .result-box.visible {
+      display: block;
+    }
+
+    .result-box h3 {
+      margin: 0 0 15px 0;
+      color: var(--text-primary);
+      font-size: 1.1em;
+    }
+
+    .result-box p {
+      margin: 8px 0;
+      color: var(--text-secondary);
+    }
+
+    .result-box .path {
+      font-family: monospace;
+      background: var(--bg-color);
+      padding: 8px 12px;
+      border-radius: 4px;
+      color: var(--accent-color);
+      word-break: break-all;
+    }
+
+    .loading {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: var(--text-secondary);
+    }
+
+    .loading.visible {
+      display: flex;
+    }
+
+    .loading i {
+      font-size: 1.5em;
+      animation: spin 1s linear infinite;
+      margin-right: 10px;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .folders-list {
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      margin-top: 15px;
+    }
+
+    .folder-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 15px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .folder-item:last-child {
+      border-bottom: none;
+    }
+
+    .folder-item i {
+      color: var(--text-secondary);
+    }
+
+    .folder-item i.fa-git-alt {
+      color: var(--accent-color);
+    }
+
+    .folder-item span {
+      color: var(--text-primary);
+      font-family: monospace;
+    }
+
+    /* ========================================
+    SCROLLBAR
+    ======================================== */
+    /* WebKit */
+    ::-webkit-scrollbar {
+      width: 4px; /* encore plus fin */
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(120, 120, 120, 0.4);
+      border-radius: 10px;
+      border: 1px solid transparent;
+      background-clip: content-box;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(120, 120, 120, 0.6);
+    }
+
+    /* Firefox */
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(120, 120, 120, 0.4) transparent;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <h1>
+      <i class="fas fa-clone"></i>
+      <span>Cloner un dépôt</span>
+    </h1>
+    <div class="header-actions">
+      <button onclick="window.location.href='git-manager.html'" title="Retour au gestionnaire">
+        <i class="fas fa-arrow-left"></i>
+        <span>Retour</span>
+      </button>
+      <button onclick="toggleDarkMode()" id="darkModeBtn" title="Mode sombre">
+        <i class="fas fa-moon"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div id="alertContainer"></div>
+
+    <div class="card">
+      <h2><i class="fab fa-github"></i> Dépôt à cloner</h2>
+
+      <div class="form-group">
+        <label for="repoUrl">URL du dépôt</label>
+        <input type="text" id="repoUrl" placeholder="https://github.com/username/repository.git">
+        <small>Formats acceptés : HTTPS ou SSH (git@github.com:...)</small>
+      </div>
+
+      <div class="form-group">
+        <label for="folderName">Nom du dossier (optionnel)</label>
+        <input type="text" id="folderName" placeholder="Laissez vide pour utiliser le nom du dépôt">
+        <small>Le dépôt sera cloné dans le dossier parent de l'emplacement actuel</small>
+      </div>
+
+      <div class="checkbox-group">
+        <input type="checkbox" id="copyGitManager" checked>
+        <div>
+          <label for="copyGitManager">Copier les fichiers Git Manager</label>
+          <small>Copie les fichiers git-manager dans le dossier <code>git-manager/</code> du dépôt cloné</small>
+        </div>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="cloneRepo()" id="cloneBtn">
+          <i class="fas fa-clone"></i> Cloner le dépôt
+        </button>
+      </div>
+
+      <div class="loading" id="loadingIndicator">
+        <i class="fas fa-spinner"></i> Clonage en cours...
+      </div>
+
+      <div class="result-box" id="resultBox">
+        <h3><i class="fas fa-check-circle" style="color: #4caf50;"></i> Dépôt cloné avec succès !</h3>
+        <p>Emplacement :</p>
+        <div class="path" id="resultPath"></div>
+        <p id="resultFiles"></p>
+        <div class="btn-group" style="margin-top: 15px;">
+          <button class="btn btn-success" onclick="openClonedRepo()" id="openRepoBtn">
+            <i class="fas fa-folder-open"></i> Ouvrir Git Manager
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><i class="fas fa-folder"></i> Dossiers existants</h2>
+      <p style="color: var(--text-secondary); margin-bottom: 15px;">
+        Dépôts et dossiers dans le répertoire parent :
+      </p>
+      <div id="parentPath" style="font-family: monospace; color: var(--accent-color); margin-bottom: 10px;"></div>
+      <div class="folders-list" id="foldersList">
+        <div class="loading visible">
+          <i class="fas fa-spinner"></i> Chargement...
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'git-api.php';
+    let clonedPath = '';
+
+    document.addEventListener('DOMContentLoaded', function() {
+      if (localStorage.getItem('gitManagerDarkMode') === 'true') {
+        document.body.classList.add('dark-mode');
+        updateDarkModeIcon();
+      }
+      loadFolders();
+    });
+
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+      const isDark = document.body.classList.contains('dark-mode');
+      localStorage.setItem('gitManagerDarkMode', isDark);
+      updateDarkModeIcon();
+    }
+
+    function updateDarkModeIcon() {
+      const btn = document.getElementById('darkModeBtn');
+      const isDark = document.body.classList.contains('dark-mode');
+      btn.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+      btn.title = isDark ? 'Mode clair' : 'Mode sombre';
+    }
+
+    function showAlert(type, message) {
+      const container = document.getElementById('alertContainer');
+      const alert = document.createElement('div');
+      alert.className = `alert alert-${type}`;
+      alert.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+        <div>${message}</div>
+      `;
+      container.innerHTML = '';
+      container.appendChild(alert);
+      setTimeout(() => alert.remove(), 8000);
+    }
+
+    async function apiCall(action, params = {}) {
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action, ...params })
+        });
+        return await response.json();
+      } catch (error) {
+        return { success: false, error: error.message };
+      }
+    }
+
+    async function loadFolders() {
+      const list = document.getElementById('foldersList');
+      const result = await apiCall('listFolders');
+
+      if (result.success) {
+        document.getElementById('parentPath').textContent = result.data.parentDir;
+        const folders = result.data.folders;
+        if (folders.length === 0) {
+          list.innerHTML = '<div style="padding: 15px; color: var(--text-secondary);">Aucun dossier trouvé</div>';
+        } else {
+          list.innerHTML = folders.map(folder => `
+            <div class="folder-item">
+              <i class="fas ${folder.isGitRepo ? 'fa-git-alt' : 'fa-folder'}"></i>
+              <span>${folder.name}</span>
+              ${folder.isGitRepo ? '<small style="color: var(--accent-color);">(dépôt Git)</small>' : ''}
+            </div>
+          `).join('');
+        }
+      } else {
+        list.innerHTML = '<div style="padding: 15px; color: var(--text-secondary);">Erreur de chargement</div>';
+      }
+    }
+
+    async function cloneRepo() {
+      const url = document.getElementById('repoUrl').value.trim();
+      const targetDir = document.getElementById('folderName').value.trim();
+      const copyGitManager = document.getElementById('copyGitManager').checked;
+      const subfolder = 'git-manager'; // Toujours utiliser git-manager/
+
+      if (!url) {
+        showAlert('error', 'Veuillez entrer l\'URL du dépôt');
+        return;
+      }
+
+      const btn = document.getElementById('cloneBtn');
+      const loading = document.getElementById('loadingIndicator');
+      const resultBox = document.getElementById('resultBox');
+
+      btn.disabled = true;
+      loading.classList.add('visible');
+      resultBox.classList.remove('visible');
+
+      const result = await apiCall('clone', { url, targetDir, copyGitManager, subfolder });
+
+      btn.disabled = false;
+      loading.classList.remove('visible');
+
+      if (result.success) {
+        showAlert('success', 'Dépôt cloné avec succès !');
+        clonedPath = result.data.folderName;
+        document.getElementById('resultPath').textContent = result.data.path;
+
+        if (result.data.copiedFiles && result.data.copiedFiles.length > 0) {
+          document.getElementById('resultFiles').innerHTML =
+            '<i class="fas fa-copy"></i> Fichiers copiés dans git-manager/ : ' + result.data.copiedFiles.join(', ');
+        } else {
+          document.getElementById('resultFiles').textContent = '';
+        }
+
+        // Afficher les erreurs de copie s'il y en a
+        if (result.data.copyErrors && result.data.copyErrors.length > 0) {
+          showAlert('error', 'Erreurs de copie : ' + result.data.copyErrors.join(', '));
+        }
+
+        resultBox.classList.add('visible');
+        loadFolders();
+      } else {
+        showAlert('error', 'Erreur : ' + result.error);
+      }
+    }
+
+    function openClonedRepo() {
+      if (clonedPath) {
+        // Toujours ouvrir git-manager/git-manager.html dans le dépôt cloné
+        const path = '../' + clonedPath + '/git-manager/git-manager.html';
+        window.location.href = path;
+      }
+    }
+  </script>
+</body>
+
+</html>
