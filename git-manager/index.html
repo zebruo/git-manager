@@ -166,6 +166,7 @@
           <li>Credential Manager (git config --global credential.helper store ou wincred) : fonctionne sans <code>git-config.php</code>car les identifiants sont stockés au niveau global de Git.</li>
           <li>Le <code>git-config.php</code>est vraiment indispensable pour le SSH (qui ne fonctionnera pas si <code>sshKeyPath</code>est vide, le processus PHP ne trouvera pas les clés).</li>
         </ol>
+        <p>Voir aussi la page authentification Token/SSH dans l'interface git-manager.</p>
         <pre><code><span class="code-tag">&lt;?php</span>
 <span class="code-keyword">return</span> [
     <span class="code-comment">// Identité Git pour les commits</span>
@@ -190,7 +191,7 @@
         <ul>
           <li>Lancez <strong>git init</strong> depuis l'interface git-manager</li>
           <li>Le <code>.gitignore</code> est automatiquement créé avec <code>git-manager/</code></li>
-          <li>Copiez <code>git-config.example.php</code> en <code>git-config.php</code> et renseignez vos informations</li>
+          <li>Renommez <code>git-config.example.php</code> en <code>git-config.php</code> et renseignez vos informations</li>
         </ul>
         <p><strong>Clone</strong> — Git Manager s'occupe de tout :</p>
         <ul>
@@ -253,7 +254,7 @@
 
       <section style="text-align: center; padding: 20px 0;">
         <a href="git-manager.html" class="btn btn-primary">
-          <i class="fas fa-rocket"></i> Interface Git-manager
+          <i class="fas fa-rocket"></i> Interface git-manager
         </a>
       </section>
     </main>
