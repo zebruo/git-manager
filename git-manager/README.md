@@ -34,7 +34,7 @@ Interface web pour gérer un dépôt Git sans ligne de commande.
 - Fichiers modifiés (M)
 - Fichiers stagés (A)
 - Fichiers supprimés (D)
-- Fichiers non suivis (?)
+- Fichiers non suivis (U)
 - Commits en avance/retard par rapport au remote
 - Nombre de stashes en attente
 - Détection du HEAD détaché
