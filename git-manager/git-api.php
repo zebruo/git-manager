@@ -314,7 +314,7 @@ if ($action === 'clone') {
             $subfolder = 'git-manager'; // Valeur par défaut
         }
 
-        $filesToCopy = ['git-manager.html', 'git-api.php', 'git-config.example.php', 'git-clone.html', 'git-reset-remote.html', 'git-auth.html', 'index.html', 'git-help.html', 'flavicon.svg', 'README.md'];
+        $filesToCopy = ['git-manager.html', 'git-api.php', 'git-config.example.php', 'git-clone.html', 'git-reset-remote.html', 'git-auth.html', 'index.html', 'git-help.html', 'flavicon.svg'];
         $adminDir = __DIR__;
 
         $copyDestination = $fullTargetPath . DIRECTORY_SEPARATOR . $subfolder;
