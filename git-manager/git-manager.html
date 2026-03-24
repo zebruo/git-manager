@@ -1468,7 +1468,7 @@
         <div class="git-section">
           <h2><i class="fas fa-trash-alt"></i> Supprimer un fichier du dépôt</h2>
           <select id="deleteFileSelect" class="file-select">
-            <option value="">-- Sélectionner un fichier suivi --</option>
+            <option value="">-- Sélectionner un fichier ou dossier --</option>
           </select>
           <div class="btn-group">
             <button class="btn btn-danger" onclick="doRemoveFromRepo()">
@@ -2112,7 +2112,36 @@
       const files = allFiles || [];
 
       select.innerHTML = '<option value="">-- Sélectionner un fichier --</option>';
-      deleteSelect.innerHTML = '<option value="">-- Sélectionner un fichier suivi --</option>';
+      deleteSelect.innerHTML = '<option value="">-- Sélectionner un fichier ou dossier --</option>';
+
+      // Extraire les dossiers uniques pour le select delete
+      const dirs = new Set();
+      files.forEach(f => {
+        const parts = f.split('/');
+        for (let i = 1; i < parts.length; i++) {
+          dirs.add(parts.slice(0, i).join('/'));
+        }
+      });
+
+      if (dirs.size > 0) {
+        const sepDirs = document.createElement('option');
+        sepDirs.disabled = true;
+        sepDirs.textContent = '── Dossiers ──';
+        deleteSelect.appendChild(sepDirs);
+
+        Array.from(dirs).sort().forEach(dir => {
+          const opt = document.createElement('option');
+          opt.value = dir;
+          opt.dataset.isDir = 'true';
+          opt.textContent = '📁 ' + dir + '/';
+          deleteSelect.appendChild(opt);
+        });
+
+        const sepFiles = document.createElement('option');
+        sepFiles.disabled = true;
+        sepFiles.textContent = '── Fichiers ──';
+        deleteSelect.appendChild(sepFiles);
+      }
 
       files.forEach(f => {
         // Pour le select checkout
@@ -2525,26 +2554,30 @@
       }
     }
 
-    // Supprimer un fichier du dépôt ET du disque
+    // Supprimer un fichier ou dossier du dépôt ET du disque
     async function doRemoveFromRepo() {
-      const file = document.getElementById('deleteFileSelect').value;
+      const select = document.getElementById('deleteFileSelect');
+      const file = select.value;
+      const isDir = select.options[select.selectedIndex]?.dataset.isDir === 'true';
 
       if (!file) {
-        showAlert('error', 'Veuillez sélectionner un fichier');
+        showAlert('error', 'Veuillez sélectionner un fichier ou un dossier');
         return;
       }
 
-      const confirmed = await showConfirm(`ATTENTION: Le fichier "${file}" sera supprimé du dépôt ET de votre disque. Cette action est irréversible. Êtes-vous sûr ?`, true);
+      const label = isDir ? `le dossier "${file}/" et TOUS ses fichiers` : `le fichier "${file}"`;
+      const confirmed = await showConfirm(`ATTENTION: ${label} sera supprimé du dépôt ET de votre disque. Cette action est irréversible. Êtes-vous sûr ?`, true);
       if (!confirmed) return;
 
       terminalClear();
-      terminalLog(`$ git rm ${file}`, 'info');
+      terminalLog(`$ git rm ${isDir ? '-r ' : ''}${file}`, 'info');
 
-      const result = await apiCall('removeFromRepo', { file });
+      const result = await apiCall('removeFromRepo', { file, isDir });
 
       if (result.success) {
         terminalLog(result.output, 'success');
-        showAlert('success', `Fichier "${file}" supprimé. Sélectionnez le fichier D et faites Commit & Push !`);
+        const labelSuccess = isDir ? `Dossier "${file}/"` : `Fichier "${file}"`;
+        showAlert('success', `${labelSuccess} supprimé. Faites Commit & Push !`);
         loadStatus();
       } else {
         terminalLog(result.error, 'error');
@@ -2552,26 +2585,30 @@
       }
     }
 
-    // Arrêter le suivi d'un fichier (sans le supprimer du disque)
+    // Arrêter le suivi d'un fichier ou dossier (sans le supprimer du disque)
     async function doUntrackFile() {
-      const file = document.getElementById('deleteFileSelect').value;
+      const select = document.getElementById('deleteFileSelect');
+      const file = select.value;
+      const isDir = select.options[select.selectedIndex]?.dataset.isDir === 'true';
 
       if (!file) {
-        showAlert('error', 'Veuillez sélectionner un fichier');
+        showAlert('error', 'Veuillez sélectionner un fichier ou un dossier');
         return;
       }
 
-      const confirmed = await showConfirm(`Le fichier "${file}" sera retiré du suivi Git mais conservé sur votre disque. Voulez-vous continuer ?`);
+      const label = isDir ? `le dossier "${file}/" et tous ses fichiers` : `le fichier "${file}"`;
+      const confirmed = await showConfirm(`${label.charAt(0).toUpperCase() + label.slice(1)} sera retiré du suivi Git mais conservé sur votre disque. Voulez-vous continuer ?`);
       if (!confirmed) return;
 
       terminalClear();
-      terminalLog(`$ git rm --cached ${file}`, 'info');
+      terminalLog(`$ git rm --cached ${isDir ? '-r ' : ''}${file}`, 'info');
 
-      const result = await apiCall('untrackFile', { file });
+      const result = await apiCall('untrackFile', { file, isDir });
 
       if (result.success) {
         terminalLog(result.output, 'success');
-        showAlert('success', `Fichier "${file}" retiré du suivi. Sélectionnez le fichier D et faites Commit & Push !`);
+        const labelSuccess = isDir ? `Dossier "${file}/"` : `Fichier "${file}"`;
+        showAlert('success', `${labelSuccess} retiré du suivi. Faites Commit & Push !`);
         loadStatus();
       } else {
         terminalLog(result.error, 'error');

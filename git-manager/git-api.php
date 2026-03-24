@@ -1365,8 +1365,9 @@ switch ($action) {
         break;
 
     case 'removeFromRepo':
-        // Supprimer un fichier du dépôt ET du disque (git rm)
+        // Supprimer un fichier ou dossier du dépôt ET du disque (git rm)
         $file = $input['file'] ?? '';
+        $isDir = $input['isDir'] ?? false;
 
         if (empty($file) || !isValidFile($file)) {
             echo json_encode(['success' => false, 'error' => 'Fichier invalide']);
@@ -1374,18 +1375,21 @@ switch ($action) {
         }
 
         $fileEscaped = escapeArg($file);
-        $result = execGit("git rm {$fileEscaped}");
+        $flag = $isDir ? '-r ' : '';
+        $result = execGit("git rm {$flag}{$fileEscaped}");
 
         if ($result['code'] !== 0) {
             echo json_encode(['success' => false, 'error' => $result['output']]);
         } else {
-            echo json_encode(['success' => true, 'output' => $result['output'] ?: "Fichier '{$file}' supprimé du dépôt et du disque"]);
+            $label = $isDir ? "Dossier '{$file}'" : "Fichier '{$file}'";
+            echo json_encode(['success' => true, 'output' => $result['output'] ?: "{$label} supprimé du dépôt et du disque"]);
         }
         break;
 
     case 'untrackFile':
-        // Arrêter le suivi d'un fichier sans le supprimer du disque (git rm --cached)
+        // Arrêter le suivi d'un fichier ou dossier sans le supprimer du disque (git rm --cached)
         $file = $input['file'] ?? '';
+        $isDir = $input['isDir'] ?? false;
 
         if (empty($file) || !isValidFile($file)) {
             echo json_encode(['success' => false, 'error' => 'Fichier invalide']);
@@ -1393,12 +1397,14 @@ switch ($action) {
         }
 
         $fileEscaped = escapeArg($file);
-        $result = execGit("git rm --cached {$fileEscaped}");
+        $flag = $isDir ? '-r ' : '';
+        $result = execGit("git rm --cached {$flag}{$fileEscaped}");
 
         if ($result['code'] !== 0) {
             echo json_encode(['success' => false, 'error' => $result['output']]);
         } else {
-            echo json_encode(['success' => true, 'output' => $result['output'] ?: "Fichier '{$file}' retiré du suivi Git (conservé sur le disque)"]);
+            $label = $isDir ? "Dossier '{$file}'" : "Fichier '{$file}'";
+            echo json_encode(['success' => true, 'output' => $result['output'] ?: "{$label} retiré du suivi Git (conservé sur le disque)"]);
         }
         break;
 
