@@ -45,7 +45,9 @@ Interface web pour gérer un dépôt Git sans ligne de commande.
 - **Tout sélectionner** : Sélectionner tous les fichiers d'un coup
 - **Commit** : Enregistrer les modifications localement
 - **Commit & Push** : Commit + envoi vers GitHub en une action
+- **Amend** : Ajouter les fichiers sélectionnés au dernier commit sans changer son message (`git commit --amend --no-edit`). Compatible avec les suppressions déjà stagées (fichiers D).
 - **Historique** : Liste des 20 derniers commits avec hash, message, auteur et date
+- **Détail d'un commit** : Affiche les fichiers modifiés et les statistiques d'un commit dans le terminal (bouton loupe, `git show --stat`)
 - **Checkout sur un commit** : Se placer sur un ancien commit (HEAD détaché) depuis l'historique
 - **Créer une branche depuis un HEAD détaché** : Sauvegarder un état exploré dans une nouvelle branche
 
@@ -90,8 +92,9 @@ Interface web pour gérer un dépôt Git sans ligne de commande.
 
 ### Suppression de fichiers
 
-- **Supprimer (dépôt + disque)** : Supprime le fichier complètement
-- **Arrêter le suivi** : Retire du dépôt mais conserve sur le disque
+- **Supprimer (dépôt + disque)** : Supprime le fichier ou le dossier complètement (`git rm -r`)
+- **Arrêter le suivi** : Retire du dépôt mais conserve sur le disque (`git rm --cached -r`)
+- Sélection par fichier individuel ou par dossier entier
 
 ### Gestion du .gitignore
 
