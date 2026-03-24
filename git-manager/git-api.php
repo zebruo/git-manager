@@ -1205,6 +1205,25 @@ switch ($action) {
         }
         break;
 
+    case 'showCommit':
+        // Voir le détail d'un commit (git show --stat)
+        $hash = $input['hash'] ?? 'HEAD';
+
+        if (!preg_match('/^[a-f0-9]{7,40}$/', $hash) && $hash !== 'HEAD') {
+            echo json_encode(['success' => false, 'error' => 'Hash de commit invalide']);
+            break;
+        }
+
+        $hashEscaped = escapeArg($hash);
+        $result = execGit('git show --stat ' . $hashEscaped);
+
+        if ($result['code'] !== 0) {
+            echo json_encode(['success' => false, 'error' => $result['output']]);
+        } else {
+            echo json_encode(['success' => true, 'output' => $result['output']]);
+        }
+        break;
+
     case 'diff':
         // Voir les différences d'un fichier
         $file = $input['file'] ?? '';

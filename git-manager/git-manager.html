@@ -2178,7 +2178,10 @@
                 <span><i class="fas fa-calendar"></i>${commit.date}</span>
               </div>
             </div>
-            <div class="commit-actions">
+            <div class="commit-actions" style="gap: 5px; display: flex;">
+              <button class="checkout-commit-btn" onclick="showCommitDetail('${commit.hash}')" title="Voir le détail de ce commit (git show --stat)">
+                <i class="fas fa-search"></i>
+              </button>
               <button class="checkout-commit-btn" onclick="checkoutCommit('${commit.hash}')" title="Se placer sur ce commit (HEAD détaché)">
                 <i class="fas fa-sign-in-alt"></i>
               </button>
@@ -2187,6 +2190,21 @@
         `).join('');
       } else {
         historyList.innerHTML = '<div class="empty-state"><i class="fas fa-history"></i><p>Aucun commit trouvé</p></div>';
+      }
+    }
+
+    // Voir le détail d'un commit (git show --stat)
+    async function showCommitDetail(hash) {
+      terminalClear();
+      terminalLog(`$ git show --stat ${hash}`, 'info');
+
+      const result = await apiCall('showCommit', { hash });
+
+      if (result.success) {
+        terminalLog(result.output, 'success');
+      } else {
+        terminalLog(result.error, 'error');
+        showAlert('error', 'Erreur : ' + result.error);
       }
     }
 
