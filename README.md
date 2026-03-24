@@ -16,7 +16,6 @@ Interface web pour gérer un dépôt Git sans ligne de commande.
 | `git-help.html` | Documentation d'aide (chargée dans l'interface principale) |
 | `index.html` | Page d'accueil du dossier git-manager |
 | `flavicon.svg` | Icône SVG du projet (logo Git en #45b7af) |
-| `README.md` | Documentation du projet Git Manager |
 
 ## Fonctionnalités
 
@@ -199,8 +198,7 @@ mon-projet/              <- Dépôt Git géré
 │   ├── git-reset-remote.html
 │   ├── git-help.html
 │   ├── index.html
-│   ├── flavicon.svg
-│   └── README.md
+│   └── flavicon.svg
 ├── index.html               (M) modifié
 ├── style.css                (A) stagé
 ├── script.js                (U) non suivi
