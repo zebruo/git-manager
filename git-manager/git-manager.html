@@ -337,6 +337,7 @@
       margin-right: 12px;
       font-size: 12px;
       font-weight: bold;
+      flex-shrink: 0;
     }
 
     .file-status.modified {
@@ -1223,13 +1224,13 @@
         <a href="git-auth.html" class="btn btn-secondary" title="Authentification SSH / Token">
           <i class="fas fa-key"></i>
         </a>
-        <button class="btn btn-secondary" onclick="showHelpModal()" title="Aide">
+        <button class="btn btn-secondary" onclick="showHelpModal()" title="Ouvrir la documentation">
           <i class="fas fa-question-circle"></i>
         </button>
         <a href="index.html" class="btn btn-secondary" id="resetRemoteBtn" title="Git Manager - Accueil">
           <i class="fa-solid fa-hand-point-up"></i>
         </a>
-        <button class="btn btn-secondary" onclick="toggleDarkMode()" id="darkModeBtn" title="Mode sombre">
+        <button class="btn btn-secondary" onclick="toggleDarkMode()" id="darkModeBtn" title="Basculer le thème clair/sombre">
           <i class="fas fa-moon"></i>
         </button>
         <button class="btn btn-primary" onclick="refreshAll()" id="refreshAllBtn" title="Actualiser tout">
@@ -1322,14 +1323,14 @@
             </div>
           </div>
           <div class="btn-group" style="margin-bottom: 10px;">
-            <button class="btn btn-secondary" onclick="doFetch()">
+            <button class="btn btn-secondary" onclick="doFetch()" title="Vérifier les nouveautés sans modifier les fichiers locaux">
               <i class="fas fa-sync"></i> Fetch
             </button>
-            <button class="btn btn-success" onclick="doPush()">
+            <button class="btn btn-success" onclick="doPush()" title="Envoyer vos commits vers GitHub">
               <i class="fas fa-upload"></i> Push
             </button>
             <div class="pull-container">
-              <button class="btn btn-primary" onclick="doPull()">
+              <button class="btn btn-primary" onclick="doPull()" title="Récupérer et fusionner les modifications depuis GitHub">
                 <i class="fas fa-download"></i> Pull
               </button>
               <label class="pull-rebase-label"
@@ -1348,7 +1349,7 @@
               <option value="__freshstart__">🔄 Nouveau départ (fichiers actuels, sans historique)</option>
             </select>
             <input type="text" id="newBranchName" placeholder="Nom de la nouvelle branche" style="flex: 1;">
-            <button class="btn btn-primary" onclick="createBranch()">
+            <button class="btn btn-primary" onclick="createBranch()" title="Créer une nouvelle branche">
               <i class="fas fa-plus"></i> Créer
             </button>
           </div>
@@ -1374,25 +1375,27 @@
             <div class="commit-form">
               <div class="btn-group" style="margin-bottom: 10px;">
                 <button class="btn btn-secondary" onclick="stageFiles()"
-                  title="Ajouter les fichiers sélectionnés au staging">
+                  title="Ajouter les fichiers cochés à la zone de staging">
                   <i class="fas fa-plus-circle"></i> Stager
                 </button>
                 <button class="btn btn-secondary" onclick="unstageFiles()"
-                  title="Retirer les fichiers sélectionnés du staging">
+                  title="Retirer les fichiers cochés de la zone de staging">
                   <i class="fas fa-minus-circle"></i> Unstager
                 </button>
               </div>
               <textarea id="commitMessage" placeholder="Message du commit..."></textarea>
               <div class="btn-group" style="flex-wrap: nowrap;">
-                <button class="btn btn-primary" onclick="doCommit()" id="commitBtn">
+                <button class="btn btn-warning" onclick="doAmendLastCommit()" id="amendBtn"
+                  title="Ajouter les fichiers sélectionnés au dernier commit sans changer son message (git commit --amend --no-edit). À utiliser de préférence avant le Push.">
+                  <i class="fas fa-pen-to-square"></i> Amend
+                </button>
+                <button class="btn btn-primary" onclick="doCommit()" id="commitBtn"
+                  title="Enregistrer les fichiers cochés dans l'historique local">
                   <i class="fas fa-check"></i> Commit
                 </button>
-                <button class="btn btn-success" onclick="doCommitAndPush()" id="commitPushBtn">
+                <button class="btn btn-success" onclick="doCommitAndPush()" id="commitPushBtn"
+                  title="Commit puis envoi vers GitHub en une seule action">
                   <i class="fas fa-upload"></i> Commit & Push
-                </button>
-                <button class="btn btn-warning" onclick="doAmendLastCommit()" id="amendBtn"
-                  title="Ajouter les fichiers sélectionnés au dernier commit sans changer son message (git commit --amend --no-edit)">
-                  <i class="fas fa-pen-to-square"></i> Amend
                 </button>
               </div>
             </div>
@@ -1408,11 +1411,11 @@
                 placeholder="Message descriptif (optionnel)">
               <label
                 style="display: flex; align-items: center; gap: 5px; color: var(--text-secondary); font-size: 0.9em; white-space: nowrap;">
-                <input type="checkbox" id="stashIncludeUntracked" checked> + non suivis
+                <input type="checkbox" id="stashIncludeUntracked" checked title="Inclure les fichiers non suivis (U) dans le stash"> + non suivis
               </label>
             </div>
             <div class="btn-group" style="margin-top: 0;">
-              <button class="btn btn-primary" onclick="doStashSave()">
+              <button class="btn btn-primary" onclick="doStashSave()" title="Sauvegarder temporairement vos modifications sans faire de commit">
                 <i class="fas fa-archive"></i> Mettre de côté
               </button>
             </div>
@@ -1447,10 +1450,10 @@
             </select>
           </div>
           <div class="btn-group">
-            <button class="btn btn-secondary" onclick="doCheckout()">
+            <button class="btn btn-secondary" onclick="doCheckout()" title="Restaurer le fichier sélectionné à la version choisie">
               <i class="fas fa-undo"></i> Récupérer
             </button>
-            <button class="btn btn-danger" onclick="doDiscardAll()">
+            <button class="btn btn-danger" onclick="doDiscardAll()" title="Annuler toutes les modifications non committées (irréversible)">
               <i class="fas fa-trash"></i> Annuler toutes les modifications
             </button>
           </div>
@@ -1471,10 +1474,10 @@
             <option value="">-- Sélectionner un fichier ou dossier --</option>
           </select>
           <div class="btn-group">
-            <button class="btn btn-danger" onclick="doRemoveFromRepo()">
+            <button class="btn btn-danger" onclick="doRemoveFromRepo()" title="Supprimer le fichier du dépôt ET du disque (définitif)">
               <i class="fas fa-trash"></i> Supprimer (dépôt + disque)
             </button>
-            <button class="btn btn-secondary" onclick="doUntrackFile()">
+            <button class="btn btn-secondary" onclick="doUntrackFile()" title="Retirer du dépôt mais conserver sur le disque">
               <i class="fas fa-eye-slash"></i> Arrêter le suivi uniquement
             </button>
           </div>
@@ -1514,14 +1517,14 @@
                 <select id="untrackedFiles" class="file-select" style="flex:1;margin-bottom:0;">
                   <option value="">-- Fichiers non suivis --</option>
                 </select>
-                <button class="btn btn-secondary" onclick="addToGitignore()" style="white-space:nowrap;">
+                <button class="btn btn-secondary" onclick="addToGitignore()" style="white-space:nowrap;" title="Git ne suivra plus ce fichier et ne le proposera plus dans la liste des fichiers à commiter">
                   <i class="fas fa-plus"></i> Ignorer
                 </button>
               </div>
               <div style="margin-top:10px;display:flex;gap:10px;">
                 <input type="text" id="customIgnore" class="file-select" style="flex:1;margin-bottom:0;"
                   placeholder="Ou saisir manuellement (ex: *.log, temp/)">
-                <button class="btn btn-secondary" onclick="addCustomToGitignore()" style="white-space:nowrap;">
+                <button class="btn btn-secondary" onclick="addCustomToGitignore()" style="white-space:nowrap;" title="Ajouter le pattern saisi manuellement au .gitignore">
                   <i class="fas fa-plus"></i> Ajouter
                 </button>
               </div>
