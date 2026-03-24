@@ -2397,17 +2397,18 @@
       }
 
       const filesToAdd = selectedFiles.filter(f => f.status !== 'deleted').map(f => f.name);
-
-      if (filesToAdd.length === 0) {
-        showAlert('error', 'Aucun fichier à ajouter au commit');
-        return;
-      }
+      const hasStaged = selectedFiles.some(f => f.status === 'deleted');
 
       terminalClear();
-      terminalLog('$ git add ' + filesToAdd.join(' '), 'info');
+      if (filesToAdd.length > 0) {
+        terminalLog('$ git add ' + filesToAdd.join(' '), 'info');
+      }
+      if (hasStaged) {
+        terminalLog('$ (suppressions déjà stagées incluses)', 'info');
+      }
       terminalLog('$ git commit --amend --no-edit', 'info');
 
-      const result = await apiCall('amendLastCommit', { files: filesToAdd });
+      const result = await apiCall('amendLastCommit', { files: filesToAdd, hasStaged });
 
       if (result.success) {
         terminalLog(result.output, 'success');

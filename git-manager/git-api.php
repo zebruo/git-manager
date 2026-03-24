@@ -1027,27 +1027,29 @@ switch ($action) {
     case 'amendLastCommit':
         // Ajouter des fichiers au dernier commit (git add + git commit --amend --no-edit)
         $files = $input['files'] ?? [];
+        $hasStaged = $input['hasStaged'] ?? false;
 
-        if (empty($files)) {
+        if (empty($files) && !$hasStaged) {
             echo json_encode(['success' => false, 'error' => 'Fichiers requis']);
             exit;
         }
 
-        // Valider les fichiers
-        foreach ($files as $file) {
-            if (!isValidFile($file)) {
-                echo json_encode(['success' => false, 'error' => 'Nom de fichier invalide']);
+        // Valider et ajouter les fichiers (si fournis)
+        if (!empty($files)) {
+            foreach ($files as $file) {
+                if (!isValidFile($file)) {
+                    echo json_encode(['success' => false, 'error' => 'Nom de fichier invalide']);
+                    exit;
+                }
+            }
+
+            $filesEscaped = implode(' ', array_map('escapeArg', $files));
+            $addResult = execGit('git add ' . $filesEscaped);
+
+            if ($addResult['code'] !== 0) {
+                echo json_encode(['success' => false, 'error' => 'Erreur git add: ' . $addResult['output']]);
                 exit;
             }
-        }
-
-        // Ajouter les fichiers
-        $filesEscaped = implode(' ', array_map('escapeArg', $files));
-        $addResult = execGit('git add ' . $filesEscaped);
-
-        if ($addResult['code'] !== 0) {
-            echo json_encode(['success' => false, 'error' => 'Erreur git add: ' . $addResult['output']]);
-            exit;
         }
 
         // Amender le dernier commit sans modifier le message
