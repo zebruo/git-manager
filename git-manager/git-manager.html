@@ -418,7 +418,7 @@
       padding: 12px 20px;
       border: none;
       border-radius: 8px;
-      font-size: 1em;
+      font-size: 0.8em;
       font-weight: 600;
       cursor: pointer;
       display: flex;
@@ -465,6 +465,16 @@
 
     .btn-success:hover {
       background: #388e3c;
+      transform: translateY(-2px);
+    }
+
+    .btn-warning {
+      background: #ff9800;
+      color: white;
+    }
+
+    .btn-warning:hover {
+      background: #f57c00;
       transform: translateY(-2px);
     }
 
@@ -1373,12 +1383,16 @@
                 </button>
               </div>
               <textarea id="commitMessage" placeholder="Message du commit..."></textarea>
-              <div class="btn-group">
+              <div class="btn-group" style="flex-wrap: nowrap;">
                 <button class="btn btn-primary" onclick="doCommit()" id="commitBtn">
                   <i class="fas fa-check"></i> Commit
                 </button>
                 <button class="btn btn-success" onclick="doCommitAndPush()" id="commitPushBtn">
                   <i class="fas fa-upload"></i> Commit & Push
+                </button>
+                <button class="btn btn-warning" onclick="doAmendLastCommit()" id="amendBtn"
+                  title="Ajouter les fichiers sélectionnés au dernier commit sans changer son message (git commit --amend --no-edit)">
+                  <i class="fas fa-pen-to-square"></i> Amend
                 </button>
               </div>
             </div>
@@ -2323,6 +2337,39 @@
       } else {
         terminalLog(result.error, 'error');
         showAlert('error', 'Erreur: ' + result.error);
+      }
+    }
+
+    // Amend - Ajouter des fichiers au dernier commit sans changer le message
+    async function doAmendLastCommit() {
+      const selectedFiles = getSelectedFilesWithStatus();
+
+      if (selectedFiles.length === 0) {
+        showAlert('error', 'Veuillez sélectionner au moins un fichier');
+        return;
+      }
+
+      const filesToAdd = selectedFiles.filter(f => f.status !== 'deleted').map(f => f.name);
+
+      if (filesToAdd.length === 0) {
+        showAlert('error', 'Aucun fichier à ajouter au commit');
+        return;
+      }
+
+      terminalClear();
+      terminalLog('$ git add ' + filesToAdd.join(' '), 'info');
+      terminalLog('$ git commit --amend --no-edit', 'info');
+
+      const result = await apiCall('amendLastCommit', { files: filesToAdd });
+
+      if (result.success) {
+        terminalLog(result.output, 'success');
+        showAlert('success', 'Fichiers ajoutés au dernier commit avec succès');
+        loadStatus();
+        loadHistory();
+      } else {
+        terminalLog(result.error, 'error');
+        showAlert('error', 'Erreur lors du amend: ' + result.error);
       }
     }
 

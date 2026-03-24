@@ -1024,6 +1024,43 @@ switch ($action) {
         ]);
         break;
 
+    case 'amendLastCommit':
+        // Ajouter des fichiers au dernier commit (git add + git commit --amend --no-edit)
+        $files = $input['files'] ?? [];
+
+        if (empty($files)) {
+            echo json_encode(['success' => false, 'error' => 'Fichiers requis']);
+            exit;
+        }
+
+        // Valider les fichiers
+        foreach ($files as $file) {
+            if (!isValidFile($file)) {
+                echo json_encode(['success' => false, 'error' => 'Nom de fichier invalide']);
+                exit;
+            }
+        }
+
+        // Ajouter les fichiers
+        $filesEscaped = implode(' ', array_map('escapeArg', $files));
+        $addResult = execGit('git add ' . $filesEscaped);
+
+        if ($addResult['code'] !== 0) {
+            echo json_encode(['success' => false, 'error' => 'Erreur git add: ' . $addResult['output']]);
+            exit;
+        }
+
+        // Amender le dernier commit sans modifier le message
+        $amendResult = execGit('git commit --amend --no-edit');
+
+        if ($amendResult['code'] !== 0) {
+            echo json_encode(['success' => false, 'error' => 'Erreur git commit --amend: ' . $amendResult['output']]);
+            exit;
+        }
+
+        echo json_encode(['success' => true, 'output' => $amendResult['output']]);
+        break;
+
     case 'push':
         // Obtenir la branche courante
         $currentBranch = trim(execGit('git branch --show-current')['output']);
