@@ -1024,6 +1024,24 @@ switch ($action) {
         ]);
         break;
 
+    case 'revertCommit':
+        $hash = $input['hash'] ?? '';
+
+        if (empty($hash) || !preg_match('/^[a-f0-9]{4,40}$/i', $hash)) {
+            echo json_encode(['success' => false, 'error' => 'Hash invalide']);
+            exit;
+        }
+
+        $result = execGit('git revert ' . escapeshellarg($hash) . ' --no-edit');
+
+        if ($result['code'] !== 0) {
+            echo json_encode(['success' => false, 'error' => $result['output']]);
+            exit;
+        }
+
+        echo json_encode(['success' => true, 'output' => $result['output']]);
+        break;
+
     case 'amendLastCommit':
         // Ajouter des fichiers au dernier commit (git add + git commit --amend --no-edit)
         $files = $input['files'] ?? [];

@@ -82,7 +82,7 @@
     </dl>
     <div
       style="margin-top: 15px; font-size: 0.85em; background: var(--bg-secondary); padding: 10px; border-radius: 6px;">
-      <div style="margin-bottom: 8px;"><strong>3 façons de revenir en arrière :</strong></div>
+      <div style="margin-bottom: 8px;"><strong>4 façons de revenir en arrière :</strong></div>
       <table style="width: 100%; font-size: 0.95em; border-collapse: collapse;">
         <tr>
           <td style="padding: 4px 8px;"><strong><i class="fas fa-undo"></i> Récupérer</strong></td>
@@ -91,8 +91,13 @@
         </tr>
         <tr>
           <td style="padding: 4px 8px;"><strong><i class="fas fa-sign-in-alt"></i> Checkout commit</strong></td>
-          <td style="padding: 4px 8px;">Revient sur un ancien commit (<strong>tout le projet</strong>)</td>
+          <td style="padding: 4px 8px;">Explorer un ancien commit (<strong>tout le projet</strong>)</td>
           <td style="padding: 4px 8px; color: #ff9800;">HEAD détaché</td>
+        </tr>
+        <tr>
+          <td style="padding: 4px 8px;"><strong><i class="fas fa-undo" style="color:#f44336;"></i> Revert</strong></td>
+          <td style="padding: 4px 8px;">Annule un commit en créant un <strong>nouveau commit inverse</strong></td>
+          <td style="padding: 4px 8px; color: #4caf50;">N'écrase pas l'historique</td>
         </tr>
         <tr>
           <td style="padding: 4px 8px;"><strong><i class="fas fa-trash"></i> Annuler tout</strong></td>
@@ -100,6 +105,17 @@
           <td style="padding: 4px 8px; color: #f44336;">Irréversible</td>
         </tr>
       </table>
+      <div style="margin-top: 10px; font-size: 0.9em; background: var(--bg-color); padding: 8px; border-radius: 6px;">
+        <strong><i class="fas fa-info-circle"></i> Revert vs Checkout :</strong>
+        <div style="margin-top: 6px; font-family: 'Consolas', monospace; line-height: 1.8;">
+          <div>A → B → C → D &nbsp;<span style="color: var(--text-secondary);">(main)</span></div>
+          <div style="margin-top: 6px;"><span style="color: #ff9800;">git checkout B</span> → tu vois le code au moment de B, mais D existe toujours</div>
+          <div style="margin-top: 6px;"><span style="color: #f44336;">git revert D</span> → crée un commit E qui annule D :</div>
+          <div style="margin-top: 4px;">A → B → C → D → <span style="color: #4caf50;">E</span> &nbsp;<span style="color: var(--text-secondary);">(main)</span></div>
+          <div style="margin-top: 10px;"><span style="color: #f44336;">git revert</span> d'un revert → annule l'annulation (équivalent Ctrl+Y) :</div>
+          <div style="margin-top: 4px;">A → B → C → <span style="color: #f44336;">Revert "C"</span> → <span style="color: #4caf50;">Revert "Revert C"</span></div>
+        </div>
+      </div>
       <div style="margin-top: 8px; color: var(--text-secondary);"><i class="fas fa-info-circle"></i> En cas de doute,
         utilisez le <strong>Stash</strong> pour sauvegarder vos modifications avant de revenir en arrière.</div>
     </div>
@@ -157,8 +173,6 @@
       <dd>Supprime TOUTES les modifications non committées. <strong>Irréversible !</strong></dd>
       <dt><i class="fas fa-trash-alt"></i> Supprimer (dépôt + disque)</dt>
       <dd>Supprime le fichier du dépôt ET de votre disque. <strong>Définitif !</strong></dd>
-      <dt><i class="fas fa-eye-slash"></i> Arrêter le suivi</dt>
-      <dd>Retire le fichier du dépôt mais le conserve sur le disque.</dd>
     </dl>
   </div>
   <div class="help-category">
