@@ -179,30 +179,43 @@
     <h4><i class="fas fa-pen-to-square" style="color: #ff9800;"></i> Amend (modifier le dernier commit)</h4>
     <dl>
       <dt><i class="fas fa-pen-to-square" style="color: #ff9800;"></i> Bouton Amend</dt>
-      <dd>Ajoute les fichiers cochés au <strong>dernier commit</strong> sans changer son message. Utile quand vous avez
-        oublié un fichier ou fait une petite correction après avoir commité.</dd>
+      <dd>Modifie le <strong>dernier commit</strong>. Vous pouvez l'utiliser pour trois choses, seules ou combinées :
+        <ul style="margin-top: 6px;">
+          <li>Ajouter des fichiers oubliés (cochez-les avant de cliquer Amend)</li>
+          <li>Changer le message (saisissez-en un nouveau dans le champ message avant de cliquer Amend)</li>
+          <li>Inclure des fichiers déjà stagés (ils sont pris automatiquement, sans avoir à les re-cocher)</li>
+        </ul>
+      </dd>
     </dl>
     <div
       style="margin-top: 15px; font-size: 0.85em; background: var(--bg-secondary); padding: 10px; border-radius: 6px;">
-      <div style="margin-bottom: 8px;"><strong>Commandes exécutées :</strong></div>
+      <div style="margin-bottom: 8px;"><strong>Commandes exécutées selon le cas :</strong></div>
       <div
         style="font-family: 'Consolas', monospace; background: #1e1e1e; color: #d4d4d4; padding: 10px; border-radius: 6px; line-height: 1.8;">
-        <div><span style="color: #6a9955;"># Sélectionnez le(s) fichier(s) oubliés puis cliquez Amend</span></div>
+        <div><span style="color: #6a9955;"># Ajouter un fichier oublié (sans changer le message)</span></div>
         <div><span style="color: #569cd6;">git add</span> <span style="color: #ce9178;">fichier.txt</span></div>
         <div><span style="color: #569cd6;">git commit</span> <span style="color: #ff9800;">--amend --no-edit</span></div>
+        <div style="margin-top: 8px;"><span style="color: #6a9955;"># Changer uniquement le message</span></div>
+        <div><span style="color: #569cd6;">git commit</span> <span style="color: #ff9800;">--amend -m</span> <span style="color: #ce9178;">"Nouveau message"</span></div>
+        <div style="margin-top: 8px;"><span style="color: #6a9955;"># Les deux à la fois</span></div>
+        <div><span style="color: #569cd6;">git add</span> <span style="color: #ce9178;">fichier.txt</span></div>
+        <div><span style="color: #569cd6;">git commit</span> <span style="color: #ff9800;">--amend -m</span> <span style="color: #ce9178;">"Nouveau message"</span></div>
       </div>
-      <div style="margin-top: 10px;"><strong>Exemple :</strong></div>
-      <div style="margin-top: 5px;">1. Vous committez "Ajout du formulaire de contact"</div>
-      <div style="margin-top: 5px;">2. Vous réalisez qu'il manque <em>style.css</em></div>
-      <div style="margin-top: 5px;">3. Cochez <em>style.css</em> → cliquez <strong>Amend</strong></div>
-      <div style="margin-top: 5px;">4. <em>style.css</em> est intégré au commit précédent, comme s'il y était depuis le début</div>
+      <div style="margin-top: 10px;"><strong>Exemples :</strong></div>
+      <div style="margin-top: 5px;">• Vous committez "Ajout du formulaire de contact" en oubliant <em>style.css</em>
+        → cochez <em>style.css</em> et cliquez <strong>Amend</strong></div>
+      <div style="margin-top: 5px;">• Vous constatez une faute dans le message du dernier commit
+        → corrigez-le dans le champ message et cliquez <strong>Amend</strong> (sans rien cocher)</div>
+      <div style="margin-top: 5px;">• Vous avez déjà stagé un fichier via le bouton Stager
+        → cliquez <strong>Amend</strong> directement, il est inclus automatiquement</div>
     </div>
     <div
       style="margin-top: 10px; font-size: 0.85em; padding: 10px; border-radius: 6px; background: rgba(244, 67, 54, 0.08); border-left: 3px solid #f44336;">
       <strong><i class="fas fa-exclamation-triangle" style="color: #f44336;"></i> Attention :</strong>
       L'amend <strong>réécrit</strong> le commit (nouveau hash). Si ce commit a déjà été <strong>pushé</strong> sur le
-      remote, votre historique local diverge de GitHub — faites un <strong>Pull</strong> puis un <strong>Push</strong>
-      pour resynchroniser. À utiliser de préférence avant le Push.
+      remote, un <strong>git push --force</strong> sera nécessaire pour écraser l'ancien commit sur GitHub — l'interface
+      vous en avertit automatiquement. À utiliser de préférence <strong>avant</strong> le Push, et uniquement sur une
+      branche personnelle non partagée.
     </div>
   </div>
   <div class="help-category">

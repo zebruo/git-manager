@@ -1043,12 +1043,15 @@ switch ($action) {
         break;
 
     case 'amendLastCommit':
-        // Ajouter des fichiers au dernier commit (git add + git commit --amend --no-edit)
         $files = $input['files'] ?? [];
         $hasStaged = $input['hasStaged'] ?? false;
+        $message = trim($input['message'] ?? '');
 
-        if (empty($files) && !$hasStaged) {
-            echo json_encode(['success' => false, 'error' => 'Fichiers requis']);
+        // Vérifie si des fichiers sont déjà stagés dans git (git diff --cached)
+        $alreadyStaged = trim(execGit('git diff --cached --name-only')['output']) !== '';
+
+        if (empty($files) && !$hasStaged && $message === '' && !$alreadyStaged) {
+            echo json_encode(['success' => false, 'error' => 'Fichiers ou message requis']);
             exit;
         }
 
@@ -1070,8 +1073,12 @@ switch ($action) {
             }
         }
 
-        // Amender le dernier commit sans modifier le message
-        $amendResult = execGit('git commit --amend --no-edit');
+        // Amender : avec ou sans changement de message
+        if ($message !== '') {
+            $amendResult = execGit('git commit --amend -m ' . escapeArg($message));
+        } else {
+            $amendResult = execGit('git commit --amend --no-edit');
+        }
 
         if ($amendResult['code'] !== 0) {
             echo json_encode(['success' => false, 'error' => 'Erreur git commit --amend: ' . $amendResult['output']]);

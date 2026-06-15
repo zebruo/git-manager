@@ -1403,7 +1403,7 @@
               <textarea id="commitMessage" placeholder="Message du commit..."></textarea>
               <div class="btn-group" style="flex-wrap: nowrap;">
                 <button class="btn btn-warning" onclick="doAmendLastCommit()" id="amendBtn"
-                  title="Ajouter les fichiers sélectionnés au dernier commit sans changer son message (git commit --amend --no-edit). À utiliser de préférence avant le Push.">
+                  title="Modifier le dernier commit : ajoute les fichiers sélectionnés et/ou change le message si le champ est renseigné (git commit --amend). À utiliser de préférence avant le Push.">
                   <i class="fas fa-pen-to-square"></i> Amend
                 </button>
                 <button class="btn btn-primary" onclick="doCommit()" id="commitBtn"
@@ -1561,6 +1561,7 @@
   <script>
     const API_URL = 'git-api.php';
     let modalResolve = null;
+    let currentAhead = 0;
 
     // Initialisation
     document.addEventListener('DOMContentLoaded', async function () {
@@ -1914,6 +1915,7 @@
           const allFiles = data.allFiles || [];
           const totalStaged = staged.length + stagedDeleted.length;
           const totalTracked = allFiles.length;
+          currentAhead = data.ahead || 0;
           const branchDisplay = data.isDetached
             ? `<span style="color: #ff9800;"><i class="fas fa-exclamation-triangle"></i> HEAD détaché</span> <code>${data.detachedAt || '?'}</code>`
             : (data.branch || '—');
@@ -2434,13 +2436,20 @@
       }
     }
 
-    // Amend - Ajouter des fichiers au dernier commit sans changer le message
+    // Amend - Ajouter des fichiers au dernier commit et/ou changer le message
     async function doAmendLastCommit() {
       const selectedFiles = getSelectedFilesWithStatus();
+      const message = document.getElementById('commitMessage').value.trim();
 
-      if (selectedFiles.length === 0) {
-        showAlert('error', 'Veuillez sélectionner au moins un fichier');
+      const hasStagedInList = document.querySelectorAll('.file-checkbox[data-status="added"]').length > 0;
+      if (selectedFiles.length === 0 && !message && !hasStagedInList) {
+        showAlert('error', 'Sélectionnez des fichiers et/ou saisissez un nouveau message');
         return;
+      }
+
+      if (currentAhead === 0) {
+        const ok = confirm('Ce commit a déjà été pushé sur le remote.\nUn git push --force sera nécessaire pour l\'écraser.\nContinuer quand même ?');
+        if (!ok) return;
       }
 
       const filesToAdd = selectedFiles.filter(f => f.status !== 'deleted').map(f => f.name);
@@ -2453,13 +2462,15 @@
       if (hasStaged) {
         terminalLog('$ (suppressions déjà stagées incluses)', 'info');
       }
-      terminalLog('$ git commit --amend --no-edit', 'info');
+      terminalLog(message ? `$ git commit --amend -m "${message}"` : '$ git commit --amend --no-edit', 'info');
 
-      const result = await apiCall('amendLastCommit', { files: filesToAdd, hasStaged });
+      const result = await apiCall('amendLastCommit', { files: filesToAdd, hasStaged, message });
 
       if (result.success) {
         terminalLog(result.output, 'success');
-        showAlert('success', 'Fichiers ajoutés au dernier commit avec succès');
+        const msg = message ? 'Commit amendé avec succès' : 'Fichiers ajoutés au dernier commit avec succès';
+        showAlert('success', msg);
+        if (message) document.getElementById('commitMessage').value = '';
         loadStatus();
         loadHistory();
       } else {
