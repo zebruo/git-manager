@@ -640,6 +640,71 @@ function filterGitWarnings($lines) {
     });
 }
 
+// Sauvegarder git-manager/ dans un dossier temporaire, retourne le chemin ou null
+function backupGitManager(string $repoPath): ?string {
+    $gitManagerPath = $repoPath . DIRECTORY_SEPARATOR . 'git-manager';
+    if (!is_dir($gitManagerPath)) return null;
+    $backupPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'git-manager-backup-' . uniqid();
+    recurseCopy($gitManagerPath, $backupPath);
+    return $backupPath;
+}
+
+// Restaurer git-manager/ depuis le backup si le dossier a disparu ou est incomplet
+function restoreGitManager(string $repoPath, ?string $backupPath): void {
+    if ($backupPath === null) return;
+    $gitManagerPath = $repoPath . DIRECTORY_SEPARATOR . 'git-manager';
+    $gitApiFile = $gitManagerPath . DIRECTORY_SEPARATOR . 'git-api.php';
+    if (!is_dir($gitManagerPath) || !file_exists($gitApiFile)) {
+        recurseCopy($backupPath, $gitManagerPath);
+    }
+    if (is_dir($backupPath)) {
+        recurseDelete($backupPath);
+    }
+}
+
+// Valider un tableau de fichiers (sécurité), sort avec erreur JSON si invalide
+function validateFiles(array $files): void {
+    foreach ($files as $file) {
+        if (!isValidFile($file)) {
+            echo json_encode(['success' => false, 'error' => 'Nom de fichier invalide']);
+            exit;
+        }
+    }
+}
+
+// Valider et stager une liste de fichiers (git add), sort avec erreur JSON si échec
+function validateAndAddFiles(array $files): void {
+    validateFiles($files);
+    if (empty($files)) return;
+    $filesEscaped = implode(' ', array_map('escapeArg', $files));
+    $addResult = execGit('git add ' . $filesEscaped);
+    if ($addResult['code'] !== 0) {
+        echo json_encode(['success' => false, 'error' => 'Erreur git add: ' . $addResult['output']]);
+        exit;
+    }
+}
+
+// Retourner la branche courante (avec fallback si HEAD détaché)
+function getCurrentBranch(): string {
+    $branch = trim(execGit('git branch --show-current')['output']);
+    if (empty($branch)) {
+        $branch = trim(execGit('git rev-parse --abbrev-ref HEAD')['output']);
+    }
+    return $branch;
+}
+
+// Détecter si une erreur git est due à des fichiers qui seraient écrasés au checkout
+function isFileOverwriteError(string $output): bool {
+    return strpos($output, 'overwritten') !== false
+        || strpos($output, 'would be overwritten') !== false
+        || strpos($output, 'écrasé') !== false;
+}
+
+// Valider un identifiant de stash (format stash@{N})
+function validateStashId(string $stashId): bool {
+    return preg_match('/^stash@\{[0-9]+\}$/', $stashId) === 1;
+}
+
 // Router les actions
 switch ($action) {
     case 'status':
@@ -854,22 +919,7 @@ switch ($action) {
             exit;
         }
 
-        // Valider les fichiers
-        foreach ($files as $file) {
-            if (!isValidFile($file)) {
-                echo json_encode(['success' => false, 'error' => 'Nom de fichier invalide: ' . $file]);
-                exit;
-            }
-        }
-
-        // Ajouter les fichiers
-        $filesEscaped = implode(' ', array_map('escapeArg', $files));
-        $addResult = execGit('git add ' . $filesEscaped);
-
-        if ($addResult['code'] !== 0) {
-            echo json_encode(['success' => false, 'error' => 'Erreur git add: ' . $addResult['output']]);
-            exit;
-        }
+        validateAndAddFiles($files);
 
         $count = count($files);
         echo json_encode([
@@ -887,15 +937,8 @@ switch ($action) {
             exit;
         }
 
-        // Valider les fichiers
-        foreach ($files as $file) {
-            if (!isValidFile($file)) {
-                echo json_encode(['success' => false, 'error' => 'Nom de fichier invalide: ' . $file]);
-                exit;
-            }
-        }
+        validateFiles($files);
 
-        // Désindexer les fichiers
         $filesEscaped = implode(' ', array_map('escapeArg', $files));
         $resetResult = execGit('git reset HEAD -- ' . $filesEscaped);
 
@@ -927,28 +970,9 @@ switch ($action) {
             exit;
         }
 
-        // Valider et ajouter les fichiers (si fournis)
-        if (!empty($files)) {
-            foreach ($files as $file) {
-                if (!isValidFile($file)) {
-                    echo json_encode(['success' => false, 'error' => 'Nom de fichier invalide']);
-                    exit;
-                }
-            }
+        validateAndAddFiles($files);
 
-            // Ajouter les fichiers
-            $filesEscaped = implode(' ', array_map('escapeArg', $files));
-            $addResult = execGit('git add ' . $filesEscaped);
-
-            if ($addResult['code'] !== 0) {
-                echo json_encode(['success' => false, 'error' => 'Erreur git add: ' . $addResult['output']]);
-                exit;
-            }
-        }
-
-        // Faire le commit
-        $messageEscaped = escapeArg($message);
-        $commitResult = execGit('git commit -m ' . $messageEscaped);
+        $commitResult = execGit('git commit -m ' . escapeArg($message));
 
         if ($commitResult['code'] !== 0) {
             echo json_encode(['success' => false, 'error' => 'Erreur git commit: ' . $commitResult['output']]);
@@ -974,28 +998,9 @@ switch ($action) {
             exit;
         }
 
-        // Valider et ajouter les fichiers (si fournis)
-        if (!empty($files)) {
-            foreach ($files as $file) {
-                if (!isValidFile($file)) {
-                    echo json_encode(['success' => false, 'error' => 'Nom de fichier invalide']);
-                    exit;
-                }
-            }
+        validateAndAddFiles($files);
 
-            // Ajouter les fichiers
-            $filesEscaped = implode(' ', array_map('escapeArg', $files));
-            $addResult = execGit('git add ' . $filesEscaped);
-
-            if ($addResult['code'] !== 0) {
-                echo json_encode(['success' => false, 'error' => 'Erreur git add: ' . $addResult['output']]);
-                exit;
-            }
-        }
-
-        // Faire le commit
-        $messageEscaped = escapeArg($message);
-        $commitResult = execGit('git commit -m ' . $messageEscaped);
+        $commitResult = execGit('git commit -m ' . escapeArg($message));
 
         if ($commitResult['code'] !== 0) {
             echo json_encode(['success' => false, 'error' => 'Erreur git commit: ' . $commitResult['output']]);
@@ -1032,7 +1037,7 @@ switch ($action) {
             exit;
         }
 
-        $result = execGit('git revert ' . escapeshellarg($hash) . ' --no-edit');
+        $result = execGit('git revert ' . escapeArg($hash) . ' --no-edit');
 
         if ($result['code'] !== 0) {
             echo json_encode(['success' => false, 'error' => $result['output']]);
@@ -1055,23 +1060,7 @@ switch ($action) {
             exit;
         }
 
-        // Valider et ajouter les fichiers (si fournis)
-        if (!empty($files)) {
-            foreach ($files as $file) {
-                if (!isValidFile($file)) {
-                    echo json_encode(['success' => false, 'error' => 'Nom de fichier invalide']);
-                    exit;
-                }
-            }
-
-            $filesEscaped = implode(' ', array_map('escapeArg', $files));
-            $addResult = execGit('git add ' . $filesEscaped);
-
-            if ($addResult['code'] !== 0) {
-                echo json_encode(['success' => false, 'error' => 'Erreur git add: ' . $addResult['output']]);
-                exit;
-            }
-        }
+        validateAndAddFiles($files);
 
         // Amender : avec ou sans changement de message
         if ($message !== '') {
@@ -1167,8 +1156,7 @@ switch ($action) {
         }
 
         $fileEscaped = escapeArg($file);
-        $sourceEscaped = escapeArg($source);
-        $result = execGit("git checkout {$source} -- {$fileEscaped}");
+        $result = execGit('git checkout ' . escapeArg($source) . ' -- ' . $fileEscaped);
 
         if ($result['code'] !== 0) {
             echo json_encode(['success' => false, 'error' => $result['output']]);
@@ -1199,28 +1187,9 @@ switch ($action) {
 
         $hashEscaped = escapeArg($hash);
 
-        // Sauvegarder git-manager/ avant le checkout
-        $gitManagerPath = $repoPath . DIRECTORY_SEPARATOR . 'git-manager';
-        $backupPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'git-manager-backup-' . uniqid();
-        $backupCreated = false;
-
-        if (is_dir($gitManagerPath)) {
-            recurseCopy($gitManagerPath, $backupPath);
-            $backupCreated = true;
-        }
-
+        $backupPath = backupGitManager($repoPath);
         $result = execGit("git checkout {$hashEscaped} 2>&1");
-
-        // Restaurer git-manager/ s'il a disparu
-        if ($backupCreated) {
-            $gitApiFile = $gitManagerPath . DIRECTORY_SEPARATOR . 'git-api.php';
-            if (!is_dir($gitManagerPath) || !file_exists($gitApiFile)) {
-                recurseCopy($backupPath, $gitManagerPath);
-            }
-            if (is_dir($backupPath)) {
-                recurseDelete($backupPath);
-            }
-        }
+        restoreGitManager($repoPath, $backupPath);
 
         if ($result['code'] !== 0) {
             echo json_encode(['success' => false, 'error' => $result['output']]);
@@ -1529,15 +1498,7 @@ switch ($action) {
 
         $forceFlag = $force ? '-f ' : '';
 
-        // Sauvegarder git-manager/ avant le checkout
-        $gitManagerPath = $repoPath . DIRECTORY_SEPARATOR . 'git-manager';
-        $backupPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'git-manager-backup-' . uniqid();
-        $backupCreated = false;
-
-        if (is_dir($gitManagerPath)) {
-            recurseCopy($gitManagerPath, $backupPath);
-            $backupCreated = true;
-        }
+        $backupPath = backupGitManager($repoPath);
 
         // Sauvegarder TOUS les fichiers non suivis avant le checkout
         // (ils pourraient être écrasés ou supprimés lors du changement de branche)
@@ -1593,7 +1554,7 @@ switch ($action) {
             if ($localExists) {
                 $result = execGit("git checkout {$forceFlag}{$localBranchEscaped}");
                 // Si échec à cause de fichiers, forcer
-                if ($result['code'] !== 0 && (strpos($result['output'], 'overwritten') !== false || strpos($result['output'], 'would be overwritten') !== false || strpos($result['output'], 'écrasé') !== false)) {
+                if ($result['code'] !== 0 && isFileOverwriteError($result['output'])) {
                     $result = execGit("git checkout -f {$localBranchEscaped}");
                 }
                 $message = "Basculé sur la branche '{$localBranchName}'";
@@ -1605,26 +1566,17 @@ switch ($action) {
             $branchEscaped = escapeArg($branch);
             $result = execGit("git checkout {$forceFlag}{$branchEscaped}");
             // Si échec à cause de fichiers, forcer
-            if ($result['code'] !== 0 && (strpos($result['output'], 'overwritten') !== false || strpos($result['output'], 'would be overwritten') !== false || strpos($result['output'], 'écrasé') !== false)) {
+            if ($result['code'] !== 0 && isFileOverwriteError($result['output'])) {
                 $result = execGit("git checkout -f {$branchEscaped}");
             }
             $message = "Basculé sur la branche '{$branch}'";
         }
 
         // TOUJOURS restaurer git-manager/ s'il a disparu ou est incomplet
-        $gitManagerRestored = false;
-        if ($backupCreated) {
-            $gitApiFile = $gitManagerPath . DIRECTORY_SEPARATOR . 'git-api.php';
-            if (!is_dir($gitManagerPath) || !file_exists($gitApiFile)) {
-                // Copier depuis le backup (sans supprimer car le script peut tourner dedans)
-                recurseCopy($backupPath, $gitManagerPath);
-                $gitManagerRestored = true;
-            }
-            // Nettoyer le backup temporaire
-            if (is_dir($backupPath)) {
-                recurseDelete($backupPath);
-            }
-        }
+        $gitManagerPath = $repoPath . DIRECTORY_SEPARATOR . 'git-manager';
+        $gitApiFile = $gitManagerPath . DIRECTORY_SEPARATOR . 'git-api.php';
+        $gitManagerRestored = $backupPath !== null && (!is_dir($gitManagerPath) || !file_exists($gitApiFile));
+        restoreGitManager($repoPath, $backupPath);
 
         // Ajouter info sur restauration git-manager
         if ($gitManagerRestored) {
@@ -1708,13 +1660,7 @@ switch ($action) {
 
         // Branche orpheline (vide, sans historique, mais avec git-manager/)
         if ($orphan) {
-            // Sauvegarder la branche actuelle pour y revenir après
-            $currentBranchResult = execGit("git branch --show-current");
-            $originalBranch = trim($currentBranchResult['output']);
-            if (empty($originalBranch)) {
-                $headResult = execGit("git rev-parse --abbrev-ref HEAD");
-                $originalBranch = trim($headResult['output']);
-            }
+            $originalBranch = getCurrentBranch();
 
             // Créer une branche orpheline
             $result = execGit("git checkout --orphan {$branchEscaped}");
@@ -1749,34 +1695,9 @@ switch ($action) {
             // Revenir automatiquement à la branche d'origine
             $returnMessage = "";
             if (!empty($originalBranch) && $originalBranch !== 'HEAD') {
-                // Sauvegarder git-manager/ avant le checkout
-                // (nécessaire si git-manager est dans .gitignore sur la branche cible)
-                $gitManagerPath = $repoPath . DIRECTORY_SEPARATOR . 'git-manager';
-                $backupPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'git-manager-backup-' . uniqid();
-                $backupCreated = false;
-
-                if (is_dir($gitManagerPath)) {
-                    recurseCopy($gitManagerPath, $backupPath);
-                    $backupCreated = true;
-                }
-
-                // Checkout avec force
+                $backupPath = backupGitManager($repoPath);
                 $checkoutBack = execGit("git checkout -f " . escapeArg($originalBranch) . " 2>&1");
-
-                // TOUJOURS restaurer git-manager/ s'il a disparu ou est incomplet
-                if ($backupCreated) {
-                    $gitApiFile = $gitManagerPath . DIRECTORY_SEPARATOR . 'git-api.php';
-                    if (!is_dir($gitManagerPath) || !file_exists($gitApiFile)) {
-                        // Copier depuis le backup (sans supprimer car le script tourne dedans)
-                        recurseCopy($backupPath, $gitManagerPath);
-                    }
-                    // Nettoyer le backup temporaire
-                    if (is_dir($backupPath)) {
-                        recurseDelete($backupPath);
-                    }
-                }
-
-                // Nettoyer les dossiers vides laissés par git
+                restoreGitManager($repoPath, $backupPath);
                 cleanEmptyDirs($repoPath);
 
                 if ($checkoutBack['code'] === 0) {
@@ -1799,13 +1720,7 @@ switch ($action) {
 
         // Nouveau départ (fichiers actuels sans historique)
         if ($freshStart) {
-            // Sauvegarder la branche actuelle pour y revenir après
-            $currentBranchResult = execGit("git branch --show-current");
-            $originalBranch = trim($currentBranchResult['output']);
-            if (empty($originalBranch)) {
-                $headResult = execGit("git rev-parse --abbrev-ref HEAD");
-                $originalBranch = trim($headResult['output']);
-            }
+            $originalBranch = getCurrentBranch();
 
             // Sauvegarder TOUS les fichiers non suivis :
             // - les fichiers non suivis normaux (seront ajoutés par git add -A puis perdus au checkout retour)
@@ -1877,29 +1792,9 @@ switch ($action) {
             // Revenir automatiquement à la branche d'origine
             $returnMessage = "";
             if (!empty($originalBranch) && $originalBranch !== 'HEAD') {
-                // Sauvegarder git-manager/ avant le checkout
-                $gitManagerPath = $repoPath . DIRECTORY_SEPARATOR . 'git-manager';
-                $backupPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'git-manager-backup-' . uniqid();
-                $backupCreated = false;
-
-                if (is_dir($gitManagerPath)) {
-                    recurseCopy($gitManagerPath, $backupPath);
-                    $backupCreated = true;
-                }
-
-                // Checkout avec force
+                $backupPath = backupGitManager($repoPath);
                 $checkoutBack = execGit("git checkout -f " . escapeArg($originalBranch) . " 2>&1");
-
-                // TOUJOURS restaurer git-manager/ s'il a disparu ou est incomplet
-                if ($backupCreated) {
-                    $gitApiFile = $gitManagerPath . DIRECTORY_SEPARATOR . 'git-api.php';
-                    if (!is_dir($gitManagerPath) || !file_exists($gitApiFile)) {
-                        recurseCopy($backupPath, $gitManagerPath);
-                    }
-                    if (is_dir($backupPath)) {
-                        recurseDelete($backupPath);
-                    }
-                }
+                restoreGitManager($repoPath, $backupPath);
 
                 // Restaurer les fichiers non suivis
                 if ($untrackedBackupCreated && is_dir($untrackedBackupPath)) {
@@ -1907,7 +1802,6 @@ switch ($action) {
                     recurseDelete($untrackedBackupPath);
                 }
 
-                // Nettoyer les dossiers vides
                 cleanEmptyDirs($repoPath);
 
                 if ($checkoutBack['code'] === 0) {
@@ -2213,7 +2107,7 @@ switch ($action) {
         $stashId = $input['stashId'] ?? 'stash@{0}';
         $drop = $input['drop'] ?? true;
 
-        if (!preg_match('/^stash@\{[0-9]+\}$/', $stashId)) {
+        if (!validateStashId($stashId)) {
             echo json_encode(['success' => false, 'error' => 'Identifiant de stash invalide']);
             break;
         }
@@ -2237,7 +2131,7 @@ switch ($action) {
     case 'stashDrop':
         $stashId = $input['stashId'] ?? '';
 
-        if (empty($stashId) || !preg_match('/^stash@\{[0-9]+\}$/', $stashId)) {
+        if (empty($stashId) || !validateStashId($stashId)) {
             echo json_encode(['success' => false, 'error' => 'Identifiant de stash invalide']);
             break;
         }

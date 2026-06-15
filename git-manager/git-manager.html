@@ -340,22 +340,22 @@
       flex-shrink: 0;
     }
 
-    .file-status.modified {
+    .file-status.modified, .status-badge.modified {
       background: #ffd700;
       color: #333;
     }
 
-    .file-status.added {
+    .file-status.added, .status-badge.added {
       background: #4caf50;
       color: white;
     }
 
-    .file-status.deleted {
+    .file-status.deleted, .status-badge.deleted {
       background: #f44336;
       color: white;
     }
 
-    .file-status.untracked {
+    .file-status.untracked, .status-badge.untracked {
       background: #9e9e9e;
       color: white;
     }
@@ -896,26 +896,6 @@
       font-weight: bold;
     }
 
-    .status-badge.modified {
-      background: #ffd700;
-      color: #333;
-    }
-
-    .status-badge.added {
-      background: #4caf50;
-      color: white;
-    }
-
-    .status-badge.untracked {
-      background: #9e9e9e;
-      color: white;
-    }
-
-    .status-badge.deleted {
-      background: #f44336;
-      color: white;
-    }
-
     .help-workflow {
       background: var(--bg-color);
       border-radius: 8px;
@@ -1080,7 +1060,6 @@
 
     .branch-actions {
       display: flex;
-      /*gap: 5px;*/
     }
 
     .branch-actions button {
@@ -1092,50 +1071,28 @@
       transition: all 0.2s;
     }
 
-    .branch-actions .switch-btn {
-      background: #45b7af00;
-      color: #45b7af;
-    }
-
-    .branch-actions .switch-btn:hover {
-      background: #45b7af40;
-    }
-
-    .branch-actions .merge-btn {
-      background: #2195f300;
-      color: #2196f3;
-    }
-
-    .branch-actions .merge-btn:hover {
-      background: #1976d240;
-    }
-
-    .branch-actions .delete-btn {
-      background: #f4433600;
-      color: #f44336;
-    }
-
-    .branch-actions .delete-btn:hover {
-      background: #d32f2f40;
-    }
-
-    .branch-actions .publish-btn {
-      background: #9c27b000;
-      color: #9c27b0;
-    }
-
-    .branch-actions .publish-btn:hover {
-      background: #7b1fa240;
-    }
-
+    .branch-actions .switch-btn,
+    .branch-actions .merge-btn,
+    .branch-actions .delete-btn,
+    .branch-actions .publish-btn,
     .branch-actions .rename-btn {
-      background: #ff990000;
-      color: #ff9800;
+      background: transparent;
     }
 
-    .branch-actions .rename-btn:hover {
-      background: #f57c0040;
-    }
+    .branch-actions .switch-btn { color: #45b7af; }
+    .branch-actions .switch-btn:hover { background: #45b7af40; }
+
+    .branch-actions .merge-btn { color: #2196f3; }
+    .branch-actions .merge-btn:hover { background: #1976d240; }
+
+    .branch-actions .delete-btn { color: #f44336; }
+    .branch-actions .delete-btn:hover { background: #d32f2f40; }
+
+    .branch-actions .publish-btn { color: #9c27b0; }
+    .branch-actions .publish-btn:hover { background: #7b1fa240; }
+
+    .branch-actions .rename-btn { color: #ff9800; }
+    .branch-actions .rename-btn:hover { background: #f57c0040; }
 
     .branch-badge.local-only {
       background: #9c27b0;
@@ -2165,27 +2122,17 @@
         deleteSelect.appendChild(sepFiles);
       }
 
-      files.forEach(f => {
-        // Pour le select checkout
-        const option = document.createElement('option');
-        option.value = f;
-        option.textContent = f;
-        // Marquer les fichiers modifiés
-        if (modified.includes(f)) {
-          option.textContent = f + ' (modifié)';
-          option.style.fontWeight = 'bold';
-        }
-        select.appendChild(option);
+      const createFileOption = (value) => {
+        const opt = document.createElement('option');
+        opt.value = value;
+        opt.textContent = modified.includes(value) ? value + ' (modifié)' : value;
+        if (modified.includes(value)) opt.style.fontWeight = 'bold';
+        return opt;
+      };
 
-        // Pour le select delete
-        const deleteOption = document.createElement('option');
-        deleteOption.value = f;
-        deleteOption.textContent = f;
-        if (modified.includes(f)) {
-          deleteOption.textContent = f + ' (modifié)';
-          deleteOption.style.fontWeight = 'bold';
-        }
-        deleteSelect.appendChild(deleteOption);
+      files.forEach(f => {
+        select.appendChild(createFileOption(f));
+        deleteSelect.appendChild(createFileOption(f));
       });
     }
 
@@ -2194,12 +2141,6 @@
       const selectAll = document.getElementById('selectAll');
       const checkboxes = document.querySelectorAll('.file-checkbox');
       checkboxes.forEach(cb => cb.checked = selectAll.checked);
-    }
-
-    // Obtenir les fichiers sélectionnés
-    function getSelectedFiles() {
-      const checkboxes = document.querySelectorAll('.file-checkbox:checked');
-      return Array.from(checkboxes).map(cb => cb.value);
     }
 
     // Obtenir les fichiers sélectionnés avec leur statut
@@ -2391,9 +2332,7 @@
         terminalLog(result.output, 'success');
         showAlert('success', 'Commit effectué avec succès');
         document.getElementById('commitMessage').value = '';
-        loadStatus();
-        loadHistory();
-        loadBranches();
+        refreshAll();
       } else {
         terminalLog(result.error, 'error');
         showAlert('error', 'Erreur lors du commit: ' + result.error);
@@ -2428,8 +2367,7 @@
         terminalLog(result.output, 'success');
         showAlert('success', 'Commit et Push effectués avec succès');
         document.getElementById('commitMessage').value = '';
-        loadStatus();
-        loadHistory();
+        refreshAll();
       } else {
         terminalLog(result.error, 'error');
         showAlert('error', 'Erreur: ' + result.error);
@@ -2489,9 +2427,7 @@
       if (result.success) {
         terminalLog(result.output, 'success');
         showAlert('success', 'Push effectué avec succès');
-        loadStatus();
-        loadHistory();
-        loadBranches();
+        refreshAll();
       } else {
         terminalLog(result.error, 'error');
         showAlert('error', 'Erreur lors du push: ' + result.error);
@@ -2509,9 +2445,7 @@
       if (result.success) {
         terminalLog(result.output, 'success');
         showAlert('success', 'Pull effectué avec succès');
-        loadStatus();
-        loadHistory();
-        loadBranches();
+        refreshAll();
       } else {
         terminalLog(result.error, 'error');
         showAlert('error', 'Erreur lors du pull: ' + result.error);
@@ -2528,9 +2462,7 @@
       if (result.success) {
         terminalLog(result.output, 'success');
         showAlert('success', 'Fetch effectué avec succès');
-        loadStatus();
-        loadHistory();
-        loadBranches();
+        refreshAll();
       } else {
         terminalLog(result.error, 'error');
         showAlert('error', 'Erreur lors du fetch: ' + result.error);
