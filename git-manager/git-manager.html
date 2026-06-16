@@ -18,6 +18,16 @@
       --border-color: #b0b9c2;
       --accent-color: #45b7af;
       --accent-hover: #3ca29a;
+      --danger-color: #f44336;
+      --success-color: #4caf50;
+      --warning-color: #ff9800;
+      --info-color: #2196f3;
+      --modified-color: #ffd700;
+      --untracked-color: #9e9e9e;
+      --purple-color: #9c27b0;
+      --neutral-color: #607d8b;
+      --terminal-bg: #1e1e1e;
+      --terminal-text: #d4d4d4;
     }
 
     /* Variables CSS - Thème sombre */
@@ -73,6 +83,14 @@
 
     .git-header-content h1 i {
       color: var(--accent-color);
+    }
+
+    .version-badge {
+      font-size: 0.4em;
+      font-weight: 400;
+      color: var(--text-secondary);
+      align-self: flex-end;
+      margin-bottom: 4px;
     }
 
     .git-header-content p {
@@ -320,11 +338,41 @@
       background: var(--bg-primary);
     }
 
+    input[type="checkbox"] {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--border-color);
+      border-radius: 4px;
+      background: var(--bg-color);
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      position: relative;
+      flex-shrink: 0;
+      vertical-align: middle;
+    }
+
+    input[type="checkbox"]:checked {
+      background: var(--accent-color);
+      border-color: var(--accent-color);
+    }
+
+    input[type="checkbox"]:checked::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      margin: auto;
+      width: 4px;
+      height: 8px;
+      border: 2px solid white;
+      border-top: none;
+      border-left: none;
+      transform: rotate(45deg);
+    }
+
     .file-item input[type="checkbox"] {
       margin-right: 12px;
-      width: 18px;
-      height: 18px;
-      cursor: pointer;
     }
 
     .file-item .file-status {
@@ -341,22 +389,22 @@
     }
 
     .file-status.modified, .status-badge.modified {
-      background: #ffd700;
-      color: #333;
+      background: var(--modified-color);
+      color: var(--text-primary);
     }
 
     .file-status.added, .status-badge.added {
-      background: #4caf50;
+      background: var(--success-color);
       color: white;
     }
 
     .file-status.deleted, .status-badge.deleted {
-      background: #f44336;
+      background: var(--danger-color);
       color: white;
     }
 
     .file-status.untracked, .status-badge.untracked {
-      background: #9e9e9e;
+      background: var(--untracked-color);
       color: white;
     }
 
@@ -371,10 +419,14 @@
       margin-top: 15px;
     }
 
+    .commit-message-wrapper {
+      position: relative;
+    }
+
     .commit-form textarea {
       width: 100%;
       min-height: 100px;
-      padding: 12px;
+      padding: 12px 32px 12px 12px;
       border: 2px solid var(--border-color);
       border-radius: 8px;
       background: var(--bg-primary);
@@ -388,6 +440,15 @@
     .commit-form textarea:focus {
       outline: none;
       border-color: var(--accent-color);
+    }
+
+    .clear-message-btn {
+      display: none;
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      font-size: 0.85em;
+      line-height: 1;
     }
 
     .btn-group {
@@ -450,32 +511,32 @@
     }
 
     .btn-danger {
-      background: #f44336;
+      background: var(--danger-color);
       color: white;
     }
 
     .btn-danger:hover {
-      background: #d32f2f;
+      background: color-mix(in srgb, var(--danger-color) 75%, black);
       transform: translateY(-2px);
     }
 
     .btn-success {
-      background: #4caf50;
+      background: var(--success-color);
       color: white;
     }
 
     .btn-success:hover {
-      background: #388e3c;
+      background: color-mix(in srgb, var(--success-color) 75%, black);
       transform: translateY(-2px);
     }
 
     .btn-warning {
-      background: #ff9800;
+      background: var(--warning-color);
       color: white;
     }
 
     .btn-warning:hover {
-      background: #f57c00;
+      background: color-mix(in srgb, var(--warning-color) 75%, black);
       transform: translateY(-2px);
     }
 
@@ -562,7 +623,7 @@
     .revert-commit-btn {
       background: none;
       border: 1px solid var(--border-color);
-      color: #f44336;
+      color: var(--danger-color);
       cursor: pointer;
       padding: 5px 8px;
       border-radius: 6px;
@@ -571,9 +632,9 @@
     }
 
     .revert-commit-btn:hover {
-      background: #f44336;
+      background: var(--danger-color);
       color: white;
-      border-color: #f44336;
+      border-color: var(--danger-color);
     }
 
     .commit-meta i {
@@ -633,12 +694,12 @@
     }
 
     .stash-btn-pop {
-      background: #4caf50;
+      background: var(--success-color);
       color: white;
     }
 
     .stash-btn-pop:hover {
-      background: #388e3c;
+      background: color-mix(in srgb, var(--success-color) 75%, black);
     }
 
     .stash-btn-apply {
@@ -651,17 +712,17 @@
     }
 
     .stash-btn-drop {
-      background: #f44336;
+      background: var(--danger-color);
       color: white;
     }
 
     .stash-btn-drop:hover {
-      background: #d32f2f;
+      background: color-mix(in srgb, var(--danger-color) 75%, black);
     }
 
     .terminal-output {
-      background: #1e1e1e;
-      color: #d4d4d4;
+      background: var(--terminal-bg);
+      color: var(--terminal-text);
       border-radius: 8px;
       padding: 15px;
       font-family: 'Consolas', 'Monaco', monospace;
@@ -673,15 +734,15 @@
     }
 
     .terminal-output .success {
-      color: #4caf50;
+      color: var(--success-color);
     }
 
     .terminal-output .error {
-      color: #f44336;
+      color: var(--danger-color);
     }
 
     .terminal-output .info {
-      color: #2196f3;
+      color: var(--info-color);
     }
 
     .loading {
@@ -718,9 +779,6 @@
 
     .select-all-row input[type="checkbox"] {
       margin-right: 12px;
-      width: 18px;
-      height: 18px;
-      cursor: pointer;
     }
 
     .select-all-row label {
@@ -816,27 +874,27 @@
     }
 
     .alert-success {
-      background: rgba(76, 175, 80, 0.1);
-      border: 1px solid #4caf50;
-      color: #4caf50;
+      background: color-mix(in srgb, var(--success-color) 10%, transparent);
+      border: 1px solid var(--success-color);
+      color: var(--success-color);
     }
 
     .alert-error {
-      background: rgba(244, 67, 54, 0.1);
-      border: 1px solid #f44336;
-      color: #f44336;
+      background: color-mix(in srgb, var(--danger-color) 10%, transparent);
+      border: 1px solid var(--danger-color);
+      color: var(--danger-color);
     }
 
     .alert-info {
-      background: rgba(33, 150, 243, 0.1);
-      border: 1px solid #2196f3;
-      color: #2196f3;
+      background: color-mix(in srgb, var(--info-color) 10%, transparent);
+      border: 1px solid var(--info-color);
+      color: var(--info-color);
     }
 
     .alert-warning {
-      background: rgba(255, 152, 0, 0.1);
-      border: 1px solid #ff9800;
-      color: #ff9800;
+      background: color-mix(in srgb, var(--warning-color) 10%, transparent);
+      border: 1px solid var(--warning-color);
+      color: var(--warning-color);
     }
 
     .alert code {
@@ -991,17 +1049,17 @@
       color: var(--text-primary);
     }
 
-    .gitignore-item .remove-btn {
+    .remove-btn {
       background: none;
       border: none;
-      color: #f44336;
+      color: var(--danger-color);
       cursor: pointer;
-      padding: 5px;
+      padding: 7px;
       opacity: 0.7;
       transition: opacity 0.2s;
     }
 
-    .gitignore-item .remove-btn:hover {
+    .remove-btn:hover {
       opacity: 1;
     }
 
@@ -1038,7 +1096,7 @@
     }
 
     .branch-item.current {
-      background: rgba(69, 183, 175, 0.1);
+      background: color-mix(in srgb, var(--accent-color) 10%, transparent);
       border-left: 3px solid var(--accent-color);
     }
 
@@ -1081,11 +1139,11 @@
     }
 
     .branch-tracking .ahead {
-      color: #4caf50;
+      color: var(--success-color);
     }
 
     .branch-tracking .behind {
-      color: #ff9800;
+      color: var(--warning-color);
     }
 
     .branch-actions {
@@ -1109,33 +1167,33 @@
       background: transparent;
     }
 
-    .branch-actions .switch-btn { color: #45b7af; }
-    .branch-actions .switch-btn:hover { background: #45b7af40; }
+    .branch-actions .switch-btn { color: var(--accent-color); }
+    .branch-actions .switch-btn:hover { background: color-mix(in srgb, var(--accent-color) 25%, transparent); }
 
-    .branch-actions .merge-btn { color: #2196f3; }
-    .branch-actions .merge-btn:hover { background: #1976d240; }
+    .branch-actions .merge-btn { color: var(--info-color); }
+    .branch-actions .merge-btn:hover { background: color-mix(in srgb, var(--info-color) 25%, transparent); }
 
-    .branch-actions .delete-btn { color: #f44336; }
-    .branch-actions .delete-btn:hover { background: #d32f2f40; }
+    .branch-actions .delete-btn { color: var(--danger-color); }
+    .branch-actions .delete-btn:hover { background: color-mix(in srgb, var(--danger-color) 25%, transparent); }
 
-    .branch-actions .publish-btn { color: #9c27b0; }
-    .branch-actions .publish-btn:hover { background: #7b1fa240; }
+    .branch-actions .publish-btn { color: var(--purple-color); }
+    .branch-actions .publish-btn:hover { background: color-mix(in srgb, var(--purple-color) 25%, transparent); }
 
-    .branch-actions .rename-btn { color: #ff9800; }
-    .branch-actions .rename-btn:hover { background: #f57c0040; }
+    .branch-actions .rename-btn { color: var(--warning-color); }
+    .branch-actions .rename-btn:hover { background: color-mix(in srgb, var(--warning-color) 25%, transparent); }
 
     .branch-badge.local-only {
-      background: #9c27b0;
+      background: var(--purple-color);
       font-size: 0.7em;
     }
 
     .branch-badge.tracked {
-      background: #2196f3;
+      background: var(--info-color);
       font-size: 0.7em;
     }
 
     .branch-badge.remote-only {
-      background: #607d8b;
+      background: var(--neutral-color);
       font-size: 0.7em;
     }
 
@@ -1208,7 +1266,7 @@
   <div class="git-container">
     <div class="git-header">
       <div class="git-header-content">
-        <h1><i class="fab fa-git-alt"></i> Gestion Git</h1>
+        <h1><i class="fab fa-git-alt"></i> Gestion Git <span class="version-badge">v1.0.0</span></h1>
         <p id="repoInfo" class="repo-info">
           <i class="fas fa-spinner fa-spin"></i> Chargement...
         </p>
@@ -1387,7 +1445,12 @@
                   <i class="fas fa-minus-circle"></i> Unstager
                 </button>
               </div>
-              <textarea id="commitMessage" placeholder="Message du commit..."></textarea>
+              <div class="commit-message-wrapper">
+                <textarea id="commitMessage" placeholder="Message du commit..." oninput="updateClearBtn()"></textarea>
+                <button class="clear-message-btn remove-btn" id="clearMessageBtn" onclick="clearMessageField(); document.getElementById('commitMessage').focus();" title="Effacer le message">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
               <div class="btn-group" style="flex-wrap: nowrap;">
                 <button class="btn btn-warning" onclick="doAmendLastCommit()" id="amendBtn"
                   title="Modifier le dernier commit : ajoute les fichiers sélectionnés et/ou change le message si le champ est renseigné (git commit --amend). À utiliser de préférence avant le Push.">
@@ -1467,7 +1530,7 @@
             Sélectionnez le fichier, choisissez la source (commit précédent, distant...) puis cliquez sur
             <strong>Récupérer</strong>.<br>
             <strong>Annuler toutes les modifications</strong> remet tous les fichiers modifiés au dernier commit. <span
-              style="color: #f44336;">Irréversible.</span>
+              style="color: var(--danger-color);">Irréversible.</span>
           </p>
         </div>
 
@@ -1613,8 +1676,8 @@
           const githubUrl = result.data.url.replace(/\.git$/, '').replace('git@github.com:', 'https://github.com/');
           const isSSH = result.data.url.startsWith('git@');
           const authBadge = isSSH
-            ? '<span style="background: rgba(76,175,80,0.15); color: #4caf50; padding: 2px 8px; border-radius: 10px; font-size: 0.75em; margin-left: 8px;" title="Connexion SSH"><i class="fas fa-key"></i> SSH</span>'
-            : '<span style="background: rgba(33,150,243,0.15); color: #2196f3; padding: 2px 8px; border-radius: 10px; font-size: 0.75em; margin-left: 8px;" title="Connexion HTTPS / Token"><i class="fas fa-lock"></i> HTTPS</span>';
+            ? '<span style="background: color-mix(in srgb, var(--success-color) 15%, transparent); color: var(--success-color); padding: 2px 8px; border-radius: 10px; font-size: 0.75em; margin-left: 8px;" title="Connexion SSH"><i class="fas fa-key"></i> SSH</span>'
+            : '<span style="background: color-mix(in srgb, var(--info-color) 15%, transparent); color: var(--info-color); padding: 2px 8px; border-radius: 10px; font-size: 0.75em; margin-left: 8px;" title="Connexion HTTPS / Token"><i class="fas fa-lock"></i> HTTPS</span>';
           repoInfo.innerHTML = `
             <i class="fab fa-github repo-icon"></i>
             <a href="${githubUrl}" target="_blank" title="Ouvrir sur GitHub">${result.data.name}</a>
@@ -1909,7 +1972,7 @@
           const totalTracked = allFiles.length;
           currentAhead = data.ahead || 0;
           const branchDisplay = data.isDetached
-            ? `<span style="color: #ff9800;"><i class="fas fa-exclamation-triangle"></i> HEAD détaché</span> <code>${data.detachedAt || '?'}</code>`
+            ? `<span style="color: var(--warning-color);"><i class="fas fa-exclamation-triangle"></i> HEAD détaché</span> <code>${data.detachedAt || '?'}</code>`
             : (data.branch || '—');
           statusContent.innerHTML = `
             <div class="status-info">
@@ -1946,7 +2009,7 @@
                 <span class="status-value">${data.behind || 0}</span>
               </div>
               <div class="status-row">
-                <span class="status-label"><i class="fas fa-archive" style="color: #ff9800;"></i> Stash</span>
+                <span class="status-label"><i class="fas fa-archive" style="color: var(--warning-color);"></i> Stash</span>
                 <span class="status-value">${data.stashCount || 0}</span>
               </div>
             </div>
@@ -2367,7 +2430,7 @@
       if (result.success) {
         terminalLog(result.output, 'success');
         showAlert('success', 'Commit effectué avec succès');
-        document.getElementById('commitMessage').value = '';
+        clearMessageField();
         refreshAll();
       } else {
         terminalLog(result.error, 'error');
@@ -2402,7 +2465,7 @@
       if (result.success) {
         terminalLog(result.output, 'success');
         showAlert('success', 'Commit et Push effectués avec succès');
-        document.getElementById('commitMessage').value = '';
+        clearMessageField();
         refreshAll();
       } else {
         terminalLog(result.error, 'error');
@@ -2411,11 +2474,22 @@
     }
 
     // Amend - Ajouter des fichiers au dernier commit et/ou changer le message
+    function updateClearBtn() {
+      const field = document.getElementById('commitMessage');
+      document.getElementById('clearMessageBtn').style.display = field.value ? 'block' : 'none';
+    }
+
+    function clearMessageField() {
+      document.getElementById('commitMessage').value = '';
+      updateClearBtn();
+    }
+
     async function loadCommitMessageToField(hash) {
       const result = await apiCall('getCommitMessage', { hash });
       if (result.success) {
         const field = document.getElementById('commitMessage');
         field.value = result.message;
+        updateClearBtn();
         field.focus();
         field.scrollIntoView({ behavior: 'smooth', block: 'center' });
         showAlert('success', 'Message chargé — modifiez-le puis cliquez Amend');
@@ -2457,7 +2531,7 @@
         terminalLog(result.output, 'success');
         const msg = message ? 'Commit amendé avec succès' : 'Fichiers ajoutés au dernier commit avec succès';
         showAlert('success', msg);
-        if (message) document.getElementById('commitMessage').value = '';
+        if (message) clearMessageField();
         loadStatus();
         loadHistory();
       } else {

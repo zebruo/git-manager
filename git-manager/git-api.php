@@ -1213,8 +1213,11 @@ switch ($action) {
             break;
         }
 
-        $result = execGit('git log -1 --format=%B ' . escapeArg($hash));
-        echo json_encode(['success' => true, 'message' => trim($result['output'])]);
+        // shell_exec() retourne la sortie complète en une seule chaîne,
+        // évitant le découpage ligne par ligne de exec() qui peut perdre le corps sur Windows.
+        $raw = shell_exec("git -C \"{$safeRepoPath}\" log -1 --format=%B " . escapeArg($hash));
+        $message = $raw !== null ? trim(str_replace("\r\n", "\n", $raw)) : '';
+        echo json_encode(['success' => true, 'message' => $message]);
         break;
 
     case 'showCommit':

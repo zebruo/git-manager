@@ -1,3 +1,24 @@
-# Interface de gestion Git
+# ── Git Manager ──────────────────────────────────────────────────────────────
+# Renommer git-config.example.php en git-config.php et renseigner vos données
+# personnelles (identité Git, chemin clé SSH).
 git-manager/git-config.php
+
+
+
+# Les autres fichiers peuvent varier suivant votre configuration:
+
+# ── Scripts locaux ────────────────────────────────────────────────────────────
+release.sh
+
+# ── Fichiers temporaires ──────────────────────────────────────────────────────
 *.bak
+*.tmp
+*.log
+
+# ── Système d'exploitation ────────────────────────────────────────────────────
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini

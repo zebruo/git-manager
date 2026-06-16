@@ -44,9 +44,15 @@ Interface web pour gérer un dépôt Git sans ligne de commande.
 - **Tout sélectionner** : Sélectionner tous les fichiers d'un coup
 - **Commit** : Enregistrer les modifications localement
 - **Commit & Push** : Commit + envoi vers GitHub en une action
-- **Amend** : Ajouter les fichiers sélectionnés au dernier commit sans changer son message (`git commit --amend --no-edit`). Compatible avec les suppressions déjà stagées (fichiers D).
+- **Amend** : Modifier le dernier commit — trois usages combinables :
+  - Ajouter des fichiers oubliés (cocher avant de cliquer Amend)
+  - Changer le message (saisir un nouveau message dans le champ)
+  - Inclure des fichiers déjà stagés (pris automatiquement, sans re-sélection)
+  - Charger le message actuel via le bouton crayon dans l'historique pour l'éditer
+  - Avertissement automatique si le commit a déjà été pushé (push --force requis)
 - **Historique** : Liste des 20 derniers commits avec hash, message, auteur et date
 - **Détail d'un commit** : Affiche les fichiers modifiés et les statistiques d'un commit dans le terminal (bouton loupe, `git show --stat`)
+- **Revert** : Annuler un commit en créant un nouveau commit inverse (`git revert`) — solution propre pour les commits déjà pushés
 - **Checkout sur un commit** : Se placer sur un ancien commit (HEAD détaché) depuis l'historique
 - **Créer une branche depuis un HEAD détaché** : Sauvegarder un état exploré dans une nouvelle branche
 
@@ -106,7 +112,8 @@ Interface web pour gérer un dépôt Git sans ligne de commande.
 
 - **Mode sombre** : Thème clair/sombre avec mémorisation
 - **Terminal** : Affichage des commandes Git exécutées
-- **Alertes** : Messages de succès/erreur
+- **Notifications** : Toasts fixes en bas à droite (succès, erreur, avertissement) — disparaissent automatiquement, cliquables pour fermer
+- **Champ message** : Bouton × pour effacer rapidement le message de commit
 - **Aide intégrée** : Documentation accessible depuis l'interface
 
 ## Pages auxiliaires
@@ -137,7 +144,7 @@ Clone un dépôt distant dans le dossier courant :
 
 Contenu HTML de l'aide intégrée, chargé dynamiquement dans la modale de `git-manager.html`. Couvre :
 - Synchronisation (remote, push, pull, fetch, option `--rebase`)
-- Statuts des fichiers (M, A, D, ?)
+- Statuts des fichiers (M, A, D, U)
 - Récupération de fichiers et retour en arrière
 - Commits en avance / en retard
 - Stash (mettre de côté)
@@ -200,7 +207,7 @@ mon-projet/              <- Dépôt Git géré
 │   ├── index.html
 │   └── flavicon.svg
 ├── index.html               (M) modifié
-├── style.css                (A) stagé
+├── style.css                (A) stagé / ajouté
 ├── script.js                (U) non suivi
 ├── images/
 │   ├── logo.png             (M) modifié
@@ -235,4 +242,4 @@ Git Manager est une interface web pour gérer un dépôt Git sans ligne de comma
 
 **Il est recommandé de faire un premier essai sur un dépôt test avant de l'utiliser sur un projet existant.**
 
-*Version : 1.0 — Février 2025*
+*Version : v1.0.0 — Juin 2026*
