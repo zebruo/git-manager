@@ -1063,8 +1063,12 @@ switch ($action) {
         validateAndAddFiles($files);
 
         // Amender : avec ou sans changement de message
+        // -F tmpfile plutôt que -m pour préserver les sauts de ligne (exec() les perd sur Windows)
         if ($message !== '') {
-            $amendResult = execGit('git commit --amend -m ' . escapeArg($message));
+            $tmpFile = tempnam(sys_get_temp_dir(), 'git-commit-msg-');
+            file_put_contents($tmpFile, $message);
+            $amendResult = execGit('git commit --amend -F ' . escapeArg($tmpFile));
+            unlink($tmpFile);
         } else {
             $amendResult = execGit('git commit --amend --no-edit');
         }
@@ -1199,6 +1203,18 @@ switch ($action) {
                 'output' => "HEAD détaché sur le commit {$hash}"
             ]);
         }
+        break;
+
+    case 'getCommitMessage':
+        $hash = $input['hash'] ?? 'HEAD';
+
+        if (!preg_match('/^[a-f0-9]{7,40}$/', $hash) && $hash !== 'HEAD') {
+            echo json_encode(['success' => false, 'error' => 'Hash de commit invalide']);
+            break;
+        }
+
+        $result = execGit('git log -1 --format=%B ' . escapeArg($hash));
+        echo json_encode(['success' => true, 'message' => trim($result['output'])]);
         break;
 
     case 'showCommit':

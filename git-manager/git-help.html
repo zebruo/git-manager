@@ -186,6 +186,14 @@
           <li>Inclure des fichiers déjà stagés (ils sont pris automatiquement, sans avoir à les re-cocher)</li>
         </ul>
       </dd>
+      <dt><i class="fas fa-pencil-alt" style="color: #ff9800;"></i> Charger le message du dernier commit</dt>
+      <dd>Dans la section <strong>Historique des commits</strong>, le premier commit affiche un bouton crayon
+        <i class="fas fa-pencil-alt"></i>. Cliquez dessus pour charger le message complet (sujet <em>et</em> corps)
+        dans le champ message — le champ prend le focus automatiquement. Modifiez-le, puis cliquez
+        <strong>Amend</strong>.<br>
+        <span style="color: var(--text-secondary); font-size: 0.9em;">Utile pour corriger une faute ou compléter
+        la description sans retaper tout le message.</span>
+      </dd>
     </dl>
     <div
       style="margin-top: 15px; font-size: 0.85em; background: var(--bg-secondary); padding: 10px; border-radius: 6px;">
@@ -208,6 +216,8 @@
         → corrigez-le dans le champ message et cliquez <strong>Amend</strong> (sans rien cocher)</div>
       <div style="margin-top: 5px;">• Vous avez déjà stagé un fichier via le bouton Stager
         → cliquez <strong>Amend</strong> directement, il est inclus automatiquement</div>
+      <div style="margin-top: 5px;">• Vous voulez compléter le message du dernier commit sans tout retaper
+        → cliquez <i class="fas fa-pencil-alt"></i> dans l'Historique, modifiez le champ, puis cliquez <strong>Amend</strong></div>
     </div>
     <div
       style="margin-top: 10px; font-size: 0.85em; padding: 10px; border-radius: 6px; background: rgba(244, 67, 54, 0.08); border-left: 3px solid #f44336;">
@@ -415,10 +425,6 @@
     <li><strong>Commit</strong> pour enregistrer un instantané de vos fichiers stagés dans l'historique local</li>
     <li><strong>Push</strong> pour envoyer vos commits vers GitHub et les partager</li>
   </ol>
-  <div style="margin-top: 10px; font-size: 0.85em; background: rgba(255, 152, 0, 0.08); padding: 10px; border-radius: 6px; border-left: 3px solid #ff9800;">
-    <strong><i class="fas fa-pen-to-square" style="color: #ff9800;"></i> Oubli d'un fichier ?</strong>
-    Avant de Push, cochez le fichier manquant et cliquez <strong>Amend</strong> pour l'intégrer au dernier commit sans créer un commit supplémentaire.
-  </div>
   <div style="margin-top: 10px; font-size: 0.85em; background: var(--bg-secondary); padding: 10px; border-radius: 6px;">
     <strong><i class="fas fa-lightbulb" style="color: var(--warning-color);"></i> Bon à savoir :</strong>
     <ul style="margin: 5px 0 0 15px; padding: 0;">

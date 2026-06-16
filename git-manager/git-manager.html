@@ -2160,7 +2160,7 @@
       const result = await apiCall('log');
 
       if (result.success && result.data.length > 0) {
-        historyList.innerHTML = result.data.map(commit => `
+        historyList.innerHTML = result.data.map((commit, index) => `
           <div class="commit-item">
             <div class="commit-details">
               <span class="commit-hash">${commit.hash}</span>
@@ -2171,6 +2171,7 @@
               </div>
             </div>
             <div class="commit-actions" style="gap: 5px; display: flex;">
+              ${index === 0 ? `<button class="checkout-commit-btn" onclick="loadCommitMessageToField('${commit.hash}')" title="Charger le message complet dans le champ pour l'éditer (amend)"><i class="fas fa-pencil-alt"></i></button>` : ''}
               <button class="checkout-commit-btn" onclick="showCommitDetail('${commit.hash}')" title="Voir le détail de ce commit (git show --stat)">
                 <i class="fas fa-search"></i>
               </button>
@@ -2375,6 +2376,19 @@
     }
 
     // Amend - Ajouter des fichiers au dernier commit et/ou changer le message
+    async function loadCommitMessageToField(hash) {
+      const result = await apiCall('getCommitMessage', { hash });
+      if (result.success) {
+        const field = document.getElementById('commitMessage');
+        field.value = result.message;
+        field.focus();
+        field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        showAlert('success', 'Message chargé — modifiez-le puis cliquez Amend');
+      } else {
+        showAlert('error', 'Erreur : ' + result.error);
+      }
+    }
+
     async function doAmendLastCommit() {
       const selectedFiles = getSelectedFilesWithStatus();
       const message = document.getElementById('commitMessage').value.trim();
