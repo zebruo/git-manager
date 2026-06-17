@@ -85,6 +85,25 @@
       color: var(--accent-color);
     }
 
+    .server-led {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--text-secondary);
+      flex-shrink: 0;
+      align-self: center;
+      margin-top: 8px;
+      transition: background 0.4s, box-shadow 0.4s;
+    }
+    .server-led.online {
+      background: var(--success-color);
+      box-shadow: 0 0 6px color-mix(in srgb, var(--success-color) 60%, transparent);
+    }
+    .server-led.offline {
+      background: var(--danger-color);
+      box-shadow: 0 0 6px color-mix(in srgb, var(--danger-color) 60%, transparent);
+    }
+
     .git-header-content p {
       margin: 0;
       color: var(--text-secondary);
@@ -1258,7 +1277,7 @@
   <div class="git-container">
     <div class="git-header">
       <div class="git-header-content">
-        <h1><i class="fab fa-git-alt"></i> Gestion Git</h1>
+        <h1><i class="fab fa-git-alt"></i> Gestion Git <span class="server-led" id="serverLed" title="État du serveur"></span></h1>
         <p id="repoInfo" class="repo-info">
           <i class="fas fa-spinner fa-spin"></i> Chargement...
         </p>
@@ -1542,11 +1561,11 @@
           </div>
           <p style="color: var(--text-secondary); font-size: 0.85em; margin-top: 10px;">
             <i class="fas fa-info-circle"></i>
-            <strong>Supprimer</strong> : supprime le fichier du dépôt ET de votre disque.<br>
-            <strong>Arrêter le suivi</strong> : retire le fichier du dépôt mais le conserve localement.<br>
-            <em>Après l'action : sélectionnez le fichier <strong>D</strong> et faites <strong>Commit &
+            <strong>Supprimer</strong> : supprime le fichier ou dossier du dépôt ET de votre disque.<br>
+            <strong>Arrêter le suivi</strong> : retire le fichier ou dossier du dépôt mais le conserve localement.<br>
+            <em>Après l'action : sélectionnez le fichier ou dossier <strong>D</strong>, saisissez un message tel que <code>chore: supprimer "nom du fichier ou dossier" du dépôt</code> et faites <strong>Commit &
                 Push</strong>.<br>
-              Le fichier réapparaîtra en <strong>U</strong> (normal : il existe encore sur votre disque). Ajoutez-le au
+              Le fichier ou dossier réapparaîtra en <strong>U</strong> (normal : il existe encore sur votre disque). Ajoutez-le au
               .gitignore si vous ne voulez plus le voir.</em>
           </p>
         </div>
@@ -1613,6 +1632,10 @@
         updateDarkModeIcon();
       }
 
+      // LED état serveur
+      checkServerStatus();
+      setInterval(checkServerStatus, 30000);
+
       // Vérifier si c'est un dépôt Git
       const repoCheck = await checkRepo();
       if (repoCheck.isGitRepo) {
@@ -1635,6 +1658,18 @@
         return result.data;
       }
       return { isGitRepo: false, path: '' };
+    }
+
+    async function checkServerStatus() {
+      const led = document.getElementById('serverLed');
+      const result = await apiCall('checkRepo');
+      if (result.success) {
+        led.className = 'server-led online';
+        led.title = 'Serveur en ligne';
+      } else {
+        led.className = 'server-led offline';
+        led.title = 'Serveur hors ligne';
+      }
     }
 
     // Initialiser un nouveau dépôt Git
@@ -2261,7 +2296,7 @@
               </div>
             </div>
             <div class="commit-actions" style="gap: 5px; display: flex;">
-              ${index === 0 ? `<button class="checkout-commit-btn" onclick="loadCommitMessageToField('${commit.hash}')" title="Charger le message complet dans le champ pour l'éditer (amend)"><i class="fas fa-pencil-alt"></i></button>` : ''}
+              ${index === 0 ? `<button class="checkout-commit-btn" onclick="loadCommitMessageToField('${commit.hash}')" title="Charger le message complet dans le champ pour l'amender (amend)"><i class="fas fa-pencil-alt"></i></button>` : ''}
               <button class="checkout-commit-btn" onclick="showCommitDetail('${commit.hash}')" title="Voir le détail de ce commit (git show --stat)">
                 <i class="fas fa-search"></i>
               </button>

@@ -192,6 +192,8 @@ return [
 
 **Important** : Les fichiers doivent être dans un **sous-dossier** du projet à gérer. L'API gère automatiquement le dossier parent comme dépôt Git.
 
+**Mise à jour** : Pour passer à une nouvelle version, supprimez l'ancien dossier `git-manager/` et remplacez-le par le nouveau. Votre fichier `git-config.php` étant ignoré par Git, il n'est pas inclus dans les releases — recopiez-le manuellement après la mise à jour.
+
 ```
 mon-projet/              <- Dépôt Git géré
 ├── .git/                <- Dossier Git (créé automatiquement par git init)
