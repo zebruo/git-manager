@@ -242,4 +242,4 @@ Git Manager est une interface web pour gérer un dépôt Git sans ligne de comma
 
 **Il est recommandé de faire un premier essai sur un dépôt test avant de l'utiliser sur un projet existant.**
 
-*Version : v1.0.0 — Juin 2026*
+*Version : v1.0.1 — Juin 2026*
