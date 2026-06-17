@@ -972,7 +972,10 @@ switch ($action) {
 
         validateAndAddFiles($files);
 
-        $commitResult = execGit('git commit -m ' . escapeArg($message));
+        $tmpFile = tempnam(sys_get_temp_dir(), 'git-commit-msg-');
+        file_put_contents($tmpFile, $message);
+        $commitResult = execGit('git commit -F ' . escapeArg($tmpFile));
+        unlink($tmpFile);
 
         if ($commitResult['code'] !== 0) {
             echo json_encode(['success' => false, 'error' => 'Erreur git commit: ' . $commitResult['output']]);
@@ -1000,7 +1003,10 @@ switch ($action) {
 
         validateAndAddFiles($files);
 
-        $commitResult = execGit('git commit -m ' . escapeArg($message));
+        $tmpFile = tempnam(sys_get_temp_dir(), 'git-commit-msg-');
+        file_put_contents($tmpFile, $message);
+        $commitResult = execGit('git commit -F ' . escapeArg($tmpFile));
+        unlink($tmpFile);
 
         if ($commitResult['code'] !== 0) {
             echo json_encode(['success' => false, 'error' => 'Erreur git commit: ' . $commitResult['output']]);
