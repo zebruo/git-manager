@@ -237,6 +237,7 @@ $routes = [
     'checkoutCommit'      => 'files.php',
     'removeFromRepo'      => 'files.php',
     'untrackFile'         => 'files.php',
+    'fileDiff'            => 'files.php',
     // Branches
     'branches'            => 'branches.php',
     'switchBranch'        => 'branches.php',

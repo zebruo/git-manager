@@ -244,7 +244,7 @@ body {
 .git-section h2 {
   margin: 0 0 20px 0;
   color: var(--text-primary);
-  font-size: 1.4em;
+  font-size: 1.3em;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1235,3 +1235,90 @@ SCROLLBAR
   scrollbar-width: thin;
   scrollbar-color: rgba(120, 120, 120, 0.4) transparent;
 }
+
+/* ── Diff visuel ─────────────────────────────────────────────────────────── */
+.modal-diff .panel-body { padding: 0; }
+
+.file-name.diff-link {
+  cursor: pointer;
+  text-decoration: underline dotted;
+}
+.file-name.diff-link:hover { color: var(--accent-color); }
+
+.diff-empty {
+  padding: 30px;
+  text-align: center;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.diff-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 0.82em;
+  line-height: 1.5;
+}
+
+.diff-hunk-header td {
+  background: #2d3748;
+  color: #81e6d9;
+  padding: 4px 12px;
+  font-style: italic;
+  white-space: pre;
+}
+
+.diff-num {
+  width: 48px;
+  min-width: 48px;
+  text-align: right;
+  padding: 1px 8px;
+  color: #888;
+  user-select: none;
+  border-right: 1px solid rgba(120,120,120,0.2);
+  vertical-align: top;
+}
+
+.diff-content {
+  padding: 1px 10px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.diff-prefix {
+  display: inline-block;
+  width: 14px;
+  user-select: none;
+  opacity: 0.6;
+}
+
+.diff-removed { background: rgba(244, 67, 54, 0.12); }
+.diff-removed .diff-num  { background: rgba(244, 67, 54, 0.08); }
+.diff-removed .diff-content { color: #f48a83; }
+
+.diff-added { background: rgba(76, 175, 80, 0.12); }
+.diff-added .diff-num  { background: rgba(76, 175, 80, 0.08); }
+.diff-added .diff-content { color: #81c784; }
+
+.diff-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--border-color);
+  padding: 10px 12px 0;
+  background: var(--bg-primary);
+}
+
+.diff-tab {
+  padding: 8px 16px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.9em;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.2s;
+}
+
+.diff-tab:hover { color: var(--text-primary); }
+.diff-tab.active { color: var(--accent-color); border-bottom-color: var(--accent-color); }

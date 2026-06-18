@@ -576,13 +576,18 @@ function updateFileList(modified, untracked, staged, stagedDeleted) {
       <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
       <label for="selectAll">Tout sélectionner</label>
     </div>
-    ${allFiles.map(f => `
+    ${allFiles.map(f => {
+      const diffable = f.type !== 'untracked';
+      const nameSpan = diffable
+        ? `<span class="file-name diff-link" onclick="showFileDiff('${f.name.replace(/'/g, "\\'")}','${f.type}')" title="Voir le diff">${f.name}</span>`
+        : `<span class="file-name">${f.name}</span>`;
+      return `
       <div class="file-item">
         <input type="checkbox" class="file-checkbox" value="${f.name}" data-status="${f.type}">
         <span class="file-status ${f.type}">${f.status}</span>
-        <span class="file-name">${f.name}</span>
-      </div>
-    `).join('')}
+        ${nameSpan}
+      </div>`;
+    }).join('')}
   `;
 }
 
@@ -756,7 +761,7 @@ async function revertCommit(hash, message) {
 
 // Stager les fichiers sélectionnés (git add)
 async function stageFiles() {
-  const selectedFiles = getSelectedFiles();
+  const selectedFiles = getSelectedFilesWithStatus().map(f => f.name);
 
   if (selectedFiles.length === 0) {
     showAlert('error', 'Veuillez sélectionner au moins un fichier à stager');
@@ -780,7 +785,7 @@ async function stageFiles() {
 
 // Retirer les fichiers du staging (git reset)
 async function unstageFiles() {
-  const selectedFiles = getSelectedFiles();
+  const selectedFiles = getSelectedFilesWithStatus().map(f => f.name);
 
   if (selectedFiles.length === 0) {
     showAlert('error', 'Veuillez sélectionner au moins un fichier à unstager');
@@ -1710,4 +1715,153 @@ async function pushBranch(branch) {
     terminalLog(result.error, 'error');
     showAlert('error', 'Erreur: ' + result.error);
   }
+}
+
+// ── Diff visuel ──────────────────────────────────────────────────────────────
+
+let _diffRaw = '';
+
+async function showFileDiff(file, type) {
+  const modal   = document.getElementById('diffModal');
+  const title   = document.getElementById('diffModalTitle');
+  const content = document.getElementById('diffModalContent');
+
+  const staged = (type === 'added' || type === 'deleted');
+  _diffRaw = '';
+
+  title.innerHTML = `<i class="fas fa-code"></i> ${file}`;
+  content.innerHTML = '<div class="diff-empty"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>';
+  modal.classList.add('active');
+
+  let html = '';
+
+  if (type === 'modified' || type === 'added') {
+    const [resUnstaged, resStaged] = await Promise.all([
+      apiCall('fileDiff', { file, staged: false }),
+      apiCall('fileDiff', { file, staged: true })
+    ]);
+
+    const hunksUnstaged = parseDiff(resUnstaged.success ? resUnstaged.data.diff : '');
+    const hunksStaged   = parseDiff(resStaged.success   ? resStaged.data.diff   : '');
+    _diffRaw = [resUnstaged.data?.diff, resStaged.data?.diff].filter(Boolean).join('\n');
+
+    if (hunksUnstaged.length === 0 && hunksStaged.length === 0) {
+      html = '<div class="diff-empty">Aucune modification détectable</div>';
+    } else if (hunksStaged.length > 0 && hunksUnstaged.length > 0) {
+      title.innerHTML = `<i class="fas fa-code"></i> ${file} <small style="font-weight:normal;color:var(--text-secondary);">(stagé + non stagé)</small>`;
+      html = `
+        <div class="diff-tabs">
+          <button class="diff-tab active" id="diffTabUnstaged" onclick="switchDiffTab('unstaged')">
+            Non stagé (${hunksUnstaged.length} hunk${hunksUnstaged.length > 1 ? 's' : ''})
+          </button>
+          <button class="diff-tab" id="diffTabStaged" onclick="switchDiffTab('staged')">
+            Stagé (${hunksStaged.length} hunk${hunksStaged.length > 1 ? 's' : ''})
+          </button>
+        </div>
+        <div id="diffPaneUnstaged">${renderDiff(hunksUnstaged)}</div>
+        <div id="diffPaneStaged" style="display:none">${renderDiff(hunksStaged)}</div>`;
+    } else {
+      const label = hunksStaged.length ? 'stagé' : 'non stagé';
+      title.innerHTML = `<i class="fas fa-code"></i> ${file} <small style="font-weight:normal;color:var(--text-secondary);">(${label})</small>`;
+      html = renderDiff(hunksUnstaged.length ? hunksUnstaged : hunksStaged);
+    }
+  } else {
+    const res   = await apiCall('fileDiff', { file, staged });
+    _diffRaw    = res.data?.diff ?? '';
+    const hunks = parseDiff(_diffRaw);
+    const label = staged ? 'stagé' : 'non stagé';
+    title.innerHTML = `<i class="fas fa-code"></i> ${file} <small style="font-weight:normal;color:var(--text-secondary);">(${label})</small>`;
+    html = hunks.length ? renderDiff(hunks) : '<div class="diff-empty">Aucune modification détectable</div>';
+  }
+
+  content.innerHTML = html;
+}
+
+function switchDiffTab(tab) {
+  document.getElementById('diffTabUnstaged').classList.toggle('active', tab === 'unstaged');
+  document.getElementById('diffTabStaged').classList.toggle('active', tab === 'staged');
+  document.getElementById('diffPaneUnstaged').style.display = tab === 'unstaged' ? '' : 'none';
+  document.getElementById('diffPaneStaged').style.display   = tab === 'staged'   ? '' : 'none';
+}
+
+function closeDiffModal() {
+  document.getElementById('diffModal').classList.remove('active');
+}
+
+function copyDiff() {
+  if (!_diffRaw) return;
+  const btn = document.getElementById('copyDiffBtn');
+
+  const feedback = () => {
+    btn.innerHTML = '<i class="fas fa-check"></i> Copié';
+    setTimeout(() => { btn.innerHTML = '<i class="fas fa-copy"></i> Copier'; }, 2000);
+  };
+
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(_diffRaw).then(feedback);
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = _diffRaw;
+    ta.style.cssText = 'position:fixed;opacity:0;pointer-events:none;';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); feedback(); } catch (e) {}
+    document.body.removeChild(ta);
+  }
+}
+
+function parseDiff(diffText) {
+  if (!diffText || !diffText.trim()) return [];
+
+  const lines  = diffText.split('\n');
+  const hunks  = [];
+  let hunk     = null;
+
+  for (const line of lines) {
+    if (line.startsWith('@@')) {
+      const m = line.match(/@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@(.*)/);
+      if (m) {
+        hunk = { header: line, oldStart: +m[1], newStart: +m[2], lines: [] };
+        hunks.push(hunk);
+      }
+    } else if (hunk && (line.startsWith('-') || line.startsWith('+') || line.startsWith(' '))) {
+      hunk.lines.push(line);
+    }
+  }
+
+  return hunks;
+}
+
+function renderDiff(hunks) {
+  let html = '<table class="diff-table"><colgroup><col class="diff-col-num"><col class="diff-col-num"><col></colgroup>';
+
+  for (const hunk of hunks) {
+    html += `<tr class="diff-hunk-header"><td colspan="3">${escapeHtml(hunk.header)}</td></tr>`;
+
+    let o = hunk.oldStart;
+    let n = hunk.newStart;
+
+    for (const line of hunk.lines) {
+      const ch   = line[0];
+      const type = ch === '-' ? 'removed' : ch === '+' ? 'added' : 'context';
+      const oldN = (type !== 'added')   ? o++ : '';
+      const newN = (type !== 'removed') ? n++ : '';
+
+      html += `<tr class="diff-line diff-${type}">
+        <td class="diff-num">${oldN}</td>
+        <td class="diff-num">${newN}</td>
+        <td class="diff-content"><span class="diff-prefix">${escapeHtml(ch)}</span>${escapeHtml(line.slice(1))}</td>
+      </tr>`;
+    }
+  }
+
+  return html + '</table>';
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }

@@ -97,6 +97,24 @@ switch ($action) {
         }
         break;
 
+    case 'fileDiff':
+        $file   = $input['file'] ?? '';
+        $staged = $input['staged'] ?? false;
+
+        if (empty($file) || !isValidFile($file)) {
+            echo json_encode(['success' => false, 'error' => 'Fichier invalide']); break;
+        }
+
+        // shell_exec() obligatoire : exec() perd les lignes vides sur Windows,
+        // ce qui fausse les numéros de lignes dans le diff unifié.
+        $arg    = escapeArg($file);
+        $flag   = $staged ? '--cached ' : '';
+        $cmd    = "git -C " . escapeshellarg($safeRepoPath) . " diff {$flag}-- {$arg}";
+        $output = shell_exec($cmd);
+
+        echo json_encode(['success' => true, 'data' => ['diff' => $output ?? '']]);
+        break;
+
     default:
         echo json_encode(['success' => false, 'error' => 'Action non reconnue']);
         break;
