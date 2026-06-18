@@ -74,6 +74,9 @@ async function loadRepoInfo() {
   const result = await apiCall('repoInfo');
 
   if (result.success && result.data) {
+    // Bandeau si git-config.php manquant
+    document.getElementById('configBanner').style.display = result.data.configExists ? 'none' : 'flex';
+
     // Afficher le bouton remote dans le header
     remoteBtn.style.display = 'inline-flex';
 

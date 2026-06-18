@@ -1,5 +1,4 @@
 const API_URL = 'git-api.php';
-let clonedPath = '';
 
 document.addEventListener('DOMContentLoaded', function() {
   if (localStorage.getItem('gitManagerDarkMode') === 'true') {
@@ -63,7 +62,7 @@ async function loadFolders() {
   const result = await apiCall('listFolders');
 
   if (result.success) {
-    document.getElementById('parentPath').textContent = result.data.parentDir;
+    document.querySelectorAll('.parent-path').forEach(el => el.textContent = result.data.parentDir);
     const folders = result.data.folders;
     if (folders.length === 0) {
       list.innerHTML = '<div style="padding: 15px; color: var(--text-secondary);">Aucun dossier trouvé</div>';
@@ -72,7 +71,7 @@ async function loadFolders() {
         <div class="folder-item">
           <i class="fas ${folder.isGitRepo ? 'fa-git-alt' : 'fa-folder'}"></i>
           <span>${folder.name}</span>
-          ${folder.isGitRepo ? '<small style="color: var(--accent-color);">(dépôt Git)</small>' : ''}
+          ${folder.isGitRepo ? '<small>(dépôt Git)</small>' : ''}
         </div>
       `).join('');
     }
@@ -85,7 +84,6 @@ async function cloneRepo() {
   const url = document.getElementById('repoUrl').value.trim();
   const targetDir = document.getElementById('folderName').value.trim();
   const copyGitManager = document.getElementById('copyGitManager').checked;
-  const subfolder = 'git-manager'; // Toujours utiliser git-manager/
 
   if (!url) {
     showAlert('error', 'Veuillez entrer l\'URL du dépôt');
@@ -100,14 +98,17 @@ async function cloneRepo() {
   loading.classList.add('visible');
   resultBox.classList.remove('visible');
 
-  const result = await apiCall('clone', { url, targetDir, copyGitManager, subfolder });
+  const result = await apiCall('clone', { url, targetDir, copyGitManager, subfolder: 'git-manager' });
 
   btn.disabled = false;
   loading.classList.remove('visible');
 
   if (result.success) {
     showAlert('success', 'Dépôt cloné avec succès !');
-    clonedPath = result.data.folderName;
+    const expectedUrl = window.location.protocol + '//' + result.data.folderName + '/git-manager/git-manager.html';
+    const link = document.getElementById('openRepoBtn');
+    link.href = expectedUrl;
+    link.textContent = expectedUrl;
     document.getElementById('resultPath').textContent = result.data.path;
 
     if (result.data.copiedFiles && result.data.copiedFiles.length > 0) {
@@ -128,10 +129,3 @@ async function cloneRepo() {
   }
 }
 
-function openClonedRepo() {
-  if (clonedPath) {
-    // Toujours ouvrir git-manager/git-manager.html dans le dépôt cloné
-    const path = window.location.protocol + '//' + clonedPath + '/git-manager/git-manager.html';
-    window.location.href = path;
-  }
-}

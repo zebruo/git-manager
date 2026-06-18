@@ -180,11 +180,11 @@ switch ($action) {
             'success' => true,
             'output' => $message,
             'data' => [
-                'path' => $fullTargetPath,
-                'folderName' => $targetDir,
-                'subfolder' => $subfolder,
+                'path'        => $fullTargetPath,
+                'folderName'  => $targetDir,
+                'subfolder'   => $subfolder,
                 'copiedFiles' => $copiedFiles,
-                'copyErrors' => $copyErrors
+                'copyErrors'  => $copyErrors,
             ]
         ]);
         break;

@@ -1,3 +1,13 @@
+/* ── Utilitaires ────────────────────────────────────────────────────── */
+.text-muted    { color: var(--text-secondary); font-size: 0.85em; }
+.text-muted-sm { color: var(--text-secondary); font-size: 0.9em; }
+.text-accent   { color: var(--accent-color); }
+.copyright     { color: var(--text-secondary); font-size: 0.85em; }
+.label-inline  { color: var(--text-secondary); font-size: 0.9em; margin-bottom: 5px; display: block; }
+.mt-8  { margin-top: 8px; }
+.mt-10 { margin-top: 10px; }
+.mb-10 { margin-bottom: 10px; }
+
 /* Variables CSS spécifiques à git-manager */
 :root {
   --modified-color: #ffd700;
@@ -809,6 +819,32 @@ input[type="checkbox"]:checked::after {
 .file-select:focus {
   outline: none;
   border-color: var(--accent-color);
+}
+
+#configBanner {
+  display: none;
+  align-items: center;
+  gap: 12px;
+  background: color-mix(in srgb, var(--warning-color, #f59e0b) 12%, transparent);
+  border: 1px solid var(--warning-color, #f59e0b);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin: 12px;
+}
+#configBanner i {
+  color: var(--warning-color, #f59e0b);
+  flex-shrink: 0;
+}
+#configBanner a {
+  color: var(--accent-color);
+}
+#configBanner button {
+  margin-left: auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 1.2em;
 }
 
 #alertContainer {

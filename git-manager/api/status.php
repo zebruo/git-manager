@@ -69,10 +69,11 @@ switch ($action) {
         echo json_encode([
             'success' => true,
             'data' => [
-                'url'       => $remoteUrl,
-                'name'      => $repoName,
-                'path'      => $repoPath,
-                'hasRemote' => !empty($remoteUrl)
+                'url'          => $remoteUrl,
+                'name'         => $repoName,
+                'path'         => $repoPath,
+                'hasRemote'    => !empty($remoteUrl),
+                'configExists' => file_exists(dirname(__DIR__) . '/git-config.php'),
             ]
         ]);
         break;

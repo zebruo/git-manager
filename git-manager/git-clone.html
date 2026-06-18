@@ -32,6 +32,26 @@
     <div id="alertContainer"></div>
 
     <div class="card">
+      <div class="info-box info-box-prereq">
+        <i class="fas fa-info-circle"></i>
+        <div>
+          <p><strong>Prérequis</strong> — git-manager doit déjà tourner sur un projet existant. Le dépôt est toujours cloné dans le <strong>dossier parent du projet actuel</strong> : <code class="parent-path">…</code></p>
+        </div>
+      </div>
+      <div class="info-box info-box-steps">
+        <i class="fas fa-list-ol"></i>
+        <div>
+          <p><strong>Mode opératoire</strong></p>
+          <ol>
+            <li>Créer un virtual host Apache pour le nouveau dépôt (avant ou après le clonage).</li>
+            <li>Cloner le dépôt ci-dessous.</li>
+            <li>Renommer <code>git-config.example.php</code> en <code>git-config.php</code> et renseigner identité Git et chemin SSH.</li>
+            <li>Accéder à <code>http://[nom-du-projet]/git-manager/git-manager.html</code>.</li>
+            <li>Si ce dépôt est destiné à un nouveau projet : modifier ou supprimer le remote origin (il pointe encore vers le dépôt cloné).</li>
+          </ol>
+          <p class="info-note">Ouvrir le dossier via l'Explorateur Windows (file://) ne fonctionnera pas — PHP doit être exécuté par Apache.</p>
+        </div>
+      </div>
       <h2><i class="fab fa-github"></i> Dépôt à cloner</h2>
 
       <div class="form-group">
@@ -65,24 +85,23 @@
       </div>
 
       <div class="result-box" id="resultBox">
-        <h3><i class="fas fa-check-circle" style="color: var(--success-color);"></i> Dépôt cloné avec succès !</h3>
+        <h3><i class="fas fa-check-circle result-success-icon"></i> Dépôt cloné avec succès !</h3>
         <p>Emplacement :</p>
         <div class="path" id="resultPath"></div>
         <p id="resultFiles"></p>
-        <div class="btn-group" style="margin-top: 15px;">
-          <button class="btn btn-success" onclick="openClonedRepo()" id="openRepoBtn">
-            <i class="fas fa-folder-open"></i> Ouvrir Git Manager
-          </button>
-        </div>
+        <p class="result-url">
+          URL git-manager (étape 4) voir Mod op en haut de la page :<br>
+          <a id="openRepoBtn" href="#" target="_blank"></a>
+        </p>
       </div>
     </div>
 
     <div class="card">
       <h2><i class="fas fa-folder"></i> Dossiers existants</h2>
-      <p style="color: var(--text-secondary); margin-bottom: 15px;">
-        Dépôts et dossiers dans le répertoire parent :
+      <p class="folders-desc">
+        Dépôts et dossiers dans le répertoire parent :<br>
+        <span class="parent-path"></span>
       </p>
-      <div id="parentPath" style="font-family: monospace; color: var(--accent-color); margin-bottom: 10px;"></div>
       <div class="folders-list" id="foldersList">
         <div class="loading visible">
           <i class="fas fa-spinner"></i> Chargement...

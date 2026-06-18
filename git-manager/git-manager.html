@@ -53,13 +53,19 @@
 
     <div id="alertContainer"></div>
 
+    <div id="configBanner">
+      <i class="fas fa-exclamation-triangle"></i>
+      <span><strong>git-config.php manquant</strong> — Renommez <code>git-config.example.php</code> en <code>git-config.php</code> et renseignez votre identité Git avant de committer. <a href="git-auth.html">Configurer →</a></span>
+      <button onclick="document.getElementById('configBanner').style.display='none'">×</button>
+    </div>
+
     <!-- Section d'initialisation (quand pas de dépôt Git) -->
     <div id="initSection" class="git-section full-width" style="display: none;">
       <h2><i class="fas fa-folder-plus"></i> Initialiser un dépôt Git</h2>
       <div class="empty-state">
-        <i class="fas fa-exclamation-circle" style="color: var(--accent-color);"></i>
+        <i class="fas fa-exclamation-circle text-accent"></i>
         <p>Ce dossier n'est pas encore un dépôt Git.</p>
-        <p style="color: var(--text-secondary); font-size: 0.9em;" id="initPath"></p>
+        <p class="text-muted-sm" id="initPath"></p>
         <div class="btn-group" style="justify-content: center; margin-top: 20px;">
           <button class="btn btn-primary" onclick="initRepo()">
             <i class="fas fa-plus"></i> Initialiser le dépôt (git init)
@@ -109,7 +115,7 @@
           </div>
         </div>
         <div class="panel-footer fixed-footer">
-          <span class="copyright" style="color: var(--text-secondary); font-size: 0.85em;">
+          <span class="copyright">
             <i class="fas fa-code"></i> Git Manager &copy; 2026
           </span>
           <button class="btn btn-secondary" onclick="closeHelpModal()">
@@ -269,7 +275,7 @@
             </div>
             <div id="stashList" style="margin-top: 15px;"></div>
           </div>
-          <p style="color: var(--text-secondary); font-size: 0.85em; margin-top: 10px;">
+          <p class="text-muted mt-10">
             <i class="fas fa-info-circle"></i>
             Sauvegarde temporairement vos modifications en cours sans créer de commit.<br>
             Utile pour changer de branche rapidement ou tester quelque chose sur un code propre.<br>
@@ -291,8 +297,7 @@
             <option value="origin/main">origin/main (distant)</option>
           </select>
           <div id="fileCommitsContainer" style="display:none; margin-bottom:10px;">
-            <label style="color:var(--text-secondary);font-size:0.9em;margin-bottom:5px;display:block;">Ou choisir un
-              commit spécifique :</label>
+            <label class="label-inline">Ou choisir un commit spécifique :</label>
             <select id="fileCommitsSelect" class="file-select">
               <option value="">-- Commits pour ce fichier --</option>
             </select>
@@ -305,13 +310,13 @@
               <i class="fas fa-trash"></i> Annuler toutes les modifications
             </button>
           </div>
-          <p style="color: var(--text-secondary); font-size: 0.85em; margin-bottom: 10px;">
+          <p class="text-muted mb-10">
             <i class="fas fa-info-circle"></i>
             Restaure un fichier à une version précédente sans affecter les autres fichiers.<br>
             Sélectionnez le fichier, choisissez la source (commit précédent, distant...) puis cliquez sur
             <strong>Récupérer</strong>.<br>
             <strong>Annuler toutes les modifications</strong> remet tous les fichiers modifiés au dernier commit. <span
-              style="color: var(--danger-color);">Irréversible.</span>
+              class="text-danger">Irréversible.</span>
           </p>
         </div>
 
@@ -329,7 +334,7 @@
               <i class="fas fa-eye-slash"></i> Arrêter le suivi uniquement
             </button>
           </div>
-          <p style="color: var(--text-secondary); font-size: 0.85em; margin-top: 10px;">
+          <p class="text-muted mt-10">
             <i class="fas fa-info-circle"></i>
             <strong>Supprimer</strong> : supprime le fichier ou dossier du dépôt ET de votre disque.<br>
             <strong>Arrêter le suivi</strong> : retire le fichier ou dossier du dépôt mais le conserve localement.<br>
@@ -371,12 +376,12 @@
               </button>
             </div>
             <div id="tagList" style="margin-top: 15px;"></div>
-            <p style="color: var(--text-secondary); font-size: 0.85em; margin-top: 10px;">
+            <p class="text-muted mt-10">
               <i class="fas fa-info-circle"></i>
               Marque un commit précis (ex : une version de release).<br>
               Avec un message → tag annoté. Sans message → tag léger.
             </p>
-            <p style="color: var(--text-secondary); font-size: 0.85em; margin-top: 8px;">
+            <p class="text-muted mt-8">
               <i class="fas fa-code-branch"></i> <strong>Quand faire une release ?</strong><br>
               Quand le projet est dans un état stable et qu'un jalon significatif est atteint :
               nouvelle page fonctionnelle, fonctionnalité importante, refonte visuelle.<br>
@@ -396,8 +401,7 @@
           </h2>
           <div class="gitignore-content">
             <div class="gitignore-add">
-              <label style="color:var(--text-secondary);font-size:0.9em;margin-bottom:5px;display:block;">Ajouter un
-                fichier/dossier à ignorer :</label>
+              <label class="label-inline">Ajouter un fichier/dossier à ignorer :</label>
               <div style="display:flex;gap:10px;">
                 <select id="untrackedFiles" class="file-select" style="flex:1;margin-bottom:0;">
                   <option value="">-- Fichiers non suivis --</option>

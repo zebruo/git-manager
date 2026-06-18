@@ -347,6 +347,52 @@ input[type="checkbox"]:checked::after {
   to { transform: rotate(360deg); }
 }
 
+.info-box-prereq { margin-bottom: 12px; }
+.info-box-steps  { margin-bottom: 20px; }
+.info-box p:last-child { margin-bottom: 0; }
+
+.folders-desc {
+  color: var(--text-secondary);
+  margin-bottom: 15px;
+}
+
+.info-box ol {
+  margin: 8px 0 0 18px;
+  line-height: 1.8;
+}
+
+.info-box .info-note {
+  margin-top: 8px;
+  margin-bottom: 0;
+  font-size: 0.9em;
+  color: var(--text-secondary);
+}
+
+.folder-item small {
+  color: var(--accent-color);
+}
+
+.result-box .result-success-icon {
+  color: var(--success-color);
+}
+
+.result-box .result-url {
+  margin-top: 12px;
+  font-size: 0.9em;
+  color: var(--text-secondary);
+}
+
+#openRepoBtn {
+  font-family: monospace;
+  color: var(--accent-color);
+}
+
+.parent-path {
+  font-family: monospace;
+  font-size: 0.95em;
+  color: var(--accent-color);
+}
+
 .folders-list {
   max-height: 200px;
   overflow-y: auto;
