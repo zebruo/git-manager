@@ -29,6 +29,7 @@ Interface web pour gérer un dépôt Git sans ligne de commande.
 | `api/stash.php` | stashList, stashSave, stashApply, stashDrop |
 | `api/status.php` | status, repoInfo, addRemote, removeRemote |
 | `api/sync.php` | push, pull, fetch |
+| `api/tags.php` | listTags, createTag, deleteTag, pushTag, deleteRemoteTag |
 
 ### Feuilles de style (`css/`)
 
@@ -91,6 +92,13 @@ Interface web pour gérer un dépôt Git sans ligne de commande.
 - **Revert** : Annuler un commit en créant un nouveau commit inverse
 - **Checkout sur un commit** : Se placer sur un ancien commit (HEAD détaché)
 - **Créer une branche depuis un HEAD détaché** : Sauvegarder un état exploré dans une nouvelle branche
+
+### Tags
+
+- **Créer** : Tag léger (nom seul) ou annoté (nom + message). Convention recommandée : `MAJOR.MINOR.PATCH`
+- **Push** : Envoyer le tag vers GitHub (nécessaire pour créer une release). Sans effet si déjà publié.
+- **Supprimer** : Suppression locale + tentative distante automatique (ignorée si jamais pushé)
+- Tags accessibles depuis l'onglet **Tags** de la card Historique & Tags
 
 ### Gestion des branches
 
@@ -174,6 +182,7 @@ Contenu HTML de l'aide intégrée, chargé dynamiquement dans la modale de `git-
 - Synchronisation (remote, push, pull, fetch, option `--rebase`)
 - Statuts des fichiers (M, A, D, U)
 - Diff visuel (lecture du tableau, en-tête @@, deux onglets stagé/non stagé)
+- Tags (tag léger/annoté, push, suppression, convention MAJOR.MINOR.PATCH)
 - Récupération de fichiers et retour en arrière
 - Commits en avance / en retard
 - Stash (mettre de côté)
@@ -232,7 +241,8 @@ mon-projet/                    <- Dépôt Git géré
 │   │   ├── setup.php
 │   │   ├── stash.php
 │   │   ├── status.php
-│   │   └── sync.php
+│   │   ├── sync.php
+│   │   └── tags.php
 │   ├── css/                   <- Feuilles de style
 │   │   ├── common.css
 │   │   ├── git-auth.css

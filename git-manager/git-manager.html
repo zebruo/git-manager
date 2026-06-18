@@ -342,13 +342,50 @@
 
         <!-- History Section -->
         <div class="git-section">
-          <h2>
-            <i class="fas fa-history"></i> Historique des commits
-          </h2>
-          <div class="history-list" id="historyList">
-            <div class="loading">
-              <i class="fas fa-spinner"></i> Chargement...
+          <h2><i class="fas fa-history"></i> Historique & Tags</h2>
+          <div class="diff-tabs" style="margin: -5px -5px 15px -5px;">
+            <button class="diff-tab active" id="histTab" onclick="showHistoryTab('history')">
+              <i class="fas fa-history"></i> Historique
+            </button>
+            <button class="diff-tab" id="tagsTab" onclick="showHistoryTab('tags')">
+              <i class="fas fa-tags"></i> Tags
+            </button>
+          </div>
+          <div id="historyPanel">
+            <div class="history-list" id="historyList">
+              <div class="loading">
+                <i class="fas fa-spinner"></i> Chargement...
+              </div>
             </div>
+          </div>
+          <div id="tagsPanel" style="display:none;">
+            <div style="display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; align-items: baseline;">
+              <input type="text" id="tagName" class="file-select" style="flex: 1; min-width: 100px; max-width: 160px;"
+                placeholder="ex : v1.0.0">
+              <input type="text" id="tagMessage" class="file-select" style="flex: 2; min-width: 180px;"
+                placeholder="Message (optionnel — tag annoté)">
+            </div>
+            <div class="btn-group" style="margin-top: 0;">
+              <button class="btn btn-primary" onclick="doCreateTag()" title="Créer un tag sur le commit courant">
+                <i class="fas fa-tag"></i> Créer
+              </button>
+            </div>
+            <div id="tagList" style="margin-top: 15px;"></div>
+            <p style="color: var(--text-secondary); font-size: 0.85em; margin-top: 10px;">
+              <i class="fas fa-info-circle"></i>
+              Marque un commit précis (ex : une version de release).<br>
+              Avec un message → tag annoté. Sans message → tag léger.
+            </p>
+            <p style="color: var(--text-secondary); font-size: 0.85em; margin-top: 8px;">
+              <i class="fas fa-code-branch"></i> <strong>Quand faire une release ?</strong><br>
+              Quand le projet est dans un état stable et qu'un jalon significatif est atteint :
+              nouvelle page fonctionnelle, fonctionnalité importante, refonte visuelle.<br>
+              Ne pas créer une release pour chaque petit fix.<br><br>
+              Schéma de version : <strong>MAJOR.MINOR.PATCH</strong><br>
+              &nbsp;· <code>PATCH</code> (+0.0.1) : correction de bug ou petit ajustement<br>
+              &nbsp;· <code>MINOR</code> (+0.1.0) : nouvelle page ou fonctionnalité<br>
+              &nbsp;· <code>MAJOR</code> (+1.0.0) : refonte architecturale ou visuelle importante
+            </p>
           </div>
         </div>
 

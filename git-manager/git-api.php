@@ -247,6 +247,12 @@ $routes = [
     'mergeBranch'         => 'branches.php',
     'pushBranch'          => 'branches.php',
     'deleteRemoteBranch'  => 'branches.php',
+    // Tags
+    'listTags'            => 'tags.php',
+    'createTag'           => 'tags.php',
+    'deleteTag'           => 'tags.php',
+    'pushTag'             => 'tags.php',
+    'deleteRemoteTag'     => 'tags.php',
     // Stash
     'stashList'           => 'stash.php',
     'stashSave'           => 'stash.php',

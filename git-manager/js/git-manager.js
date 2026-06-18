@@ -273,7 +273,8 @@ async function refreshAll() {
       loadHistory(),
       loadGitignore(),
       loadBranches(),
-      loadStashList()
+      loadStashList(),
+      loadTagList()
     ]);
   } catch (e) {
     console.error('refreshAll error:', e);
@@ -531,6 +532,123 @@ async function doStashApply(stashId, drop) {
     terminalLog(result.error, 'error');
     showAlert('error', 'Erreur: ' + result.error);
   }
+}
+
+function showHistoryTab(tab) {
+  const isHistory = tab === 'history';
+  document.getElementById('historyPanel').style.display = isHistory ? '' : 'none';
+  document.getElementById('tagsPanel').style.display   = isHistory ? 'none' : '';
+  document.getElementById('histTab').classList.toggle('active', isHistory);
+  document.getElementById('tagsTab').classList.toggle('active', !isHistory);
+}
+
+// ── Tags ──────────────────────────────────────────────────────────────────────
+
+async function loadTagList() {
+  const tagListDiv = document.getElementById('tagList');
+  if (!tagListDiv) return;
+
+  const result = await apiCall('listTags');
+
+  if (result.success && result.data.tags.length > 0) {
+    const tags = result.data.tags;
+    tagListDiv.innerHTML = `
+      <div style="color: var(--text-secondary); font-size: 0.9em; margin-bottom: 8px;">
+        <i class="fas fa-tags"></i> ${tags.length} tag${tags.length > 1 ? 's' : ''}
+      </div>
+      ${tags.map(t => `
+        <div class="stash-item">
+          <div class="stash-item-info">
+            <span class="stash-item-id">${escapeHtml(t.name)}</span>
+            <span class="stash-item-message">${t.type}</span>
+          </div>
+          <div class="stash-item-actions">
+            <button class="stash-btn-apply" onclick="doPushTag('${escapeHtml(t.name)}')" title="Pousser vers origin">
+              <i class="fas fa-upload"></i> Push
+            </button>
+            <button class="stash-btn-drop" onclick="doDeleteTag('${escapeHtml(t.name)}')" title="Supprimer le tag">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      `).join('')}
+    `;
+  } else {
+    tagListDiv.innerHTML = '<div class="empty-state" style="padding: 10px;"><i class="fas fa-tag"></i><p>Aucun tag</p></div>';
+  }
+}
+
+async function doCreateTag() {
+  const name    = document.getElementById('tagName').value.trim();
+  const message = document.getElementById('tagMessage').value.trim();
+
+  if (!name) { showAlert('warning', 'Saisissez un nom de tag (ex : v1.0.0)'); return; }
+
+  terminalClear();
+  const cmd = message ? `$ git tag -a ${name} -m "${message}"` : `$ git tag ${name}`;
+  terminalLog(cmd, 'info');
+
+  const result = await apiCall('createTag', { name, message });
+
+  if (result.success) {
+    terminalLog(result.output, 'success');
+    showAlert('success', result.output);
+    document.getElementById('tagName').value = '';
+    document.getElementById('tagMessage').value = '';
+    loadTagList();
+  } else {
+    terminalLog(result.error, 'error');
+    showAlert('error', 'Erreur : ' + result.error);
+  }
+}
+
+async function doPushTag(name) {
+  terminalClear();
+  terminalLog(`$ git push origin ${name}`, 'info');
+
+  const result = await apiCall('pushTag', { name });
+
+  if (result.success) {
+    terminalLog(result.output, 'success');
+    if (result.alreadyPushed) {
+      showAlert('success', `Tag "${name}" déjà publié sur GitHub`);
+    } else {
+      showAlert('success', `Tag "${name}" poussé vers GitHub`);
+    }
+  } else {
+    terminalLog(result.error, 'error');
+    showAlert('error', 'Erreur : ' + result.error);
+  }
+}
+
+async function doDeleteTag(name) {
+  const confirmed = await showConfirm(`Supprimer le tag "${name}" ?`, true, 'Supprimer', 'Annuler');
+  if (!confirmed) return;
+
+  terminalClear();
+  terminalLog(`$ git tag -d ${name}`, 'info');
+
+  const localResult = await apiCall('deleteTag', { name });
+
+  if (!localResult.success) {
+    terminalLog(localResult.error, 'error');
+    showAlert('error', 'Erreur : ' + localResult.error);
+    return;
+  }
+
+  terminalLog(localResult.output, 'success');
+
+  terminalLog(`$ git push origin --delete ${name}`, 'info');
+  const remoteResult = await apiCall('deleteRemoteTag', { name });
+  if (remoteResult.success) {
+    if (remoteResult.output) terminalLog(remoteResult.output, 'success');
+  } else {
+    terminalLog(remoteResult.error, 'error');
+    showAlert('error', 'Erreur remote : ' + remoteResult.error);
+  }
+
+  showAlert('success', `Tag "${name}" supprimé`);
+  loadTagList();
 }
 
 // Supprimer un stash

@@ -235,6 +235,28 @@
     </div>
   </div>
   <div class="help-category">
+    <h4><i class="fas fa-tags"></i> Tags</h4>
+    <dl>
+      <dt><i class="fas fa-tag"></i> Tag léger</dt>
+      <dd>Simple pointeur vers un commit. Créé sans message. Utile pour un repère personnel.</dd>
+      <dt><i class="fas fa-tag"></i> Tag annoté</dt>
+      <dd>Objet Git à part entière avec un message, une date et l'auteur du tag. Recommandé pour les releases.</dd>
+      <dt><i class="fas fa-upload"></i> Push</dt>
+      <dd>Envoie le tag vers GitHub. Sans push, le tag reste local et n'est pas visible dans les releases GitHub.
+        Pousser un tag déjà publié est sans effet.</dd>
+      <dt><i class="fas fa-trash"></i> Supprimer</dt>
+      <dd>Supprime le tag localement et tente automatiquement de le supprimer sur GitHub. Si le tag n'avait jamais
+        été pushé, la suppression distante est ignorée silencieusement.</dd>
+    </dl>
+    <div class="help-info-box">
+      <div class="mb-8"><strong><i class="fas fa-code-branch"></i> Convention MAJOR.MINOR.PATCH</strong></div>
+      <div>· <code>PATCH</code> (+0.0.1) : correction de bug ou petit ajustement</div>
+      <div class="mt-5">· <code>MINOR</code> (+0.1.0) : nouvelle page ou fonctionnalité</div>
+      <div class="mt-5">· <code>MAJOR</code> (+1.0.0) : refonte architecturale ou visuelle importante</div>
+      <div class="mt-8">Créer une release pour un jalon significatif, pas pour chaque petit fix.</div>
+    </div>
+  </div>
+  <div class="help-category">
     <h4><i class="fas fa-exclamation-triangle"></i> Actions dangereuses</h4>
     <dl>
       <dt><i class="fas fa-trash"></i> Annuler toutes les modifications</dt>
