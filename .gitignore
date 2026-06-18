@@ -7,6 +7,9 @@ git-manager/git-config.php
 
 # Les autres fichiers peuvent varier suivant votre configuration:
 
+# ── IDE ───────────────────────────────────────────────────────────────────────
+.vscode/
+
 # ── Scripts locaux ────────────────────────────────────────────────────────────
 release.sh
 
