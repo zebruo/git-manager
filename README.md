@@ -6,16 +6,50 @@ Interface web pour gérer un dépôt Git sans ligne de commande.
 
 | Fichier | Description |
 |---------|-------------|
-| `git-manager.html` | Interface principale (HTML/CSS/JS) |
-| `git-api.php` | API backend pour exécuter les commandes Git |
+| `git-manager.html` | Interface principale |
+| `git-api.php` | Point d'entrée API — dispatche vers les modules dans `api/` |
 | `git-config.example.php` | Modèle de configuration (à copier en `git-config.php`) |
 | `git-config.php` | Configuration personnelle — non versionné (identité Git, clé SSH) |
-| `git-auth.html` | Configuration de l'authentification SSH |
+| `git-auth.html` | Configuration de l'authentification SSH / Token |
 | `git-clone.html` | Clonage d'un dépôt distant |
 | `git-reset-remote.html` | Réinitialisation du remote origin |
 | `git-help.html` | Documentation d'aide (chargée dans l'interface principale) |
 | `index.html` | Page d'accueil du dossier git-manager |
-| `flavicon.svg` | Icône SVG du projet (logo Git en #45b7af) |
+| `flavicon.svg` | Icône SVG du projet |
+
+### Modules backend (`api/`)
+
+| Fichier | Actions gérées |
+|---------|----------------|
+| `api/branches.php` | branches, switchBranch, createBranch, renameBranch, deleteBranch, mergeBranch, pushBranch, deleteRemoteBranch |
+| `api/commits.php` | log, fileLog, stageFiles, unstageFiles, commit, commitAndPush, revertCommit, amendLastCommit, showCommit, diff |
+| `api/files.php` | checkout, discardAll, checkoutCommit, removeFromRepo, untrackFile, fileDiff |
+| `api/gitignore.php` | getGitignore, addToGitignore, removeFromGitignore |
+| `api/setup.php` | checkRepo, init, clone, listFolders, listRemoteBranches, resetRemote |
+| `api/stash.php` | stashList, stashSave, stashApply, stashDrop |
+| `api/status.php` | status, repoInfo, addRemote, removeRemote |
+| `api/sync.php` | push, pull, fetch |
+
+### Feuilles de style (`css/`)
+
+| Fichier | Description |
+|---------|-------------|
+| `css/common.css` | Variables CSS partagées (`:root`, `.dark-mode`) |
+| `css/git-manager.css` | Styles de l'interface principale |
+| `css/git-help.css` | Styles de la modale d'aide |
+| `css/git-auth.css` | Styles de la page authentification |
+| `css/git-clone.css` | Styles de la page clonage |
+| `css/git-reset-remote.css` | Styles de la page réinitialisation |
+| `css/index.css` | Styles de la page d'accueil |
+
+### Scripts frontend (`js/`)
+
+| Fichier | Description |
+|---------|-------------|
+| `js/git-manager.js` | Logique de l'interface principale |
+| `js/git-auth.js` | Logique de la page authentification |
+| `js/git-clone.js` | Logique de la page clonage |
+| `js/git-reset-remote.js` | Logique de la page réinitialisation |
 
 ## Fonctionnalités
 
@@ -30,18 +64,20 @@ Interface web pour gérer un dépôt Git sans ligne de commande.
 
 - Branche courante
 - Nombre de fichiers suivis (total des fichiers trackés par Git)
-- Fichiers modifiés (M)
-- Fichiers stagés (A)
-- Fichiers supprimés (D)
-- Fichiers non suivis (?)
+- Fichiers modifiés (M), stagés (A), supprimés (D), non suivis (U)
 - Commits en avance/retard par rapport au remote
 - Nombre de stashes en attente
 - Détection du HEAD détaché
 
-### Gestion des commits
+### Fichiers modifiés — Diff & Commit
 
 - **Sélection des fichiers** : Cocher les fichiers à inclure
 - **Tout sélectionner** : Sélectionner tous les fichiers d'un coup
+- **Diff visuel** : Cliquer sur le nom d'un fichier M, A ou D ouvre une modale avec les modifications ligne par ligne :
+  - Tableau à 3 colonnes : numéro ancien / numéro nouveau / contenu
+  - Lignes supprimées en rouge, ajoutées en vert
+  - Fichiers M et A : deux onglets **Non stagé** / **Stagé** si les deux zones sont remplies simultanément
+  - Bouton **Copier** pour copier le diff brut dans le presse-papiers
 - **Commit** : Enregistrer les modifications localement
 - **Commit & Push** : Commit + envoi vers GitHub en une action
 - **Amend** : Modifier le dernier commit — trois usages combinables :
@@ -51,9 +87,9 @@ Interface web pour gérer un dépôt Git sans ligne de commande.
   - Charger le message actuel via le bouton crayon dans l'historique pour l'éditer
   - Avertissement automatique si le commit a déjà été pushé (push --force requis)
 - **Historique** : Liste des 20 derniers commits avec hash, message, auteur et date
-- **Détail d'un commit** : Affiche les fichiers modifiés et les statistiques d'un commit dans le terminal (bouton loupe, `git show --stat`)
-- **Revert** : Annuler un commit en créant un nouveau commit inverse (`git revert`) — solution propre pour les commits déjà pushés
-- **Checkout sur un commit** : Se placer sur un ancien commit (HEAD détaché) depuis l'historique
+- **Détail d'un commit** : Affiche les fichiers modifiés et les statistiques (`git show --stat`)
+- **Revert** : Annuler un commit en créant un nouveau commit inverse
+- **Checkout sur un commit** : Se placer sur un ancien commit (HEAD détaché)
 - **Créer une branche depuis un HEAD détaché** : Sauvegarder un état exploré dans une nouvelle branche
 
 ### Gestion des branches
@@ -63,22 +99,17 @@ Interface web pour gérer un dépôt Git sans ligne de commande.
 | Créer | Nouvelle branche à partir de la branche courante ou d'une autre branche |
 | Branche orpheline | Branche vide sans fichiers et sans historique (conserve git-manager/) |
 | Nouveau départ | Branche avec les fichiers actuels mais sans historique |
-| Renommer | Changer le nom d'une branche (local et distant si publiée). La branche par défaut (main/master) ne peut pas être renommée (crayon grisé) |
+| Renommer | Changer le nom d'une branche (local et distant si publiée). La branche par défaut (main/master) ne peut pas être renommée |
 | Basculer | Changer de branche active (préserve les fichiers non suivis) |
 | Fusionner | Intégrer une branche dans la branche courante |
 | Publier | Envoyer une branche locale vers GitHub |
 | Supprimer | Supprimer localement (et optionnellement sur GitHub) |
 
-### Types de branches spéciales
-
-- **Branche orpheline** : Crée une branche totalement vide, sans historique, idéale pour démarrer un projet indépendant. Le dossier git-manager/ est conservé pour garder l'interface accessible.
-- **Nouveau départ** : Crée une branche avec tous les fichiers actuels mais sans l'historique des commits. Utile pour "nettoyer" l'historique tout en conservant le code.
-
 ### Mettre de côté (Stash)
 
 - **Mettre de côté** : Sauvegarde temporairement les modifications en cours sans commit
 - **Pop** : Restaure les modifications et supprime le stash
-- **Appliquer** : Restaure les modifications en conservant le stash (réutilisable sur plusieurs branches)
+- **Appliquer** : Restaure les modifications en conservant le stash
 - **Supprimer** : Supprime un stash définitivement
 - Option pour inclure ou exclure les fichiers non suivis
 - Message descriptif optionnel
@@ -86,13 +117,13 @@ Interface web pour gérer un dépôt Git sans ligne de commande.
 ### Synchronisation
 
 - **Push** : Envoyer les commits vers GitHub (détecte automatiquement le premier push)
-- **Pull** : Récupérer et fusionner les modifications depuis GitHub (option `--rebase` pour rejouer les commits locaux après les commits distants, sans merge commit)
+- **Pull** : Récupérer et fusionner les modifications depuis GitHub (option `--rebase`)
 - **Fetch** : Vérifier les nouveautés sans modifier les fichiers locaux
 
 ### Récupération de fichiers
 
 - Accès rapide : HEAD, HEAD~1, HEAD~2, origin/main
-- Historique complet : liste des commits du fichier sélectionné (limite configurable dans `git-config.php` → `maxFileLogItems`, par défaut 10)
+- Historique complet : liste des commits du fichier sélectionné
 - Annuler toutes les modifications locales
 
 ### Suppression de fichiers
@@ -112,8 +143,7 @@ Interface web pour gérer un dépôt Git sans ligne de commande.
 
 - **Mode sombre** : Thème clair/sombre avec mémorisation
 - **Terminal** : Affichage des commandes Git exécutées
-- **Notifications** : Toasts fixes en bas à droite (succès, erreur, avertissement) — disparaissent automatiquement, cliquables pour fermer
-- **Champ message** : Bouton × pour effacer rapidement le message de commit
+- **Notifications** : Toasts en bas à droite (succès, erreur, avertissement)
 - **Aide intégrée** : Documentation accessible depuis l'interface
 
 ## Pages auxiliaires
@@ -126,18 +156,16 @@ Guide de configuration pour accéder à GitHub (push, pull, fetch). Deux méthod
 - Génération de clé RSA ou ED25519
 - Ajout de la clé à l'agent SSH et à GitHub
 - Test de connexion (`ssh -T git@github.com`)
-- Authentification automatique, pas de mot de passe à chaque opération
 
 **Token HTTPS** (usage occasionnel, CI/CD) :
 - Création d'un Personal Access Token (PAT) sur GitHub
 - Utilisation du token dans l'URL ou via le Credential Manager
-- Token à renouveler périodiquement
 
 ### git-clone.html - Clonage de dépôt
 
 Clone un dépôt distant dans le dossier courant :
 - Supporte les URLs HTTPS et SSH
-- Copie automatiquement les fichiers git-manager/ pour conserver l'interface
+- Copie automatiquement les fichiers git-manager/ (`api/`, `css/`, `js/` inclus)
 - Préserve les fichiers existants non conflictuels
 
 ### git-help.html - Documentation d'aide
@@ -145,23 +173,21 @@ Clone un dépôt distant dans le dossier courant :
 Contenu HTML de l'aide intégrée, chargé dynamiquement dans la modale de `git-manager.html`. Couvre :
 - Synchronisation (remote, push, pull, fetch, option `--rebase`)
 - Statuts des fichiers (M, A, D, U)
+- Diff visuel (lecture du tableau, en-tête @@, deux onglets stagé/non stagé)
 - Récupération de fichiers et retour en arrière
 - Commits en avance / en retard
 - Stash (mettre de côté)
 - Actions dangereuses
 - Fusion (merge) et résolution de conflits
 - Fork et contribution
-- Gestion des branches (création, récupération distante, renommage, suppression)
+- Gestion des branches
 - HEAD détaché
 - Clonage, réinitialisation du remote, authentification
 - Workflow typique
 
 ### git-reset-remote.html - Réinitialisation du remote
 
-Permet de reconfigurer complètement le remote origin :
-- Supprimer le remote existant
-- Ajouter un nouveau remote
-- Utile en cas de changement de dépôt ou de méthode d'authentification
+Crée une nouvelle branche vide (sans historique) et supprime les branches sélectionnées sur GitHub. **Irréversible.**
 
 ## Configuration
 
@@ -195,29 +221,48 @@ return [
 **Mise à jour** : Pour passer à une nouvelle version, supprimez l'ancien dossier `git-manager/` et remplacez-le par le nouveau. Votre fichier `git-config.php` étant ignoré par Git, il n'est pas inclus dans les releases — recopiez-le manuellement après la mise à jour.
 
 ```
-mon-projet/              <- Dépôt Git géré
-├── .git/                <- Dossier Git (créé automatiquement par git init)
-├── git-manager/         <- Sous-dossier de l'interface
-│   ├── git-manager.html
+mon-projet/                    <- Dépôt Git géré
+├── .git/                      <- Dossier Git (créé automatiquement par git init)
+├── git-manager/               <- Sous-dossier de l'interface (non versionné)
+│   ├── api/                   <- Modules PHP backend
+│   │   ├── branches.php
+│   │   ├── commits.php
+│   │   ├── files.php
+│   │   ├── gitignore.php
+│   │   ├── setup.php
+│   │   ├── stash.php
+│   │   ├── status.php
+│   │   └── sync.php
+│   ├── css/                   <- Feuilles de style
+│   │   ├── common.css
+│   │   ├── git-auth.css
+│   │   ├── git-clone.css
+│   │   ├── git-help.css
+│   │   ├── git-manager.css
+│   │   ├── git-reset-remote.css
+│   │   └── index.css
+│   ├── js/                    <- Scripts frontend
+│   │   ├── git-auth.js
+│   │   ├── git-clone.js
+│   │   ├── git-manager.js
+│   │   └── git-reset-remote.js
 │   ├── git-api.php
-│   ├── git-config.example.php
-│   ├── git-config.php
 │   ├── git-auth.html
 │   ├── git-clone.html
-│   ├── git-reset-remote.html
+│   ├── git-config.example.php
+│   ├── git-config.php
 │   ├── git-help.html
-│   ├── index.html
-│   └── flavicon.svg
-├── index.html               (M) modifié
-├── style.css                (A) stagé / ajouté
-├── script.js                (U) non suivi
-├── images/
-│   ├── logo.png             (M) modifié
-│   └── banner.jpg           (U) non suivi
+│   ├── git-manager.html
+│   ├── git-reset-remote.html
+│   ├── flavicon.svg
+│   └── index.html
+├── index.html                 (M) modifié
+├── style.css                  (A) stagé
+├── script.js                  (U) non suivi
 └── .gitignore
 ```
 
-**Note** : Le dossier `git-manager/` est automatiquement ajouté au `.gitignore` pour ne pas être versionné. Lors de la création de branches orphelines, le dossier est préservé pour que l'interface reste accessible.
+**Note** : Le dossier `git-manager/` est automatiquement ajouté au `.gitignore` pour ne pas être versionné.
 
 ## Prérequis
 

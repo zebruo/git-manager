@@ -1,0 +1,63 @@
+/* ── Structure ─────────────────────────────────────────────────────── */
+.help-info-box {
+  margin-top: 15px;
+  font-size: 0.85em;
+  background: var(--bg-secondary);
+  padding: 10px;
+  border-radius: 6px;
+}
+.help-info-box.mono   { font-family: monospace; }
+.help-info-box.center { text-align: center; }
+.help-code-box {
+  font-family: 'Consolas', monospace;
+  background: var(--terminal-bg, #1e1e1e);
+  color: var(--terminal-text, #d4d4d4);
+  padding: 10px;
+  border-radius: 6px;
+  line-height: 1.8;
+}
+.help-mono-box {
+  font-family: 'Consolas', monospace;
+  line-height: 1.8;
+}
+.help-inner-box {
+  font-size: 0.9em;
+  background: var(--bg-color);
+  padding: 8px;
+  border-radius: 6px;
+}
+.help-notice {
+  padding: 8px;
+  background: color-mix(in srgb, var(--warning-color) 10%, transparent);
+  border-radius: 4px;
+}
+.help-warning-box {
+  margin-top: 10px;
+  font-size: 0.85em;
+  padding: 10px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--danger-color) 8%, transparent);
+  border-left: 3px solid var(--danger-color);
+}
+/* ── Espacements ──────────────────────────────────────────────────── */
+.mt-5  { margin-top: 5px; }
+.mt-6  { margin-top: 6px; }
+.mt-8  { margin-top: 8px; }
+.mt-10 { margin-top: 10px; }
+.mb-8  { margin-bottom: 8px; }
+.mb-10 { margin-bottom: 10px; }
+/* ── Couleurs sémantiques ─────────────────────────────────────────── */
+.text-warning { color: var(--warning-color); }
+.text-danger  { color: var(--danger-color); }
+.text-success { color: var(--success-color); }
+.text-info    { color: var(--info-color); }
+/* ── Syntaxe terminal ─────────────────────────────────────────────── */
+.syn-comment { color: #6a9955; }
+.syn-keyword { color: #569cd6; }
+.syn-string  { color: #ce9178; }
+/* ── Tableaux ─────────────────────────────────────────────────────── */
+.help-table { width: 100%; font-size: 0.95em; border-collapse: collapse; }
+.help-table td { padding: 4px 8px; }
+/* ── Onglets ──────────────────────────────────────────────────────── */
+.help-tab-panel { display: none; }
+.help-tab-panel.active { display: block; }

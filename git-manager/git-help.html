@@ -1,66 +1,4 @@
-<style>
-  /* ── Structure ─────────────────────────────────────────────────────── */
-  .help-info-box {
-    margin-top: 15px;
-    font-size: 0.85em;
-    background: var(--bg-secondary);
-    padding: 10px;
-    border-radius: 6px;
-  }
-  .help-info-box.mono   { font-family: monospace; }
-  .help-info-box.center { text-align: center; }
-  .help-code-box {
-    font-family: 'Consolas', monospace;
-    background: var(--terminal-bg, #1e1e1e);
-    color: var(--terminal-text, #d4d4d4);
-    padding: 10px;
-    border-radius: 6px;
-    line-height: 1.8;
-  }
-  .help-mono-box {
-    font-family: 'Consolas', monospace;
-    line-height: 1.8;
-  }
-  .help-inner-box {
-    font-size: 0.9em;
-    background: var(--bg-color);
-    padding: 8px;
-    border-radius: 6px;
-  }
-  .help-notice {
-    padding: 8px;
-    background: color-mix(in srgb, var(--warning-color) 10%, transparent);
-    border-radius: 4px;
-  }
-  .help-warning-box {
-    margin-top: 10px;
-    font-size: 0.85em;
-    padding: 10px;
-    border-radius: 6px;
-    background: color-mix(in srgb, var(--danger-color) 8%, transparent);
-    border-left: 3px solid var(--danger-color);
-  }
-  /* ── Espacements ──────────────────────────────────────────────────── */
-  .mt-5  { margin-top: 5px; }
-  .mt-6  { margin-top: 6px; }
-  .mt-8  { margin-top: 8px; }
-  .mt-10 { margin-top: 10px; }
-  .mb-8  { margin-bottom: 8px; }
-  .mb-10 { margin-bottom: 10px; }
-  /* ── Couleurs sémantiques ─────────────────────────────────────────── */
-  .text-warning { color: var(--warning-color); }
-  .text-danger  { color: var(--danger-color); }
-  .text-success { color: var(--success-color); }
-  .text-info    { color: var(--info-color); }
-  /* ── Syntaxe terminal ─────────────────────────────────────────────── */
-  .syn-comment { color: #6a9955; }
-  .syn-keyword { color: #569cd6; }
-  .syn-string  { color: #ce9178; }
-  /* ── Tableaux ─────────────────────────────────────────────────────── */
-  .help-table { width: 100%; font-size: 0.95em; border-collapse: collapse; }
-  .help-table td { padding: 4px 8px; }
-</style>
-
+<div class="help-tab-panel active" id="helpTab-reference">
 <div class="help-grid">
   <div class="help-category">
     <h4><i class="fas fa-cloud"></i> Synchronisation</h4>
@@ -109,8 +47,9 @@
       <dd>Fichier déjà suivi par Git dont le contenu a changé depuis le dernier commit. Cochez-le et faites un commit
         pour enregistrer les modifications.</dd>
       <dt><span class="status-badge added">A</span> Ajouté (stagé)</dt>
-      <dd>Nouveau fichier ajouté à la zone de staging, prêt à être inclus dans le prochain commit. Il sera versionné dès
-        le commit.</dd>
+      <dd>Fichier dont les modifications ont été placées dans la zone de staging (l'index Git), prêt à être inclus dans
+        le prochain commit. Peut être un nouveau fichier ou un fichier modifié explicitement stagé via le bouton
+        <strong>Stager</strong>.</dd>
       <dt><span class="status-badge deleted">D</span> Supprimé</dt>
       <dd>Fichier qui existait dans le dernier commit mais qui a été supprimé. Le commit enregistrera cette suppression
         dans l'historique.</dd>
@@ -119,7 +58,18 @@
         cochez pas. Vous pouvez aussi l'ajouter au <strong>.gitignore</strong> pour l'ignorer définitivement.</dd>
     </dl>
     <div class="help-info-box">
-      <div class="mb-8"><strong><i class="fas fa-info-circle"></i> Fichiers suivis</strong></div>
+      <div class="mb-8"><strong><i class="fas fa-layer-group"></i> Zone de staging (index)</strong></div>
+      <div>La zone de staging est une zone intermédiaire entre vos fichiers et l'historique Git. Elle permet de
+        choisir exactement ce qui entre dans le prochain commit, indépendamment de ce qui est modifié sur le disque.</div>
+      <div class="mt-8"><strong>Dans git-manager</strong>, le bouton <strong>Commit fait automatiquement
+        <code>git add</code></strong> sur les fichiers cochés — vous n'avez pas besoin de stager explicitement avant de
+        commiter. Le bouton <strong>Stager</strong> est utile dans un cas précis : préparer un fichier pour un
+        <strong>Amend</strong> sans commiter tout de suite.</div>
+      <div class="mt-8"><strong><i class="fas fa-exclamation-triangle text-warning"></i> Cas AM</strong> — si vous
+        stagez un fichier puis le modifiez à nouveau sans commiter, il apparaît en
+        <span class="status-badge added">A</span> <em>et</em> <span class="status-badge modified">M</span>
+        simultanément. Le prochain Commit inclura les deux zones ensemble — il n'est pas possible de les séparer.</div>
+      <div class="mt-8"><strong><i class="fas fa-info-circle"></i> Fichiers suivis</strong></div>
       <div>Le compteur <strong>Suivis</strong> dans le statut indique le nombre total de fichiers versionnés par Git. Ce
         sont les fichiers qui ont été committés au moins une fois et dont Git surveille les modifications.</div>
       <div class="mt-8"><strong><i class="fas fa-eye-slash"></i> Arrêter le suivi</strong></div>
@@ -482,7 +432,8 @@
     <div class="help-info-box">
       <div><strong>Fichiers copiés :</strong></div>
       <div class="mt-5">git-manager.html, git-api.php, git-config.example.php, git-clone.html,
-        git-reset-remote.html, git-auth.html, index.html, flavicon.svg, git-help.html</div>
+        git-reset-remote.html, git-auth.html, git-help.html, index.html, flavicon.svg</div>
+      <div class="mt-5">Sous-dossiers copiés intégralement : <code>api/</code>, <code>css/</code>, <code>js/</code></div>
       <div class="help-notice mt-8">
         <strong><i class="fas fa-exclamation-triangle text-warning"></i> Configuration requise :</strong>
         Après le clonage, renommez <code>git-config.example.php</code> en <code>git-config.php</code> et renseignez vos
@@ -513,26 +464,44 @@
     </div>
   </div>
 </div>
-<div class="help-workflow">
-  <h4><i class="fas fa-project-diagram"></i> Workflow typique</h4>
-  <ol>
-    <li><strong>Modifier</strong> vos fichiers dans votre éditeur de code</li>
-    <li><strong>Vérifier</strong> les changements dans la section "Fichiers modifiés" — vos fichiers apparaissent avec
-      le statut <span class="status-badge modified">M</span> (modifié), <span class="status-badge added">A</span>
-      (ajouté) ou <span class="status-badge untracked">U</span> (non suivi) ou <span
-        class="status-badge deleted">D</span> (supprimé).</li>
-    <li><strong>Stager</strong> les fichiers à inclure dans le commit en cochant les cases — les fichiers passent dans
-      la zone de staging (zone de préparation)</li>
-    <li><strong>Écrire</strong> un message clair décrivant les changements (ex: "Ajout du formulaire de contact")</li>
-    <li><strong>Commit</strong> pour enregistrer un instantané de vos fichiers stagés dans l'historique local</li>
-    <li><strong>Push</strong> pour envoyer vos commits vers GitHub et les partager</li>
-  </ol>
-  <div class="help-info-box">
-    <strong><i class="fas fa-lightbulb text-warning"></i> Bon à savoir :</strong>
-    <ul style="margin: 5px 0 0 15px; padding: 0;">
-      <li><strong>Fetch</strong> avant de travailler pour récupérer les dernières modifications distantes</li>
-      <li><strong>Pull</strong> pour fusionner les modifications distantes dans votre branche locale</li>
-      <li>Un commit reste <strong>local</strong> tant que vous n'avez pas fait de Push</li>
-    </ul>
+
+</div><!-- /helpTab-reference -->
+
+<div class="help-tab-panel" id="helpTab-pratiques">
+  <div class="help-workflow">
+    <h4><i class="fas fa-file-times"></i> Retirer un fichier du dernier commit (avant push)</h4>
+    <p class="mt-5">Le fichier est dans le dernier commit mais le push n'a pas encore été fait — l'amend est la solution propre.</p>
+    <ol class="mt-8">
+      <li>Section <strong>Supprimer un fichier du dépôt</strong> → sélectionner le fichier</li>
+      <li>Cliquer <strong>Arrêter le suivi uniquement</strong> (conserve le fichier sur le disque) ou <strong>Supprimer</strong> (supprime aussi du disque)</li>
+      <li>Le fichier apparaît en <span class="status-badge deleted">D</span> dans la liste des fichiers modifiés</li>
+      <li>Cocher le fichier, laisser le champ message vide, cliquer <strong>Amend</strong></li>
+    </ol>
+    <div class="help-info-box mt-8">
+      Le fichier est retiré du dernier commit sans créer un nouveau commit. Le message du commit original est conservé.
+    </div>
+  </div>
+
+  <div class="help-workflow" style="margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border-color);">
+    <h4><i class="fas fa-project-diagram"></i> Workflow typique</h4>
+    <ol>
+      <li><strong>Modifier</strong> vos fichiers dans votre éditeur de code</li>
+      <li><strong>Vérifier</strong> les changements dans la section "Fichiers modifiés" — vos fichiers apparaissent avec
+        le statut <span class="status-badge modified">M</span> (modifié), <span class="status-badge added">A</span>
+        (ajouté) ou <span class="status-badge untracked">U</span> (non suivi) ou <span
+          class="status-badge deleted">D</span> (supprimé).</li>
+      <li><strong>Cocher</strong> les fichiers à inclure dans le commit — le <code>git add</code> se fait automatiquement au moment du commit</li>
+      <li><strong>Écrire</strong> un message clair décrivant les changements (ex: "Ajout du formulaire de contact")</li>
+      <li><strong>Commit</strong> pour enregistrer un instantané de vos fichiers stagés dans l'historique local</li>
+      <li><strong>Push</strong> pour envoyer vos commits vers GitHub et les partager</li>
+    </ol>
+    <div class="help-info-box">
+      <strong><i class="fas fa-lightbulb text-warning"></i> Bon à savoir :</strong>
+      <ul style="margin: 5px 0 0 15px; padding: 0;">
+        <li><strong>Fetch</strong> avant de travailler pour récupérer les dernières modifications distantes</li>
+        <li><strong>Pull</strong> pour fusionner les modifications distantes dans votre branche locale</li>
+        <li>Un commit reste <strong>local</strong> tant que vous n'avez pas fait de Push</li>
+      </ul>
+    </div>
   </div>
 </div>

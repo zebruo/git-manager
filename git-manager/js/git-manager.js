@@ -244,6 +244,15 @@ function closeHelpModal() {
   document.getElementById('helpModal').classList.remove('active');
 }
 
+function showHelpTab(tabId) {
+  document.querySelectorAll('.help-tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.help-tab-btn').forEach(b => b.classList.remove('active'));
+  const panel = document.getElementById('helpTab-' + tabId);
+  if (panel) panel.classList.add('active');
+  const btn = document.querySelector(`.help-tab-btn[data-tab="${tabId}"]`);
+  if (btn) btn.classList.add('active');
+}
+
 function updateDarkModeIcon() {
   const btn = document.getElementById('darkModeBtn');
   const isDark = document.body.classList.contains('dark-mode');
@@ -919,7 +928,7 @@ async function doAmendLastCommit() {
   }
 
   if (currentAhead === 0) {
-    const ok = confirm('Ce commit a déjà été pushé sur le remote.\nUn git push --force sera nécessaire pour l\'écraser.\nContinuer quand même ?');
+    const ok = await showConfirm('Ce commit a déjà été pushé sur le remote. Un git push --force sera nécessaire pour l\'écraser. Continuer quand même ?');
     if (!ok) return;
   }
 
