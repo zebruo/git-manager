@@ -1,0 +1,27 @@
+/* Variables CSS communes à toutes les pages - Thème clair */
+:root {
+  --bg-color: #fdfdfd;
+  --bg-primary: #f0f2f5;
+  --bg-secondary: #becddd;
+  --text-primary: #1c3641;
+  --text-secondary: #6c757d;
+  --border-color: #b0b9c2;
+  --accent-color: #45b7af;
+  --accent-hover: #3ca29a;
+  --danger-color: #f44336;
+  --success-color: #4caf50;
+  --warning-color: #ff9800;
+  --info-color: #2196f3;
+}
+
+/* Thème sombre */
+.dark-mode {
+  --bg-color: #1e293b;
+  --bg-primary: #1e293b;
+  --bg-secondary: #293d58;
+  --text-primary: #ffffff;
+  --text-secondary: #94a3b8;
+  --border-color: #3d4f5f;
+  --accent-color: #45b7af;
+  --accent-hover: #3ca29a;
+}

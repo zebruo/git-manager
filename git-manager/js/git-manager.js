@@ -1,0 +1,1713 @@
+const API_URL = 'git-api.php';
+let modalResolve = null;
+let currentAhead = 0;
+
+// Initialisation
+document.addEventListener('DOMContentLoaded', async function () {
+  // Charger le mode sombre sauvegardé
+  if (localStorage.getItem('gitManagerDarkMode') === 'true') {
+    document.body.classList.add('dark-mode');
+    updateDarkModeIcon();
+  }
+
+  // LED état serveur
+  checkServerStatus();
+  setInterval(checkServerStatus, 30000);
+
+  // Vérifier si c'est un dépôt Git
+  const repoCheck = await checkRepo();
+  if (repoCheck.isGitRepo) {
+    document.getElementById('initSection').style.display = 'none';
+    document.getElementById('mainContent').style.display = 'block';
+    loadRepoInfo();
+    refreshAll();
+  } else {
+    document.getElementById('initSection').style.display = 'block';
+    document.getElementById('mainContent').style.display = 'none';
+    document.getElementById('initPath').textContent = repoCheck.path;
+    document.getElementById('repoInfo').innerHTML = '<i class="fas fa-folder"></i> ' + repoCheck.path;
+  }
+});
+
+// Vérifier si le dossier est un dépôt Git
+async function checkRepo() {
+  const result = await apiCall('checkRepo');
+  if (result.success) {
+    return result.data;
+  }
+  return { isGitRepo: false, path: '' };
+}
+
+async function checkServerStatus() {
+  const led = document.getElementById('serverLed');
+  const result = await apiCall('checkRepo');
+  if (result.success) {
+    led.className = 'server-led online';
+    led.title = 'Serveur en ligne';
+  } else {
+    led.className = 'server-led offline';
+    led.title = 'Serveur hors ligne';
+  }
+}
+
+// Initialiser un nouveau dépôt Git
+async function initRepo() {
+  const confirmed = await showConfirm('Initialiser un nouveau dépôt Git dans ce dossier ?');
+  if (!confirmed) return;
+
+  const result = await apiCall('init');
+
+  if (result.success) {
+    showAlert('success', result.output);
+    // Recharger la page pour afficher l'interface complète
+    setTimeout(() => location.reload(), 1000);
+  } else {
+    showAlert('error', 'Erreur: ' + result.error);
+  }
+}
+
+// Charger les informations du dépôt
+async function loadRepoInfo() {
+  const repoInfo = document.getElementById('repoInfo');
+  const remoteBtn = document.getElementById('remoteBtn');
+  const resetRemoteBtn = document.getElementById('resetRemoteBtn');
+  const result = await apiCall('repoInfo');
+
+  if (result.success && result.data) {
+    // Afficher le bouton remote dans le header
+    remoteBtn.style.display = 'inline-flex';
+
+    if (result.data.hasRemote && result.data.name && result.data.url) {
+      const githubUrl = result.data.url.replace(/\.git$/, '').replace('git@github.com:', 'https://github.com/');
+      const isSSH = result.data.url.startsWith('git@');
+      const authBadge = isSSH
+        ? '<span style="background: color-mix(in srgb, var(--success-color) 15%, transparent); color: var(--success-color); padding: 2px 8px; border-radius: 10px; font-size: 0.75em; margin-left: 8px;" title="Connexion SSH"><i class="fas fa-key"></i> SSH</span>'
+        : '<span style="background: color-mix(in srgb, var(--info-color) 15%, transparent); color: var(--info-color); padding: 2px 8px; border-radius: 10px; font-size: 0.75em; margin-left: 8px;" title="Connexion HTTPS / Token"><i class="fas fa-lock"></i> HTTPS</span>';
+      repoInfo.innerHTML = `
+        <i class="fab fa-github repo-icon"></i>
+        <a href="${githubUrl}" target="_blank" title="Ouvrir sur GitHub">${result.data.name}</a>
+        ${authBadge}
+      `;
+      // Icône d'édition quand remote existe
+      remoteBtn.innerHTML = '<i class="fas fa-edit"></i>';
+      remoteBtn.title = 'Modifier le remote GitHub';
+      // Afficher le bouton reset remote quand un remote est configuré
+      resetRemoteBtn.style.display = 'inline-flex';
+    } else {
+      // Pas de remote configuré
+      repoInfo.innerHTML = `
+        <i class="fas fa-folder repo-icon"></i>
+        <span id="repoPath">${result.data.path || 'Dépôt local'}</span>
+      `;
+      // Icône de lien quand pas de remote
+      remoteBtn.innerHTML = '<i class="fas fa-link"></i>';
+      remoteBtn.title = 'Lier à GitHub';
+      // Masquer le bouton reset remote quand pas de remote
+      resetRemoteBtn.style.display = 'none';
+    }
+  } else {
+    repoInfo.innerHTML = `<i class="fas fa-folder repo-icon"></i> Dépôt local`;
+    remoteBtn.style.display = 'none';
+    resetRemoteBtn.style.display = 'none';
+  }
+}
+
+// Afficher le formulaire pour configurer le remote
+function showRemoteForm() {
+  const modal = document.getElementById('confirmModal');
+  const modalContent = modal.querySelector('.modal-content');
+
+  modalContent.innerHTML = /*html*/`
+    <h3><i class="fab fa-github"></i> Configurer le remote GitHub</h3>
+    <p style="color: var(--text-secondary); margin-bottom: 15px;">
+      Entrez l'URL de votre dépôt GitHub :
+    </p>
+    <input type="text" id="remoteUrlInput" class="file-select"
+      placeholder="https://github.com/username/repo.git"
+      style="width: 100%; margin-bottom: 15px;">
+    <p style="color: var(--text-secondary); font-size: 0.85em; margin-bottom: 20px;">
+      <i class="fas fa-info-circle"></i> Vous pouvez aussi utiliser le format SSH : git@github.com:username/repo.git
+    </p>
+    <div class="modal-buttons">
+      <button class="btn btn-secondary" onclick="closeRemoteForm()">Annuler</button>
+      <button class="btn btn-danger" onclick="removeRemote()" id="removeRemoteBtn" style="display: none;">
+        <i class="fas fa-unlink"></i> Supprimer
+      </button>
+      <button class="btn btn-primary" onclick="saveRemote()">
+        <i class="fas fa-save"></i> Enregistrer
+      </button>
+    </div>
+  `;
+
+  // Pré-remplir si un remote existe déjà
+  apiCall('repoInfo').then(result => {
+    if (result.success && result.data.hasRemote) {
+      document.getElementById('remoteUrlInput').value = result.data.url || '';
+      document.getElementById('removeRemoteBtn').style.display = 'inline-flex';
+    }
+  });
+
+  modal.classList.add('active');
+}
+
+// Fermer le formulaire remote et restaurer la modal
+function closeRemoteForm() {
+  const modal = document.getElementById('confirmModal');
+  const modalContent = modal.querySelector('.modal-content');
+
+  // Restaurer le contenu original de la modal
+  modalContent.innerHTML = /*html*/`
+    <h3><i class="fas fa-question-circle"></i> Confirmation</h3>
+    <p id="confirmModalMessage">Êtes-vous sûr ?</p>
+    <div class="modal-buttons">
+      <button class="btn btn-secondary" onclick="closeModal(false)" id="cancelModalBtn">Annuler</button>
+      <button class="btn btn-danger" onclick="closeModal(true)" id="confirmModalBtn">Confirmer</button>
+    </div>
+  `;
+
+  modal.classList.remove('active');
+}
+
+// Enregistrer le remote
+async function saveRemote() {
+  const url = document.getElementById('remoteUrlInput').value.trim();
+
+  if (!url) {
+    showAlert('error', 'Veuillez entrer une URL');
+    return;
+  }
+
+  const result = await apiCall('addRemote', { url });
+
+  if (result.success) {
+    if (result.warning) {
+      // Avertissement: fetch a échoué (problème SSH probable)
+      showAlert('warning', result.warning);
+      console.warn('Fetch error:', result.fetchError);
+    } else {
+      showAlert('success', result.output);
+    }
+    closeRemoteForm();
+    loadRepoInfo();
+    loadBranches(); // Recharger les branches distantes
+  } else {
+    showAlert('error', 'Erreur: ' + result.error);
+  }
+}
+
+// Supprimer le remote
+async function removeRemote() {
+  // Utiliser confirm() natif car la modale est déjà utilisée par le formulaire
+  const confirmed = confirm('Supprimer la liaison avec GitHub ?\n\nCette action supprime uniquement le lien vers le dépôt distant, pas les fichiers.');
+  if (!confirmed) return;
+
+  const result = await apiCall('removeRemote');
+
+  if (result.success) {
+    showAlert('success', result.output);
+    closeRemoteForm();
+    loadRepoInfo();
+  } else {
+    showAlert('error', 'Erreur: ' + result.error);
+  }
+}
+
+// Toggle mode sombre
+function toggleDarkMode() {
+  document.body.classList.toggle('dark-mode');
+  const isDark = document.body.classList.contains('dark-mode');
+  localStorage.setItem('gitManagerDarkMode', isDark);
+  updateDarkModeIcon();
+}
+
+// Afficher la modale d'aide
+let helpLoaded = false;
+async function showHelpModal() {
+  document.getElementById('helpModal').classList.add('active');
+  if (!helpLoaded) {
+    try {
+      const response = await fetch('git-help.html');
+      if (response.ok) {
+        document.getElementById('helpContent').innerHTML = await response.text();
+        helpLoaded = true;
+      } else {
+        document.getElementById('helpContent').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Impossible de charger l\'aide (git-help.html)</p></div>';
+      }
+    } catch (e) {
+      document.getElementById('helpContent').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Erreur : ' + e.message + '</p></div>';
+    }
+  }
+}
+
+// Fermer la modale d'aide
+function closeHelpModal() {
+  document.getElementById('helpModal').classList.remove('active');
+}
+
+function updateDarkModeIcon() {
+  const btn = document.getElementById('darkModeBtn');
+  const isDark = document.body.classList.contains('dark-mode');
+  btn.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+  btn.title = isDark ? 'Mode clair' : 'Mode sombre';
+}
+
+// Actualiser toutes les sections
+async function refreshAll() {
+  const btn = document.getElementById('refreshAllBtn');
+  const icon = btn ? btn.querySelector('i') : null;
+  if (icon) icon.classList.add('fa-spin');
+  if (btn) btn.disabled = true;
+
+  try {
+    await Promise.allSettled([
+      loadStatus(),
+      loadHistory(),
+      loadGitignore(),
+      loadBranches(),
+      loadStashList()
+    ]);
+  } catch (e) {
+    console.error('refreshAll error:', e);
+  }
+
+  if (icon) icon.classList.remove('fa-spin');
+  if (btn) btn.disabled = false;
+}
+
+// Modal de confirmation personnalisée
+function showConfirm(message, isDanger = false, confirmLabel = 'Confirmer', cancelLabel = 'Annuler') {
+  return new Promise((resolve) => {
+    modalResolve = resolve;
+    document.getElementById('confirmModalMessage').textContent = message;
+    const confirmBtn = document.getElementById('confirmModalBtn');
+    const cancelBtn = document.getElementById('cancelModalBtn');
+    confirmBtn.className = isDanger ? 'btn btn-danger' : 'btn btn-primary';
+    confirmBtn.textContent = confirmLabel;
+    cancelBtn.textContent = cancelLabel;
+    document.getElementById('confirmModal').classList.add('active');
+  });
+}
+
+function closeModal(result) {
+  document.getElementById('confirmModal').classList.remove('active');
+  if (modalResolve) {
+    modalResolve(result);
+    modalResolve = null;
+  }
+}
+
+// Fermer les modales en cliquant à l'extérieur
+document.addEventListener('click', function (e) {
+  if (e.target.id === 'confirmModal') {
+    closeModal(false);
+  }
+  if (e.target.id === 'helpModal') {
+    closeHelpModal();
+  }
+});
+
+// Afficher une alerte
+function showAlert(type, message) {
+  const container = document.getElementById('alertContainer');
+  const toast = document.createElement('div');
+  toast.className = `alert alert-${type}`;
+
+  let icon = 'info-circle';
+  if (type === 'success') icon = 'check-circle';
+  else if (type === 'error') icon = 'exclamation-circle';
+  else if (type === 'warning') icon = 'exclamation-triangle';
+
+  toast.innerHTML = `<i class="fas fa-${icon}"></i> ${message}`;
+  container.appendChild(toast);
+
+  const duration = type === 'error' ? 8000 : type === 'warning' ? 6000 : 4000;
+  const dismiss = () => {
+    toast.classList.add('toast-out');
+    toast.addEventListener('animationend', () => toast.remove(), { once: true });
+  };
+  toast.addEventListener('click', dismiss);
+  setTimeout(dismiss, duration);
+}
+
+// Ajouter du texte au terminal
+function terminalLog(text, type = '') {
+  const terminal = document.getElementById('terminalOutput');
+  const line = document.createElement('div');
+  line.className = type;
+  line.textContent = text;
+  terminal.appendChild(line);
+  terminal.scrollTop = terminal.scrollHeight;
+}
+
+// Effacer le terminal
+function terminalClear() {
+  document.getElementById('terminalOutput').innerHTML = '';
+}
+
+// Appel API
+async function apiCall(action, params = {}) {
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, ...params })
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
+}
+
+// Charger le statut
+async function loadStatus() {
+  const statusContent = document.getElementById('statusContent');
+  statusContent.innerHTML = '<div class="loading"><i class="fas fa-spinner"></i> Chargement...</div>';
+
+  try {
+    const result = await apiCall('status');
+
+    if (result.success) {
+      const data = result.data;
+      const modified = data.modified || [];
+      const untracked = data.untracked || [];
+      const staged = data.staged || [];
+      const stagedDeleted = data.stagedDeleted || [];
+      const allFiles = data.allFiles || [];
+      const totalStaged = staged.length + stagedDeleted.length;
+      const totalTracked = allFiles.length;
+      currentAhead = data.ahead || 0;
+      const branchDisplay = data.isDetached
+        ? `<span style="color: var(--warning-color);"><i class="fas fa-exclamation-triangle"></i> HEAD détaché</span> <code>${data.detachedAt || '?'}</code>`
+        : (data.branch || '—');
+      statusContent.innerHTML = `
+        <div class="status-info">
+          <div class="status-row">
+            <span class="status-label">Branche</span>
+            <span class="status-value branch">${branchDisplay}</span>
+          </div>
+          <div class="status-row">
+            <span class="status-label"><i class="fas fa-file-alt" style="color: var(--accent-color);"></i> Fichiers suivis</span>
+            <span class="status-value">${totalTracked}</span>
+          </div>
+          <div class="status-row">
+            <span class="status-label"><span class="status-badge modified">M</span> Modifiés</span>
+            <span class="status-value">${modified.length}</span>
+          </div>
+          <div class="status-row">
+            <span class="status-label"><span class="status-badge added">A</span> Stagés</span>
+            <span class="status-value">${totalStaged}</span>
+          </div>
+          <div class="status-row">
+            <span class="status-label"><span class="status-badge deleted">D</span> Supprimés</span>
+            <span class="status-value">${stagedDeleted.length}</span>
+          </div>
+          <div class="status-row">
+            <span class="status-label"><span class="status-badge untracked">U</span> Non suivis</span>
+            <span class="status-value">${untracked.length}</span>
+          </div>
+          <div class="status-row">
+            <span class="status-label"><span class="ahead">↑</span> En avance</span>
+            <span class="status-value">${data.ahead || 0}</span>
+          </div>
+          <div class="status-row">
+            <span class="status-label"><span class="behind">↓</span> En retard</span>
+            <span class="status-value">${data.behind || 0}</span>
+          </div>
+          <div class="status-row">
+            <span class="status-label"><i class="fas fa-archive" style="color: var(--warning-color);"></i> Stash</span>
+            <span class="status-value">${data.stashCount || 0}</span>
+          </div>
+        </div>
+      `;
+
+      // Mettre à jour la liste des fichiers
+      updateFileList(modified, untracked, staged, stagedDeleted);
+
+      // Mettre à jour le select pour checkout
+      updateCheckoutSelect(modified, allFiles);
+    } else {
+      statusContent.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>${result.error}</p></div>`;
+    }
+  } catch (e) {
+    console.error('loadStatus error:', e);
+    statusContent.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Erreur de chargement du statut</p></div>`;
+  }
+}
+
+// Charger la liste des stashes
+async function loadStashList() {
+  const stashListDiv = document.getElementById('stashList');
+  if (!stashListDiv) return;
+
+  const result = await apiCall('stashList');
+
+  if (result.success && result.data.stashes.length > 0) {
+    const stashes = result.data.stashes;
+    stashListDiv.innerHTML = `
+      <div style="color: var(--text-secondary); font-size: 0.9em; margin-bottom: 8px;">
+        <i class="fas fa-archive"></i> ${stashes.length} stash${stashes.length > 1 ? 'es' : ''} en attente
+      </div>
+      ${stashes.map(s => `
+        <div class="stash-item">
+          <div class="stash-item-info">
+            <span class="stash-item-id">${s.id}</span>
+            <span class="stash-item-message">${s.message}</span>
+            <div class="stash-item-date">${s.date}</div>
+          </div>
+          <div class="stash-item-actions">
+            <button class="stash-btn-pop" onclick="doStashApply('${s.id}', true)" title="Restaurer et supprimer">
+              <i class="fas fa-redo"></i> Pop
+            </button>
+            <button class="stash-btn-apply" onclick="doStashApply('${s.id}', false)" title="Restaurer sans supprimer">
+              <i class="fas fa-copy"></i> Appliquer
+            </button>
+            <button class="stash-btn-drop" onclick="doStashDrop('${s.id}')" title="Supprimer ce stash">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      `).join('')}
+    `;
+  } else {
+    stashListDiv.innerHTML = '<div class="empty-state" style="padding: 10px;"><i class="fas fa-check-circle"></i><p>Aucun stash en attente</p></div>';
+  }
+}
+
+// Mettre de côté les modifications (git stash)
+async function doStashSave() {
+  const message = document.getElementById('stashMessage').value.trim();
+  const includeUntracked = document.getElementById('stashIncludeUntracked').checked;
+
+  terminalClear();
+  let cmd = '$ git stash push';
+  if (includeUntracked) cmd += ' --include-untracked';
+  if (message) cmd += ` -m "${message}"`;
+  terminalLog(cmd, 'info');
+
+  const result = await apiCall('stashSave', { message, includeUntracked });
+
+  if (result.success) {
+    terminalLog(result.output, 'success');
+    showAlert('success', 'Modifications mises de côté');
+    document.getElementById('stashMessage').value = '';
+    loadStatus();
+    loadStashList();
+  } else {
+    terminalLog(result.error, 'error');
+    showAlert('error', 'Erreur: ' + result.error);
+  }
+}
+
+// Restaurer un stash (pop ou apply)
+async function doStashApply(stashId, drop) {
+  const confirmed = await showConfirm(
+    `Restaurer les modifications de ${stashId} ?${drop ? '\nLe stash sera supprimé après restauration.' : '\nLe stash sera conservé.'}`,
+    false,
+    drop ? 'Restaurer et supprimer' : 'Restaurer',
+    'Annuler'
+  );
+  if (!confirmed) return;
+
+  terminalClear();
+  terminalLog(`$ git stash ${drop ? 'pop' : 'apply'} ${stashId}`, 'info');
+
+  const result = await apiCall('stashApply', { stashId, drop });
+
+  if (result.success) {
+    terminalLog(result.output, 'success');
+    showAlert('success', drop ? 'Stash restauré et supprimé' : 'Stash restauré (conservé)');
+    loadStatus();
+    loadStashList();
+  } else {
+    terminalLog(result.error, 'error');
+    showAlert('error', 'Erreur: ' + result.error);
+  }
+}
+
+// Supprimer un stash
+async function doStashDrop(stashId) {
+  const confirmed = await showConfirm(
+    `Supprimer définitivement ${stashId} ?\nLes modifications contenues seront perdues.`,
+    true,
+    'Supprimer',
+    'Annuler'
+  );
+  if (!confirmed) return;
+
+  terminalClear();
+  terminalLog(`$ git stash drop ${stashId}`, 'info');
+
+  const result = await apiCall('stashDrop', { stashId });
+
+  if (result.success) {
+    terminalLog(result.output, 'success');
+    showAlert('success', 'Stash supprimé');
+    loadStatus();
+    loadStashList();
+  } else {
+    terminalLog(result.error, 'error');
+    showAlert('error', 'Erreur: ' + result.error);
+  }
+}
+
+// Mettre à jour la liste des fichiers
+function updateFileList(modified, untracked, staged, stagedDeleted) {
+  const fileList = document.getElementById('fileList');
+  const deletedSet = new Set(stagedDeleted || []);
+
+  // Filtrer les fichiers non suivis qui sont aussi stagés pour suppression
+  // (évite les doublons D et U pour le même fichier)
+  const filteredUntracked = untracked.filter(f => !deletedSet.has(f));
+
+  const allFiles = [
+    ...(stagedDeleted || []).map(f => ({ name: f, status: 'D', type: 'deleted' })),
+    ...modified.map(f => ({ name: f, status: 'M', type: 'modified' })),
+    ...filteredUntracked.map(f => ({ name: f, status: 'U', type: 'untracked' })),
+    ...(staged || []).map(f => ({ name: f, status: 'A', type: 'added' }))
+  ];
+
+  if (allFiles.length === 0) {
+    fileList.innerHTML = '<div class="empty-state"><i class="fas fa-check-circle"></i><p>Aucun fichier modifié</p></div>';
+    return;
+  }
+
+  fileList.innerHTML = `
+    <div class="select-all-row">
+      <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+      <label for="selectAll">Tout sélectionner</label>
+    </div>
+    ${allFiles.map(f => `
+      <div class="file-item">
+        <input type="checkbox" class="file-checkbox" value="${f.name}" data-status="${f.type}">
+        <span class="file-status ${f.type}">${f.status}</span>
+        <span class="file-name">${f.name}</span>
+      </div>
+    `).join('')}
+  `;
+}
+
+// Mettre à jour le select checkout
+function updateCheckoutSelect(modified, allFiles) {
+  const select = document.getElementById('checkoutFileSelect');
+  const deleteSelect = document.getElementById('deleteFileSelect');
+  // Toujours utiliser tous les fichiers pour pouvoir restaurer n'importe lequel
+  const files = allFiles || [];
+
+  select.innerHTML = '<option value="">-- Sélectionner un fichier --</option>';
+  deleteSelect.innerHTML = '<option value="">-- Sélectionner un fichier ou dossier --</option>';
+
+  // Extraire les dossiers uniques pour le select delete
+  const dirs = new Set();
+  files.forEach(f => {
+    const parts = f.split('/');
+    for (let i = 1; i < parts.length; i++) {
+      dirs.add(parts.slice(0, i).join('/'));
+    }
+  });
+
+  if (dirs.size > 0) {
+    const sepDirs = document.createElement('option');
+    sepDirs.disabled = true;
+    sepDirs.textContent = '── Dossiers ──';
+    deleteSelect.appendChild(sepDirs);
+
+    Array.from(dirs).sort().forEach(dir => {
+      const opt = document.createElement('option');
+      opt.value = dir;
+      opt.dataset.isDir = 'true';
+      opt.textContent = '📁 ' + dir + '/';
+      deleteSelect.appendChild(opt);
+    });
+
+    const sepFiles = document.createElement('option');
+    sepFiles.disabled = true;
+    sepFiles.textContent = '── Fichiers ──';
+    deleteSelect.appendChild(sepFiles);
+  }
+
+  const createFileOption = (value) => {
+    const opt = document.createElement('option');
+    opt.value = value;
+    opt.textContent = modified.includes(value) ? value + ' (modifié)' : value;
+    if (modified.includes(value)) opt.style.fontWeight = 'bold';
+    return opt;
+  };
+
+  files.forEach(f => {
+    select.appendChild(createFileOption(f));
+    deleteSelect.appendChild(createFileOption(f));
+  });
+}
+
+// Toggle select all
+function toggleSelectAll() {
+  const selectAll = document.getElementById('selectAll');
+  const checkboxes = document.querySelectorAll('.file-checkbox');
+  checkboxes.forEach(cb => cb.checked = selectAll.checked);
+}
+
+// Obtenir les fichiers sélectionnés avec leur statut
+function getSelectedFilesWithStatus() {
+  const checkboxes = document.querySelectorAll('.file-checkbox:checked');
+  return Array.from(checkboxes).map(cb => ({
+    name: cb.value,
+    status: cb.dataset.status
+  }));
+}
+
+// Charger l'historique
+async function loadHistory() {
+  const historyList = document.getElementById('historyList');
+  historyList.innerHTML = '<div class="loading"><i class="fas fa-spinner"></i> Chargement...</div>';
+
+  const result = await apiCall('log');
+
+  if (result.success && result.data.length > 0) {
+    historyList.innerHTML = result.data.map((commit, index) => `
+      <div class="commit-item">
+        <div class="commit-details">
+          <span class="commit-hash">${commit.hash}</span>
+          <div class="commit-message">${commit.message}</div>
+          <div class="commit-meta">
+            <span><i class="fas fa-user"></i>${commit.author}</span>
+            <span><i class="fas fa-calendar"></i>${commit.date}</span>
+          </div>
+        </div>
+        <div class="commit-actions" style="gap: 5px; display: flex;">
+          ${index === 0 ? `<button class="checkout-commit-btn" onclick="loadCommitMessageToField('${commit.hash}')" title="Charger le message complet dans le champ pour l'amender (amend)"><i class="fas fa-pencil-alt"></i></button>` : ''}
+          <button class="checkout-commit-btn" onclick="showCommitDetail('${commit.hash}')" title="Voir le détail de ce commit (git show --stat)">
+            <i class="fas fa-search"></i>
+          </button>
+          <button class="checkout-commit-btn" onclick="checkoutCommit('${commit.hash}')" title="Se placer sur ce commit (HEAD détaché) — plutôt pour explorer ou récupérer un fichier précis">
+            <i class="fas fa-sign-in-alt"></i>
+          </button>
+          <button class="revert-commit-btn" onclick="revertCommit('${commit.hash}', '${commit.message.replace(/'/g, "\\'")}')" title="Revert — Annuler ce commit (crée un nouveau commit inverse) — solution la plus propre pour annuler des commits déjà pushés">
+            <i class="fas fa-undo"></i>
+          </button>
+        </div>
+      </div>
+    `).join('');
+  } else {
+    historyList.innerHTML = '<div class="empty-state"><i class="fas fa-history"></i><p>Aucun commit trouvé</p></div>';
+  }
+}
+
+// Voir le détail d'un commit (git show --stat)
+async function showCommitDetail(hash) {
+  terminalClear();
+  terminalLog(`$ git show --stat ${hash}`, 'info');
+
+  const result = await apiCall('showCommit', { hash });
+
+  if (result.success) {
+    terminalLog(result.output, 'success');
+  } else {
+    terminalLog(result.error, 'error');
+    showAlert('error', 'Erreur : ' + result.error);
+  }
+}
+
+// Checkout sur un commit (HEAD détaché)
+async function checkoutCommit(hash) {
+  const confirmed = await showConfirm(
+    `Se placer sur le commit ${hash} ?\n\nCela va détacher le HEAD. Vous ne serez plus sur aucune branche.\nVous pourrez créer une branche depuis ce commit ou revenir sur une branche existante.`,
+    true, 'Confirmer', 'Annuler'
+  );
+  if (!confirmed) return;
+
+  terminalClear();
+  terminalLog(`$ git checkout ${hash}`, 'info');
+
+  const result = await apiCall('checkoutCommit', { hash });
+
+  if (result.success) {
+    terminalLog(result.output, 'success');
+    showAlert('success', result.output);
+    refreshAll();
+  } else {
+    terminalLog(result.error, 'error');
+    showAlert('error', 'Erreur: ' + result.error);
+  }
+}
+
+// Annuler un commit (git revert)
+async function revertCommit(hash, message) {
+  const confirmed = await showConfirm(
+    `Annuler le commit ${hash} ?\n\n"${message}"\n\nUn nouveau commit sera créé pour inverser ces modifications.`,
+    true, 'Confirmer', 'Annuler'
+  );
+  if (!confirmed) return;
+
+  terminalClear();
+  terminalLog(`$ git revert ${hash} --no-edit`, 'info');
+
+  const result = await apiCall('revertCommit', { hash });
+
+  if (result.success) {
+    terminalLog(result.output, 'success');
+    showAlert('success', 'Commit annulé avec succès');
+    loadStatus();
+    loadHistory();
+  } else {
+    terminalLog(result.error, 'error');
+    showAlert('error', 'Erreur: ' + result.error);
+  }
+}
+
+// Stager les fichiers sélectionnés (git add)
+async function stageFiles() {
+  const selectedFiles = getSelectedFiles();
+
+  if (selectedFiles.length === 0) {
+    showAlert('error', 'Veuillez sélectionner au moins un fichier à stager');
+    return;
+  }
+
+  terminalClear();
+  terminalLog(`$ git add ${selectedFiles.join(' ')}`, 'info');
+
+  const result = await apiCall('stageFiles', { files: selectedFiles });
+
+  if (result.success) {
+    terminalLog(result.output, 'success');
+    showAlert('success', result.output);
+    loadStatus();
+  } else {
+    terminalLog(result.error, 'error');
+    showAlert('error', 'Erreur: ' + result.error);
+  }
+}
+
+// Retirer les fichiers du staging (git reset)
+async function unstageFiles() {
+  const selectedFiles = getSelectedFiles();
+
+  if (selectedFiles.length === 0) {
+    showAlert('error', 'Veuillez sélectionner au moins un fichier à unstager');
+    return;
+  }
+
+  terminalClear();
+  terminalLog(`$ git reset HEAD -- ${selectedFiles.join(' ')}`, 'info');
+
+  const result = await apiCall('unstageFiles', { files: selectedFiles });
+
+  if (result.success) {
+    terminalLog(result.output, 'success');
+    showAlert('success', result.output);
+    loadStatus();
+  } else {
+    terminalLog(result.error, 'error');
+    showAlert('error', 'Erreur: ' + result.error);
+  }
+}
+
+// Faire un commit
+async function doCommit() {
+  const selectedFiles = getSelectedFilesWithStatus();
+  const message = document.getElementById('commitMessage').value.trim();
+
+  if (selectedFiles.length === 0) {
+    showAlert('error', 'Veuillez sélectionner au moins un fichier');
+    return;
+  }
+
+  if (!message) {
+    showAlert('error', 'Veuillez entrer un message de commit');
+    return;
+  }
+
+  // Séparer les fichiers : ceux à ajouter vs ceux déjà stagés (suppressions)
+  const filesToAdd = selectedFiles.filter(f => f.status !== 'deleted').map(f => f.name);
+  const hasStaged = selectedFiles.some(f => f.status === 'deleted');
+
+  terminalClear();
+  if (filesToAdd.length > 0) {
+    terminalLog('$ git add ' + filesToAdd.join(' '), 'info');
+  }
+  if (hasStaged) {
+    terminalLog('$ (fichiers stagés pour suppression inclus)', 'info');
+  }
+  terminalLog('$ git commit -m "' + message + '"', 'info');
+
+  const result = await apiCall('commit', { files: filesToAdd, message, hasStaged });
+
+  if (result.success) {
+    terminalLog(result.output, 'success');
+    showAlert('success', 'Commit effectué avec succès');
+    clearMessageField();
+    refreshAll();
+  } else {
+    terminalLog(result.error, 'error');
+    showAlert('error', 'Erreur lors du commit: ' + result.error);
+  }
+}
+
+// Commit et Push
+async function doCommitAndPush() {
+  const selectedFiles = getSelectedFilesWithStatus();
+  const message = document.getElementById('commitMessage').value.trim();
+
+  if (selectedFiles.length === 0) {
+    showAlert('error', 'Veuillez sélectionner au moins un fichier');
+    return;
+  }
+
+  if (!message) {
+    showAlert('error', 'Veuillez entrer un message de commit');
+    return;
+  }
+
+  // Séparer les fichiers : ceux à ajouter vs ceux déjà stagés (suppressions)
+  const filesToAdd = selectedFiles.filter(f => f.status !== 'deleted').map(f => f.name);
+  const hasStaged = selectedFiles.some(f => f.status === 'deleted');
+
+  terminalClear();
+  terminalLog('$ git add && git commit && git push', 'info');
+
+  const result = await apiCall('commitAndPush', { files: filesToAdd, message, hasStaged });
+
+  if (result.success) {
+    terminalLog(result.output, 'success');
+    showAlert('success', 'Commit et Push effectués avec succès');
+    clearMessageField();
+    refreshAll();
+  } else {
+    terminalLog(result.error, 'error');
+    showAlert('error', 'Erreur: ' + result.error);
+  }
+}
+
+// Amend - Ajouter des fichiers au dernier commit et/ou changer le message
+function updateClearBtn() {
+  const field = document.getElementById('commitMessage');
+  document.getElementById('clearMessageBtn').style.display = field.value ? 'block' : 'none';
+}
+
+function clearMessageField() {
+  document.getElementById('commitMessage').value = '';
+  updateClearBtn();
+}
+
+async function loadCommitMessageToField(hash) {
+  const result = await apiCall('getCommitMessage', { hash });
+  if (result.success) {
+    const field = document.getElementById('commitMessage');
+    field.value = result.message;
+    updateClearBtn();
+    field.focus();
+    field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    showAlert('success', 'Message chargé — modifiez-le puis cliquez Amend');
+  } else {
+    showAlert('error', 'Erreur : ' + result.error);
+  }
+}
+
+async function doAmendLastCommit() {
+  const selectedFiles = getSelectedFilesWithStatus();
+  const message = document.getElementById('commitMessage').value.trim();
+
+  const hasStagedInList = document.querySelectorAll('.file-checkbox[data-status="added"]').length > 0;
+  if (selectedFiles.length === 0 && !message && !hasStagedInList) {
+    showAlert('error', 'Sélectionnez des fichiers et/ou saisissez un nouveau message');
+    return;
+  }
+
+  if (currentAhead === 0) {
+    const ok = confirm('Ce commit a déjà été pushé sur le remote.\nUn git push --force sera nécessaire pour l\'écraser.\nContinuer quand même ?');
+    if (!ok) return;
+  }
+
+  const filesToAdd = selectedFiles.filter(f => f.status !== 'deleted').map(f => f.name);
+  const hasStaged = selectedFiles.some(f => f.status === 'deleted');
+
+  terminalClear();
+  if (filesToAdd.length > 0) {
+    terminalLog('$ git add ' + filesToAdd.join(' '), 'info');
+  }
+  if (hasStaged) {
+    terminalLog('$ (suppressions déjà stagées incluses)', 'info');
+  }
+  terminalLog(message ? `$ git commit --amend -m "${message}"` : '$ git commit --amend --no-edit', 'info');
+
+  const result = await apiCall('amendLastCommit', { files: filesToAdd, hasStaged, message });
+
+  if (result.success) {
+    terminalLog(result.output, 'success');
+    const msg = message ? 'Commit amendé avec succès' : 'Fichiers ajoutés au dernier commit avec succès';
+    showAlert('success', msg);
+    if (message) clearMessageField();
+    loadStatus();
+    loadHistory();
+  } else {
+    terminalLog(result.error, 'error');
+    showAlert('error', 'Erreur lors du amend: ' + result.error);
+  }
+}
+
+// Push
+async function doPush() {
+  terminalClear();
+  terminalLog('$ git push origin', 'info');
+
+  const result = await apiCall('push');
+
+  if (result.success) {
+    terminalLog(result.output, 'success');
+    showAlert('success', 'Push effectué avec succès');
+    refreshAll();
+  } else {
+    terminalLog(result.error, 'error');
+    showAlert('error', 'Erreur lors du push: ' + result.error);
+  }
+}
+
+// Pull
+async function doPull() {
+  const rebase = document.getElementById('pullRebaseCheck').checked;
+  terminalClear();
+  terminalLog(rebase ? '$ git pull --rebase origin' : '$ git pull origin', 'info');
+
+  const result = await apiCall('pull', { rebase });
+
+  if (result.success) {
+    terminalLog(result.output, 'success');
+    showAlert('success', 'Pull effectué avec succès');
+    refreshAll();
+  } else {
+    terminalLog(result.error, 'error');
+    showAlert('error', 'Erreur lors du pull: ' + result.error);
+  }
+}
+
+// Fetch
+async function doFetch() {
+  terminalClear();
+  terminalLog('$ git fetch origin', 'info');
+
+  const result = await apiCall('fetch');
+
+  if (result.success) {
+    terminalLog(result.output, 'success');
+    showAlert('success', 'Fetch effectué avec succès');
+    refreshAll();
+  } else {
+    terminalLog(result.error, 'error');
+    showAlert('error', 'Erreur lors du fetch: ' + result.error);
+  }
+}
+
+// Charger les commits d'un fichier spécifique
+async function loadFileCommits() {
+  const file = document.getElementById('checkoutFileSelect').value;
+  const container = document.getElementById('fileCommitsContainer');
+  const select = document.getElementById('fileCommitsSelect');
+
+  if (!file) {
+    container.style.display = 'none';
+    return;
+  }
+
+  const result = await apiCall('fileLog', { file });
+
+  if (result.success && result.data.length > 0) {
+    select.innerHTML = '<option value="">-- Commits pour ce fichier --</option>';
+    result.data.forEach(commit => {
+      const option = document.createElement('option');
+      option.value = commit.hash;
+      option.textContent = `${commit.hash} - ${commit.message} (${commit.date})`;
+      select.appendChild(option);
+    });
+    container.style.display = 'block';
+  } else {
+    container.style.display = 'none';
+  }
+}
+
+// Checkout un fichier
+async function doCheckout() {
+  const file = document.getElementById('checkoutFileSelect').value;
+  const fileCommit = document.getElementById('fileCommitsSelect').value;
+  const source = fileCommit || document.getElementById('checkoutSource').value;
+
+  if (!file) {
+    showAlert('error', 'Veuillez sélectionner un fichier');
+    return;
+  }
+
+  const confirmed = await showConfirm(`Êtes-vous sûr de vouloir récupérer "${file}" depuis ${source} ? Les modifications locales seront perdues.`);
+  if (!confirmed) return;
+
+  terminalClear();
+  terminalLog(`$ git checkout ${source} -- ${file}`, 'info');
+
+  const result = await apiCall('checkout', { file, source });
+
+  if (result.success) {
+    terminalLog(result.output || 'Fichier récupéré avec succès', 'success');
+    showAlert('success', `Fichier "${file}" récupéré avec succès`);
+    loadStatus();
+  } else {
+    terminalLog(result.error, 'error');
+    showAlert('error', 'Erreur: ' + result.error);
+  }
+}
+
+// Annuler toutes les modifications
+async function doDiscardAll() {
+  const confirmed = await showConfirm('ATTENTION: Toutes les modifications locales seront perdues. Êtes-vous sûr ?', true);
+  if (!confirmed) return;
+
+  terminalClear();
+  terminalLog('$ git checkout -- .', 'info');
+
+  const result = await apiCall('discardAll');
+
+  if (result.success) {
+    terminalLog('Toutes les modifications ont été annulées', 'success');
+    showAlert('success', 'Modifications annulées');
+    loadStatus();
+  } else {
+    terminalLog(result.error, 'error');
+    showAlert('error', 'Erreur: ' + result.error);
+  }
+}
+
+// Supprimer un fichier ou dossier du dépôt ET du disque
+async function doRemoveFromRepo() {
+  const select = document.getElementById('deleteFileSelect');
+  const file = select.value;
+  const isDir = select.options[select.selectedIndex]?.dataset.isDir === 'true';
+
+  if (!file) {
+    showAlert('error', 'Veuillez sélectionner un fichier ou un dossier');
+    return;
+  }
+
+  const label = isDir ? `le dossier "${file}/" et TOUS ses fichiers` : `le fichier "${file}"`;
+  const confirmed = await showConfirm(`ATTENTION: ${label} sera supprimé du dépôt ET de votre disque. Cette action est irréversible. Êtes-vous sûr ?`, true);
+  if (!confirmed) return;
+
+  terminalClear();
+  terminalLog(`$ git rm ${isDir ? '-r ' : ''}${file}`, 'info');
+
+  const result = await apiCall('removeFromRepo', { file, isDir });
+
+  if (result.success) {
+    terminalLog(result.output, 'success');
+    const labelSuccess = isDir ? `Dossier "${file}/"` : `Fichier "${file}"`;
+    showAlert('success', `${labelSuccess} supprimé. Faites Commit & Push !`);
+    loadStatus();
+  } else {
+    terminalLog(result.error, 'error');
+    showAlert('error', 'Erreur: ' + result.error);
+  }
+}
+
+// Arrêter le suivi d'un fichier ou dossier (sans le supprimer du disque)
+async function doUntrackFile() {
+  const select = document.getElementById('deleteFileSelect');
+  const file = select.value;
+  const isDir = select.options[select.selectedIndex]?.dataset.isDir === 'true';
+
+  if (!file) {
+    showAlert('error', 'Veuillez sélectionner un fichier ou un dossier');
+    return;
+  }
+
+  const label = isDir ? `le dossier "${file}/" et tous ses fichiers` : `le fichier "${file}"`;
+  const confirmed = await showConfirm(`${label.charAt(0).toUpperCase() + label.slice(1)} sera retiré du suivi Git mais conservé sur votre disque. Voulez-vous continuer ?`);
+  if (!confirmed) return;
+
+  terminalClear();
+  terminalLog(`$ git rm --cached ${isDir ? '-r ' : ''}${file}`, 'info');
+
+  const result = await apiCall('untrackFile', { file, isDir });
+
+  if (result.success) {
+    terminalLog(result.output, 'success');
+    const labelSuccess = isDir ? `Dossier "${file}/"` : `Fichier "${file}"`;
+    showAlert('success', `${labelSuccess} retiré du suivi. Faites Commit & Push !`);
+    loadStatus();
+  } else {
+    terminalLog(result.error, 'error');
+    showAlert('error', 'Erreur: ' + result.error);
+  }
+}
+
+// Charger le contenu de .gitignore
+async function loadGitignore() {
+  const list = document.getElementById('gitignoreList');
+  list.innerHTML = '<div class="loading"><i class="fas fa-spinner"></i> Chargement...</div>';
+
+  const result = await apiCall('getGitignore');
+
+  if (result.success) {
+    const patterns = result.data.patterns || [];
+
+    if (patterns.length === 0) {
+      list.innerHTML = '<div class="gitignore-empty"><i class="fas fa-check-circle"></i> Aucun fichier ignoré</div>';
+    } else {
+      list.innerHTML = patterns.map(pattern => `
+        <div class="gitignore-item">
+          <span class="pattern">${pattern}</span>
+          <button class="remove-btn" onclick="removeFromGitignore('${pattern.replace(/'/g, "\\'")}')" title="Retirer">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    // Mettre à jour la liste des fichiers non suivis
+    updateUntrackedSelect(result.data.untracked || []);
+  } else {
+    list.innerHTML = '<div class="gitignore-empty"><i class="fas fa-exclamation-triangle"></i> Erreur de chargement</div>';
+  }
+}
+
+// Mettre à jour le select des fichiers non suivis
+function updateUntrackedSelect(files) {
+  const select = document.getElementById('untrackedFiles');
+  select.innerHTML = '<option value="">-- Fichiers non suivis --</option>';
+  files.forEach(f => {
+    const option = document.createElement('option');
+    option.value = f;
+    option.textContent = f;
+    select.appendChild(option);
+  });
+}
+
+// Ajouter un fichier au .gitignore (depuis le select)
+async function addToGitignore() {
+  const select = document.getElementById('untrackedFiles');
+  const pattern = select.value;
+
+  if (!pattern) {
+    showAlert('error', 'Veuillez sélectionner un fichier');
+    return;
+  }
+
+  await addPatternToGitignore(pattern);
+}
+
+// Ajouter un pattern personnalisé au .gitignore
+async function addCustomToGitignore() {
+  const input = document.getElementById('customIgnore');
+  const pattern = input.value.trim();
+
+  if (!pattern) {
+    showAlert('error', 'Veuillez saisir un pattern');
+    return;
+  }
+
+  await addPatternToGitignore(pattern);
+  input.value = '';
+}
+
+// Ajouter un pattern au .gitignore
+async function addPatternToGitignore(pattern) {
+  terminalClear();
+  terminalLog(`Ajout de "${pattern}" à .gitignore`, 'info');
+
+  const result = await apiCall('addToGitignore', { pattern });
+
+  if (result.success) {
+    terminalLog('Pattern ajouté avec succès', 'success');
+    showAlert('success', `"${pattern}" ajouté au .gitignore`);
+    loadGitignore();
+    loadStatus();
+  } else {
+    terminalLog(result.error, 'error');
+    showAlert('error', 'Erreur: ' + result.error);
+  }
+}
+
+// Retirer un pattern du .gitignore
+async function removeFromGitignore(pattern) {
+  const confirmed = await showConfirm(`Retirer "${pattern}" du .gitignore ?`);
+  if (!confirmed) return;
+
+  terminalClear();
+  terminalLog(`Retrait de "${pattern}" de .gitignore`, 'info');
+
+  const result = await apiCall('removeFromGitignore', { pattern });
+
+  if (result.success) {
+    terminalLog('Pattern retiré avec succès', 'success');
+    showAlert('success', `"${pattern}" retiré du .gitignore`);
+    loadGitignore();
+    loadStatus();
+  } else {
+    terminalLog(result.error, 'error');
+    showAlert('error', 'Erreur: ' + result.error);
+  }
+}
+
+// ========== GESTION DES BRANCHES ==========
+
+// Charger la liste des branches
+async function loadBranches() {
+  const content = document.getElementById('branchesContent');
+  content.innerHTML = '<div class="loading"><i class="fas fa-spinner"></i> Chargement...</div>';
+
+  const result = await apiCall('branches');
+
+  if (result.success) {
+    const { current, local, remote, isDetached, detachedAt } = result.data;
+    let html = '';
+
+    // Avertissement si HEAD détaché
+    if (isDetached) {
+      html += `
+        <div class="alert alert-info" style="margin-bottom: 15px;">
+          <i class="fas fa-exclamation-triangle"></i>
+          <strong>HEAD détaché</strong> sur le commit <code>${detachedAt}</code><br>
+          <small>Vous n'êtes sur aucune branche. Basculez sur une branche ou créez-en une depuis ce commit.</small>
+          <div style="margin-top: 10px;">
+            <button class="btn btn-primary" onclick="createBranchFromDetached()" style="padding: 5px 12px; font-size: 0.85em;">
+              <i class="fas fa-code-branch"></i> Créer une branche ici
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    // Branches locales (filtrer le HEAD détaché, triées avec l'actuelle en premier)
+    const filteredLocal = local.filter(b => !b.name.includes('(HEAD'));
+    if (filteredLocal.length > 0) {
+      const sortedLocal = [...filteredLocal].sort((a, b) => {
+        if (a.current) return -1;
+        if (b.current) return 1;
+        return a.name.localeCompare(b.name);
+      });
+
+      html += '<div class="branch-section-title"><i class="fas fa-laptop"></i> Branches locales</div>';
+      html += '<div class="branch-list">';
+      sortedLocal.forEach(branch => {
+        const isCurrent = branch.current;
+        const hasUpstream = branch.upstream && branch.upstream.length > 0;
+
+        // Boutons spécifiques selon branche par défaut et upstream
+        const isDefaultBranch = (branch.name === 'main' || branch.name === 'master');
+        let renameHtml = '';
+        if (!hasUpstream) {
+          renameHtml += '<button class="publish-btn" onclick="pushBranch(\'' + branch.name + '\')" title="Publier sur GitHub"><i class="fas fa-cloud-upload-alt"></i></button>';
+        }
+        if (isDefaultBranch) {
+          renameHtml += '<button class="rename-btn" style="color:#b0b9c2;cursor:not-allowed;opacity:0.5;" title="Renommage impossible : branche par défaut du dépôt"><i class="fas fa-pen"></i></button>';
+        } else {
+          renameHtml += '<button class="rename-btn" onclick="renameBranch(\'' + branch.name + '\')" title="Renommer"><i class="fas fa-pen"></i></button>';
+        }
+
+        html += `
+          <div class="branch-item ${isCurrent ? 'current' : ''}">
+            <div class="branch-info">
+              <span class="branch-name ${isCurrent ? 'current' : ''}">${branch.name}</span>
+              <span class="branch-badge ${isCurrent ? '' : 'hidden'}">${isCurrent ? 'actuelle' : ''}</span>
+              ${hasUpstream ? '<span class="branch-badge tracked"><i class="fas fa-cloud"></i> suivie</span>' : '<span class="branch-badge local-only">locale</span>'}
+              <span class="branch-tracking">
+                ${branch.ahead > 0 ? `<span class="ahead">↑${branch.ahead}</span>` : ''}
+                ${branch.behind > 0 ? `<span class="behind">↓${branch.behind}</span>` : ''}
+              </span>
+            </div>
+            <div class="branch-actions">
+              ${renameHtml}
+              ${!isCurrent ? `
+                <button class="switch-btn" onclick="switchBranch('${branch.name}')" title="Basculer">
+                  <i class="fas fa-exchange-alt"></i>
+                </button>
+                <button class="merge-btn" onclick="mergeBranch('${branch.name}')" title="Fusionner dans ${current}">
+                  <i class="fas fa-code-branch"></i>
+                </button>
+                <button class="delete-btn" onclick="deleteBranch('${branch.name}', ${hasUpstream})" title="Supprimer">
+                  <i class="fas fa-times"></i>
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      });
+      html += '</div>';
+    }
+
+    // Branches distantes non trackées
+    if (remote.length > 0) {
+      html += '<div class="branch-section-title"><i class="fas fa-cloud"></i> Branches distantes</div>';
+      html += '<div class="branch-list">';
+      remote.forEach(branch => {
+        // Extraire le nom de branche sans le préfixe origin/
+        const branchName = branch.replace(/^origin\//, '');
+        html += `
+          <div class="branch-item">
+            <div class="branch-info">
+              <span class="branch-name">${branch}</span>
+              <span class="branch-badge remote-only">distante</span>
+            </div>
+            <div class="branch-actions">
+              <button class="switch-btn" onclick="switchBranch('${branch}')" title="Récupérer et basculer">
+                <i class="fas fa-download"></i>
+              </button>
+              <button class="delete-btn" onclick="deleteRemoteBranchDirect('${branchName}')" title="Supprimer sur origin">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      });
+      html += '</div>';
+    }
+
+    if (filteredLocal.length === 0 && remote.length === 0) {
+      html = '<div class="empty-state"><i class="fas fa-code-branch"></i><p>Aucune branche trouvée</p></div>';
+    }
+
+    content.innerHTML = html;
+
+    // Masquer le formulaire de création en HEAD détaché (le bouton "Créer une branche ici" suffit)
+    const createForm = document.querySelector('.create-branch-form');
+    if (createForm) {
+      createForm.style.display = isDetached ? 'none' : '';
+    }
+
+    // Remplir le sélecteur de branche source
+    if (!isDetached) {
+      const sourceSelect = document.getElementById('sourceBranchSelect');
+      if (sourceSelect) {
+        let options = `<option value="">Depuis: ${current || 'branche actuelle'}</option>`;
+        options += '<option value="__orphan__">🆕 Branche vide (sans fichiers, sans historique)</option>';
+        options += '<option value="__freshstart__">🔄 Nouveau départ (fichiers actuels, sans historique)</option>';
+        // Ajouter les branches locales (sauf la branche courante)
+        filteredLocal.forEach(branch => {
+          if (!branch.current) {
+            options += `<option value="${branch.name}">${branch.name}</option>`;
+          }
+        });
+        // Ajouter les branches distantes
+        remote.forEach(branch => {
+          options += `<option value="${branch}">${branch}</option>`;
+        });
+        sourceSelect.innerHTML = options;
+      }
+    }
+  } else {
+    content.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>' + result.error + '</p></div>';
+  }
+}
+
+// Créer une branche depuis un HEAD détaché
+function createBranchFromDetached() {
+  const modal = document.getElementById('confirmModal');
+  const modalContent = modal.querySelector('.modal-content');
+
+  modalContent.innerHTML = `
+    <h3><i class="fas fa-code-branch"></i> Créer une branche ici</h3>
+    <p style="color: var(--text-secondary); margin-bottom: 15px;">
+      Créer une nouvelle branche depuis le commit actuel (HEAD détaché) :
+    </p>
+    <input type="text" id="detachedBranchNameInput" class="file-select"
+      placeholder="nom-de-la-branche"
+      style="width: 100%; margin-bottom: 20px;">
+    <div class="modal-buttons">
+      <button class="btn btn-secondary" onclick="closeRemoteForm()">Annuler</button>
+      <button class="btn btn-primary" onclick="confirmCreateBranchFromDetached()">
+        <i class="fas fa-plus"></i> Créer
+      </button>
+    </div>
+  `;
+  modal.classList.add('active');
+  document.getElementById('detachedBranchNameInput').focus();
+}
+
+async function confirmCreateBranchFromDetached() {
+  const branchName = document.getElementById('detachedBranchNameInput').value.trim();
+  if (!branchName) {
+    showAlert('error', 'Nom de branche requis');
+    return;
+  }
+
+  closeRemoteForm();
+  terminalClear();
+  terminalLog(`$ git checkout -b ${branchName}`, 'info');
+
+  const result = await apiCall('createBranch', { branch: branchName, checkout: true });
+
+  if (result.success) {
+    terminalLog(result.output, 'success');
+    showAlert('success', result.output);
+    refreshAll();
+  } else {
+    terminalLog(result.error, 'error');
+    showAlert('error', 'Erreur: ' + result.error);
+  }
+}
+
+// Changer de branche
+async function switchBranch(branch, force = false) {
+  if (!force) {
+    const confirmed = await showConfirm(`Basculer vers la branche "${branch}" ?`);
+    if (!confirmed) return;
+  }
+
+  terminalClear();
+  const forceFlag = force ? '-f ' : '';
+  terminalLog(`$ git checkout ${forceFlag}${branch}`, 'info');
+
+  const result = await apiCall('switchBranch', { branch, force });
+
+  if (result.success) {
+    terminalLog(result.output, 'success');
+    showAlert('success', result.output);
+    refreshAll();
+  } else {
+    terminalLog(result.error, 'error');
+
+    // Si l'erreur est due à des fichiers non suivis, proposer le force checkout
+    if (result.needsForce) {
+      const forceConfirmed = await showConfirm(
+        `Des fichiers non suivis bloquent le basculement.\n\n` +
+        `⚠️ Forcer le basculement ?\n\n` +
+        `ATTENTION : Les fichiers locaux en conflit seront écrasés par ceux de la branche "${branch}".`,
+        true
+      );
+      if (forceConfirmed) {
+        await switchBranch(branch, true);
+        return;
+      }
+    }
+
+    showAlert('error', 'Erreur: ' + result.error);
+  }
+}
+
+// Créer une nouvelle branche
+async function createBranch() {
+  const input = document.getElementById('newBranchName');
+  const sourceSelect = document.getElementById('sourceBranchSelect');
+  const branchName = input.value.trim();
+  const sourceBranch = sourceSelect ? sourceSelect.value : '';
+  const isOrphan = sourceBranch === '__orphan__';
+  const isFreshStart = sourceBranch === '__freshstart__';
+
+  if (!branchName) {
+    showAlert('error', 'Veuillez entrer un nom de branche');
+    return;
+  }
+
+  terminalClear();
+  if (isOrphan) {
+    terminalLog(`$ git checkout --orphan ${branchName}`, 'info');
+    terminalLog(`$ git rm -rf --cached .`, 'info');
+    terminalLog(`$ git commit --allow-empty -m "Initial commit"`, 'info');
+  } else if (isFreshStart) {
+    terminalLog(`$ git checkout --orphan ${branchName}`, 'info');
+    terminalLog(`$ git add -A`, 'info');
+    terminalLog(`$ git commit -m "Fresh start"`, 'info');
+  } else if (sourceBranch) {
+    terminalLog(`$ git checkout -b ${branchName} ${sourceBranch}`, 'info');
+  } else {
+    terminalLog(`$ git checkout -b ${branchName}`, 'info');
+  }
+
+  const params = { branch: branchName, checkout: true };
+  if (isOrphan) {
+    params.orphan = true;
+  } else if (isFreshStart) {
+    params.freshStart = true;
+  } else if (sourceBranch) {
+    params.sourceBranch = sourceBranch;
+  }
+
+  const result = await apiCall('createBranch', params);
+
+  if (result.success) {
+    terminalLog(result.output, 'success');
+    showAlert('success', result.output);
+    input.value = '';
+    if (sourceSelect) sourceSelect.value = '';
+    refreshAll();
+  } else {
+    terminalLog(result.error, 'error');
+    showAlert('error', 'Erreur: ' + result.error);
+  }
+}
+
+// Renommer une branche
+async function renameBranch(oldName) {
+  const modal = document.getElementById('confirmModal');
+  const modalContent = modal.querySelector('.modal-content');
+
+  modalContent.innerHTML = `
+    <h3><i class="fas fa-pen"></i> Renommer la branche</h3>
+    <p style="color: var(--text-secondary); margin-bottom: 15px;">
+      Renommer la branche <strong>${oldName}</strong> :
+    </p>
+    <input type="text" id="newBranchNameInput" class="file-select"
+      value="${oldName}"
+      style="width: 100%; margin-bottom: 20px;">
+    <div class="modal-buttons">
+      <button class="btn btn-secondary" onclick="closeRemoteForm()">Annuler</button>
+      <button class="btn btn-primary" onclick="confirmRenameBranch('${oldName}')">
+        <i class="fas fa-check"></i> Renommer
+      </button>
+    </div>
+  `;
+
+  modal.classList.add('active');
+
+  // Focus et sélection du texte
+  setTimeout(() => {
+    const input = document.getElementById('newBranchNameInput');
+    input.focus();
+    input.select();
+  }, 100);
+}
+
+// Confirmer le renommage
+async function confirmRenameBranch(oldName) {
+  const newName = document.getElementById('newBranchNameInput').value.trim();
+
+  if (!newName) {
+    showAlert('error', 'Veuillez entrer un nom de branche');
+    return;
+  }
+
+  if (newName === oldName) {
+    closeRemoteForm();
+    return;
+  }
+
+  terminalClear();
+  terminalLog(`$ git branch -m ${oldName} ${newName}`, 'info');
+
+  const result = await apiCall('renameBranch', { oldName, newName });
+
+  if (result.success) {
+    terminalLog(result.output, 'success');
+    showAlert('success', result.output);
+    closeRemoteForm();
+    refreshAll();
+  } else {
+    terminalLog(result.error, 'error');
+    showAlert('error', 'Erreur: ' + result.error);
+  }
+}
+
+// Supprimer une branche
+async function deleteBranch(branch, hasUpstream = false) {
+  const confirmed = await showConfirm(`Supprimer la branche "${branch}" ? Cette action est irréversible.`, true);
+  if (!confirmed) return;
+
+  terminalClear();
+  terminalLog(`$ git branch -d ${branch}`, 'info');
+
+  const result = await apiCall('deleteBranch', { branch });
+
+  if (result.success) {
+    terminalLog(result.output, 'success');
+    showAlert('success', result.output);
+
+    // Proposer de supprimer aussi sur le dépôt distant si la branche était publiée
+    if (hasUpstream) {
+      const deleteRemote = await showConfirm(`Supprimer aussi la branche "${branch}" sur GitHub ?`, true, 'Oui', 'Non');
+      if (deleteRemote) {
+        await deleteRemoteBranch(branch);
+      }
+    }
+
+    loadBranches();
+  } else {
+    // Si la branche n'est pas fusionnée, proposer la suppression forcée
+    if (result.error.includes('not fully merged')) {
+      const forceDelete = await showConfirm(`La branche "${branch}" n'est pas fusionnée. Forcer la suppression ?`, true);
+      if (forceDelete) {
+        terminalLog(`$ git branch -D ${branch}`, 'info');
+        const forceResult = await apiCall('deleteBranch', { branch, force: true });
+        if (forceResult.success) {
+          terminalLog(forceResult.output, 'success');
+          showAlert('success', forceResult.output);
+
+          // Proposer de supprimer aussi sur le dépôt distant
+          if (hasUpstream) {
+            const deleteRemote = await showConfirm(`Supprimer aussi la branche "${branch}" sur GitHub ?`, true, 'Oui', 'Non');
+            if (deleteRemote) {
+              await deleteRemoteBranch(branch);
+            }
+          }
+
+          loadBranches();
+        } else {
+          terminalLog(forceResult.error, 'error');
+          showAlert('error', 'Erreur: ' + forceResult.error);
+        }
+      }
+    } else {
+      terminalLog(result.error, 'error');
+      showAlert('error', 'Erreur: ' + result.error);
+    }
+  }
+}
+
+// Supprimer une branche sur le dépôt distant
+async function deleteRemoteBranch(branch) {
+  terminalLog(`$ git push origin --delete ${branch}`, 'info');
+
+  const result = await apiCall('deleteRemoteBranch', { branch });
+
+  if (result.success) {
+    terminalLog(result.output, 'success');
+    showAlert('success', result.output);
+  } else {
+    terminalLog(result.error, 'error');
+    showAlert('error', 'Erreur: ' + result.error);
+  }
+}
+
+// Supprimer une branche distante directement (depuis la liste des branches distantes)
+async function deleteRemoteBranchDirect(branch) {
+  const confirmed = await showConfirm(`Supprimer la branche "${branch}" sur GitHub ?\n\nCette action est irréversible.`, true);
+  if (!confirmed) return;
+
+  terminalClear();
+  await deleteRemoteBranch(branch);
+  await loadBranches();
+}
+
+// Fusionner une branche
+async function mergeBranch(branch) {
+  const confirmed = await showConfirm(`Fusionner la branche "${branch}" dans la branche actuelle ?`);
+  if (!confirmed) return;
+
+  terminalClear();
+  terminalLog(`$ git merge ${branch}`, 'info');
+
+  const result = await apiCall('mergeBranch', { branch });
+
+  if (result.success) {
+    terminalLog(result.output, 'success');
+    showAlert('success', `Branche "${branch}" fusionnée avec succès`);
+    refreshAll();
+  } else {
+    terminalLog(result.error, 'error');
+    showAlert('error', 'Erreur de fusion: ' + result.error);
+  }
+}
+
+// Publier une branche sur le dépôt distant
+async function pushBranch(branch) {
+  const confirmed = await showConfirm(`Publier la branche "${branch}" sur GitHub ?`);
+  if (!confirmed) return;
+
+  terminalClear();
+  terminalLog(`$ git push -u origin ${branch}`, 'info');
+
+  const result = await apiCall('pushBranch', { branch });
+
+  if (result.success) {
+    terminalLog(result.output, 'success');
+    showAlert('success', result.output);
+    loadBranches();
+  } else {
+    terminalLog(result.error, 'error');
+    showAlert('error', 'Erreur: ' + result.error);
+  }
+}
