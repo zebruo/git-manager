@@ -1,3 +1,17 @@
+/* ── Base ───────────────────────────────────────────────────────────── */
+#helpContent code {
+  font-size: 1em;
+  font-family: 'Consolas', monospace;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+/* ── Diagramme de flux ──────────────────────────────────────────────── */
+.help-flow-secondary { color: var(--text-secondary); }
+.help-flow-primary   { color: var(--text-primary); }
+.help-flow-arrow     { color: var(--accent-color); margin: 5px 0; }
+.help-flow-label     { font-size: 1em; }
+
 /* ── Structure ─────────────────────────────────────────────────────── */
 .help-info-box {
   margin-top: 15px;

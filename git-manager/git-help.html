@@ -360,15 +360,15 @@
         d'écriture ou créer votre propre version, le fork devient votre point de départ indépendant.</dd>
     </dl>
     <div class="help-info-box mono center">
-      <div style="color: var(--text-secondary);">Dépôt original (autre utilisateur)</div>
-      <div style="color: var(--accent-color); margin: 5px 0;">↓ <span style="font-size: 0.8em;">Fork (sur GitHub)</span></div>
-      <div style="color: var(--text-primary);">Votre fork (votre compte GitHub)</div>
-      <div style="color: var(--accent-color); margin: 5px 0;">↓ <span style="font-size: 0.8em;">Clone</span></div>
-      <div style="color: var(--text-primary);">Votre PC (travail local)</div>
-      <div style="color: var(--accent-color); margin: 5px 0;">↓ <span style="font-size: 0.8em;">Push</span></div>
-      <div style="color: var(--text-primary);">Votre fork</div>
-      <div style="color: var(--accent-color); margin: 5px 0;">↓ <span style="font-size: 0.8em;">Pull Request</span></div>
-      <div style="color: var(--text-secondary);">Dépôt original (proposition)</div>
+      <div class="help-flow-secondary">Dépôt original (autre utilisateur)</div>
+      <div class="help-flow-arrow">↓ <span class="help-flow-label">Fork (sur GitHub)</span></div>
+      <div class="help-flow-primary">Votre fork (votre compte GitHub)</div>
+      <div class="help-flow-arrow">↓ <span class="help-flow-label">Clone</span></div>
+      <div class="help-flow-primary">Votre PC (travail local)</div>
+      <div class="help-flow-arrow">↓ <span class="help-flow-label">Push</span></div>
+      <div class="help-flow-primary">Votre fork</div>
+      <div class="help-flow-arrow">↓ <span class="help-flow-label">Pull Request</span></div>
+      <div class="help-flow-secondary">Dépôt original (proposition)</div>
     </div>
     <div class="mt-10" style="font-size: 0.85em; color: var(--text-secondary);">
       <i class="fas fa-info-circle"></i> Le fork se fait sur GitHub.com (bouton "Fork"). Utilisez ensuite <a
@@ -456,10 +456,14 @@
       <div class="mt-5">git-manager.html, git-api.php, git-config.example.php, git-clone.html,
         git-reset-remote.html, git-auth.html, git-help.html, index.html, flavicon.svg</div>
       <div class="mt-5">Sous-dossiers copiés intégralement : <code>api/</code>, <code>css/</code>, <code>js/</code></div>
-      <div class="help-notice mt-8">
-        <strong><i class="fas fa-exclamation-triangle text-warning"></i> Configuration requise :</strong>
-        Après le clonage, renommez <code>git-config.example.php</code> en <code>git-config.php</code> et renseignez vos
-        informations (identité Git, chemin vers votre clé SSH).
+      <div class="help-info-box mt-8">
+        <strong>Mise en service du dépôt cloné :</strong>
+        <ol style="margin: 8px 0 0 18px; line-height: 1.8;">
+          <li>Renommer <code>git-config.example.php</code> en <code>git-config.php</code> et renseigner identité Git et chemin SSH.</li>
+          <li>Créer un virtual host Apache pointant vers le dossier cloné.</li>
+          <li>Accéder à <code>http://[nom-du-projet]/git-manager/git-manager.html</code>.</li>
+        </ol>
+        <div class="help-notice mt-8">Ouvrir le dossier via l'Explorateur Windows (<code>file://</code>) ne fonctionnera pas — PHP doit être exécuté par Apache.</div>
       </div>
     </div>
   </div>

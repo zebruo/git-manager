@@ -1422,17 +1422,12 @@ async function loadBranches() {
         const isCurrent = branch.current;
         const hasUpstream = branch.upstream && branch.upstream.length > 0;
 
-        // Boutons spécifiques selon branche par défaut et upstream
-        const isDefaultBranch = (branch.name === 'main' || branch.name === 'master');
+        // Boutons spécifiques selon upstream
         let renameHtml = '';
         if (!hasUpstream) {
           renameHtml += '<button class="publish-btn" onclick="pushBranch(\'' + branch.name + '\')" title="Publier sur GitHub"><i class="fas fa-cloud-upload-alt"></i></button>';
         }
-        if (isDefaultBranch) {
-          renameHtml += '<button class="rename-btn" style="color:#b0b9c2;cursor:not-allowed;opacity:0.5;" title="Renommage impossible : branche par défaut du dépôt"><i class="fas fa-pen"></i></button>';
-        } else {
-          renameHtml += '<button class="rename-btn" onclick="renameBranch(\'' + branch.name + '\')" title="Renommer"><i class="fas fa-pen"></i></button>';
-        }
+        renameHtml += '<button class="rename-btn" onclick="renameBranch(\'' + branch.name + '\')" title="Renommer"><i class="fas fa-pen"></i></button>';
 
         html += `
           <div class="branch-item ${isCurrent ? 'current' : ''}">

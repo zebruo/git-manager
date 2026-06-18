@@ -433,10 +433,6 @@ switch ($action) {
         if (!preg_match('/^[a-zA-Z0-9_\-\.]+$/', $branch)) {
             echo json_encode(['success' => false, 'error' => 'Nom de branche invalide']); break;
         }
-        if (in_array($branch, ['main', 'master'])) {
-            echo json_encode(['success' => false, 'error' => "Impossible de supprimer la branche '{$branch}' (protégée)"]); break;
-        }
-
         $result = execGit("git push origin --delete " . escapeArg($branch));
 
         if ($result['code'] !== 0) {

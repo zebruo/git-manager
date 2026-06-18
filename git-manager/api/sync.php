@@ -49,7 +49,7 @@ switch ($action) {
         break;
 
     case 'fetch':
-        $result = execGit('git fetch origin');
+        $result = execGit('git fetch origin --prune');
 
         if ($result['code'] !== 0) {
             echo json_encode(['success' => false, 'error' => $result['output']]);
