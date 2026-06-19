@@ -93,19 +93,19 @@
       <div class="mb-8"><strong>Format d'une ligne :</strong></div>
       <table class="help-table">
         <tr>
-          <td style="width:30px; color: var(--text-secondary);">12</td>
-          <td style="width:30px; color: var(--text-secondary);">12</td>
-          <td style="font-family: monospace;">&nbsp; ligne inchangée</td>
+          <td class="diff-col-num">12</td>
+          <td class="diff-col-num">12</td>
+          <td class="font-mono">&nbsp; ligne inchangée</td>
         </tr>
-        <tr style="background: rgba(244,67,54,0.1);">
-          <td style="color: var(--text-secondary);">13</td>
+        <tr class="diff-row-del">
+          <td class="text-muted">13</td>
           <td></td>
-          <td style="font-family: monospace; color: #f48a83;">− ancienne ligne</td>
+          <td class="diff-line-del">− ancienne ligne</td>
         </tr>
-        <tr style="background: rgba(76,175,80,0.1);">
+        <tr class="diff-row-add">
           <td></td>
-          <td style="color: var(--text-secondary);">13</td>
-          <td style="font-family: monospace; color: #81c784;">+ nouvelle ligne</td>
+          <td class="text-muted">13</td>
+          <td class="diff-line-add">+ nouvelle ligne</td>
         </tr>
       </table>
       <div class="mt-10 mb-8"><strong>En-tête de bloc (hunk) :</strong></div>
@@ -122,11 +122,11 @@
       <table class="help-table mt-8">
         <tr>
           <td><strong>Non stagé</strong></td>
-          <td style="color: var(--text-secondary);">Modifications depuis le dernier <code>git add</code> — sera stagé au prochain Stager</td>
+          <td class="text-muted">Modifications depuis le dernier <code>git add</code> — sera stagé au prochain Stager</td>
         </tr>
         <tr>
           <td><strong>Stagé</strong></td>
-          <td style="color: var(--text-secondary);">Sera inclus dans le prochain Commit</td>
+          <td class="text-muted">Sera inclus dans le prochain Commit</td>
         </tr>
       </table>
       <div class="mt-8">Si les deux zones sont remplies, deux onglets apparaissent dans la modale.</div>
@@ -157,7 +157,7 @@
         <tr>
           <td><strong><i class="fas fa-undo"></i> Récupérer</strong></td>
           <td>Restaure <strong>1 fichier</strong> à une version précise</td>
-          <td style="color: var(--text-secondary);">Reste sur la branche</td>
+          <td class="text-muted">Reste sur la branche</td>
         </tr>
         <tr>
           <td><strong><i class="fas fa-sign-in-alt"></i> Checkout commit</strong></td>
@@ -178,15 +178,15 @@
       <div class="help-inner-box mt-10">
         <strong><i class="fas fa-info-circle"></i> Revert vs Checkout :</strong>
         <div class="help-mono-box mt-6">
-          <div>A → B → C → D &nbsp;<span style="color: var(--text-secondary);">(main)</span></div>
+          <div>A → B → C → D &nbsp;<span class="text-muted">(main)</span></div>
           <div class="mt-6"><span class="text-warning">git checkout B</span> → tu vois le code au moment de B, mais D existe toujours</div>
           <div class="mt-6"><span class="text-danger">git revert D</span> → crée un commit E qui annule D :</div>
-          <div class="mt-5">A → B → C → D → <span class="text-success">E</span> &nbsp;<span style="color: var(--text-secondary);">(main)</span></div>
+          <div class="mt-5">A → B → C → D → <span class="text-success">E</span> &nbsp;<span class="text-muted">(main)</span></div>
           <div class="mt-10"><span class="text-danger">git revert</span> d'un revert → annule l'annulation (équivalent Ctrl+Y) :</div>
           <div class="mt-5">A → B → C → <span class="text-danger">Revert "C"</span> → <span class="text-success">Revert "Revert C"</span></div>
         </div>
       </div>
-      <div class="mt-8" style="color: var(--text-secondary);"><i class="fas fa-info-circle"></i> En cas de doute,
+      <div class="mt-8 text-muted"><i class="fas fa-info-circle"></i> En cas de doute,
         utilisez le <strong>Stash</strong> pour sauvegarder vos modifications avant de revenir en arrière.</div>
     </div>
   </div>
@@ -208,7 +208,7 @@
       <div class="mt-10 mb-8"><strong>ex. Cas mixte (après un fetch ↑1 ↓2) :</strong></div>
       <div>PC: A→B→C→<span class="ahead">X</span></div>
       <div>GitHub: A→B→C→<span class="behind">Y→Z</span></div>
-      <div class="mt-5" style="font-style: italic;">→ Pull puis Push</div>
+      <div class="mt-5 text-italic">→ Pull puis Push</div>
     </div>
   </div>
   <div class="help-category">
@@ -281,7 +281,7 @@
         <i class="fas fa-pencil-alt"></i>. Cliquez dessus pour charger le message complet (sujet <em>et</em> corps)
         dans le champ message — le champ prend le focus automatiquement. Modifiez-le, puis cliquez
         <strong>Amend</strong>.<br>
-        <span style="color: var(--text-secondary); font-size: 0.9em;">Utile pour corriger une faute ou compléter
+        <span class="text-muted text-sm">Utile pour corriger une faute ou compléter
         la description sans retaper tout le message.</span>
       </dd>
     </dl>
@@ -329,9 +329,9 @@
       <div>Vous êtes sur <span class="ahead">main</span></div>
       <div>Vous cliquez <i class="fas fa-code-branch text-info"></i> sur <span class="behind">feature</span></div>
       <div class="mt-5">→ Les commits de <em>feature</em> sont ajoutés à <em>main</em></div>
-      <div class="mt-10" style="font-style: italic;">Workflow : Basculer sur main → Merge de feature → Push</div>
+      <div class="mt-10 text-italic">Workflow : Basculer sur main → Merge de feature → Push</div>
     </div>
-    <dl style="margin-top: 15px;">
+    <dl class="mt-15">
       <dt><i class="fas fa-exclamation-triangle text-warning"></i> Conflits de fusion</dt>
       <dd>Si le même fichier a été modifié sur les deux branches :</dd>
     </dl>
@@ -339,7 +339,7 @@
       <div><strong>Lignes différentes</strong> → Git fusionne automatiquement</div>
       <div class="mt-8"><strong>Mêmes lignes</strong> → <span class="text-warning">Conflit !</span> Git
         marque le fichier :</div>
-      <div class="help-inner-box mt-5" style="font-family: monospace;">
+      <div class="help-inner-box mt-5 font-mono">
         &lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD<br>
         Code sur main<br>
         =======<br>
@@ -370,9 +370,9 @@
       <div class="help-flow-arrow">↓ <span class="help-flow-label">Pull Request</span></div>
       <div class="help-flow-secondary">Dépôt original (proposition)</div>
     </div>
-    <div class="mt-10" style="font-size: 0.85em; color: var(--text-secondary);">
+    <div class="mt-10 text-note">
       <i class="fas fa-info-circle"></i> Le fork se fait sur GitHub.com (bouton "Fork"). Utilisez ensuite <a
-        href="git-clone.html" style="color: var(--accent-color);">Cloner un dépôt</a> pour récupérer votre fork.
+        href="git-clone.html" class="link-accent">Cloner un dépôt</a> pour récupérer votre fork.
     </div>
   </div>
   <div class="help-category">
@@ -390,7 +390,7 @@
         publiée sur le remote, Git Manager renomme localement, publie le nouveau nom et supprime l'ancien
         automatiquement.</dd>
       <dd>La branche par défaut (<strong>main</strong> ou <strong>master</strong>) ne peut pas être renommée <i
-          class="fas fa-pen" style="color:#b0b9c2;opacity:0.5;"></i> car c'est la branche principale du dépôt distant.
+          class="fas fa-pen icon-muted"></i> car c'est la branche principale du dépôt distant.
       </dd>
     </dl>
     <div class="help-info-box">
@@ -398,19 +398,19 @@
       <table class="help-table">
         <tr>
           <td><strong>Branche actuelle</strong></td>
-          <td style="color: var(--text-secondary);">Copie avec historique</td>
+          <td class="text-muted">Copie avec historique</td>
         </tr>
         <tr>
           <td>&#x1F195; <strong>Branche vide</strong></td>
-          <td style="color: var(--text-secondary);">Sans fichiers, sans historique</td>
+          <td class="text-muted">Sans fichiers, sans historique</td>
         </tr>
         <tr>
           <td>&#x1F504; <strong>Nouveau départ</strong></td>
-          <td style="color: var(--text-secondary);">Fichiers actuels, sans historique</td>
+          <td class="text-muted">Fichiers actuels, sans historique</td>
         </tr>
         <tr>
           <td><strong>Autre branche</strong></td>
-          <td style="color: var(--text-secondary);">Copie d'une branche spécifique</td>
+          <td class="text-muted">Copie d'une branche spécifique</td>
         </tr>
       </table>
     </div>
@@ -439,7 +439,7 @@
       <div class="mt-5">5. Maintenant <em>ma-version</em> est une branche officielle</div>
       <div class="mt-5">6. Vous pouvez la fusionner dans <em>main</em> ou la publier sur GitHub</div>
     </div>
-    <div class="mt-10" style="font-size: 0.85em; color: var(--text-secondary);">
+    <div class="mt-10 text-note">
       <i class="fas fa-info-circle"></i> Pour revenir à la normale, basculez simplement sur une branche existante (ex:
       <em>main</em>).
     </div>
@@ -475,7 +475,7 @@
   <div class="help-category">
     <h4><i class="fas fa-clone"></i> Cloner un dépôt</h4>
     <dl>
-      <dt><a href="git-clone.html" style="color: var(--accent-color);">Page de clonage</a></dt>
+      <dt><a href="git-clone.html" class="link-accent">Page de clonage</a></dt>
       <dd>Permet de cloner un dépôt GitHub existant vers votre machine. Les fichiers Git Manager sont automatiquement
         copiés dans le nouveau dépôt.</dd>
     </dl>
@@ -486,7 +486,7 @@
       <div class="mt-5">Sous-dossiers copiés intégralement : <code>api/</code>, <code>css/</code>, <code>js/</code></div>
       <div class="help-info-box mt-8">
         <strong>Mise en service du dépôt cloné :</strong>
-        <ol style="margin: 8px 0 0 18px; line-height: 1.8;">
+        <ol class="help-ol">
           <li>Renommer <code>git-config.example.php</code> en <code>git-config.php</code> et renseigner identité Git et chemin SSH.</li>
           <li>Créer un virtual host Apache pointant vers le dossier cloné.</li>
           <li>Accéder à <code>http://[nom-du-projet]/git-manager/git-manager.html</code>.</li>
@@ -498,19 +498,19 @@
   <div class="help-category">
     <h4><i class="fas fa-eraser"></i> Réinitialiser le dépôt distant</h4>
     <dl>
-      <dt><a href="git-reset-remote.html" style="color: var(--accent-color);">Page de réinitialisation</a></dt>
+      <dt><a href="git-reset-remote.html" class="link-accent">Page de réinitialisation</a></dt>
       <dd>Crée une nouvelle branche vide (sans historique) et supprime les branches sélectionnées sur GitHub.
         <strong>Irréversible !</strong></dd>
     </dl>
 
     <h4><i class="fas fa-key"></i> Authentification (SSH / Token)</h4>
     <dl>
-      <dt><a href="git-auth.html" style="color: var(--accent-color);">Guide d'authentification</a></dt>
+      <dt><a href="git-auth.html" class="link-accent">Guide d'authentification</a></dt>
       <dd>Configure l'accès à GitHub via SSH (clés) ou Token HTTPS. Nécessaire pour push/pull.</dd>
     </dl>
     <div class="help-info-box">
       <div><strong>Cas d'usage :</strong></div>
-      <ul style="margin: 5px 0 0 15px; padding: 0;">
+      <ul class="help-list">
         <li>Nettoyer un dépôt contenant des fichiers sensibles dans l'historique</li>
         <li>Repartir de zéro sans supprimer/recréer le dépôt GitHub</li>
         <li>Supprimer des branches obsolètes en masse</li>
@@ -536,7 +536,7 @@
     </div>
   </div>
 
-  <div class="help-workflow" style="margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border-color);">
+  <div class="help-workflow">
     <h4><i class="fas fa-project-diagram"></i> Workflow typique</h4>
     <ol>
       <li><strong>Modifier</strong> vos fichiers dans votre éditeur de code</li>
@@ -551,7 +551,7 @@
     </ol>
     <div class="help-info-box">
       <strong><i class="fas fa-lightbulb text-warning"></i> Bon à savoir :</strong>
-      <ul style="margin: 5px 0 0 15px; padding: 0;">
+      <ul class="help-list">
         <li><strong>Fetch</strong> avant de travailler pour récupérer les dernières modifications distantes</li>
         <li><strong>Pull</strong> pour fusionner les modifications distantes dans votre branche locale</li>
         <li>Un commit reste <strong>local</strong> tant que vous n'avez pas fait de Push</li>

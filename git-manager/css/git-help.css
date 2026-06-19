@@ -58,13 +58,21 @@
 .mt-6  { margin-top: 6px; }
 .mt-8  { margin-top: 8px; }
 .mt-10 { margin-top: 10px; }
+.mt-15 { margin-top: 15px; }
 .mb-8  { margin-bottom: 8px; }
 .mb-10 { margin-bottom: 10px; }
 /* ── Couleurs sémantiques ─────────────────────────────────────────── */
+.text-muted   { color: var(--text-secondary); }
+.text-sm      { font-size: 0.9em; }
+.text-italic  { font-style: italic; }
+.text-note    { font-size: 0.85em; color: var(--text-secondary); }
 .text-warning { color: var(--warning-color); }
 .text-danger  { color: var(--danger-color); }
 .text-success { color: var(--success-color); }
 .text-info    { color: var(--info-color); }
+.link-accent  { color: var(--accent-color); }
+.icon-muted   { color: #b0b9c2; opacity: 0.5; }
+.font-mono    { font-family: monospace; }
 /* ── Syntaxe terminal ─────────────────────────────────────────────── */
 .syn-comment { color: #6a9955; }
 .syn-keyword { color: #569cd6; }
@@ -72,6 +80,17 @@
 /* ── Tableaux ─────────────────────────────────────────────────────── */
 .help-table { width: 100%; font-size: 0.95em; border-collapse: collapse; }
 .help-table td { padding: 4px 8px; }
+/* ── Diff visuel ──────────────────────────────────────────────────── */
+.diff-col-num  { width: 30px; color: var(--text-secondary); }
+.diff-row-del  { background: rgba(244,67,54,0.1); }
+.diff-row-add  { background: rgba(76,175,80,0.1); }
+.diff-line-del { font-family: monospace; color: #f48a83; }
+.diff-line-add { font-family: monospace; color: #81c784; }
+/* ── Listes ───────────────────────────────────────────────────────── */
+.help-ol   { margin: 8px 0 0 18px; line-height: 1.8; }
+.help-list { margin: 5px 0 0 15px; padding: 0; }
 /* ── Onglets ──────────────────────────────────────────────────────── */
 .help-tab-panel { display: none; }
 .help-tab-panel.active { display: block; }
+/* ── Workflow ─────────────────────────────────────────────────────── */
+.help-workflow + .help-workflow { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border-color); }
