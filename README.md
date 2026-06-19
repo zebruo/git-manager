@@ -36,7 +36,8 @@ Interface web pour gérer un dépôt Git sans ligne de commande.
 
 | Fichier | Description |
 |---------|-------------|
-| `css/common.css` | Variables CSS partagées (`:root`, `.dark-mode`) |
+| `css/common.css` | Variables CSS partagées (`:root`, `.dark-mode`), scrollbar, alertes toast, checkbox |
+| `css/pages-shared.css` | Layout commun des pages secondaires (header, container, card) |
 | `css/git-manager.css` | Styles de l'interface principale |
 | `css/git-help.css` | Styles de la modale d'aide |
 | `css/git-auth.css` | Styles de la page authentification |
@@ -263,6 +264,7 @@ mon-projet/                    <- Dépôt Git géré
 │   │   └── repos.php
 │   ├── css/                   <- Feuilles de style
 │   │   ├── common.css
+│   │   ├── pages-shared.css
 │   │   ├── git-auth.css
 │   │   ├── git-clone.css
 │   │   ├── git-help.css
@@ -317,4 +319,4 @@ Git Manager est une interface web pour gérer un dépôt Git sans ligne de comma
 
 **Il est recommandé de faire un premier essai sur un dépôt test avant de l'utiliser sur un projet existant.**
 
-*Version : v1.1.0 — Juin 2026*
+*Version : v1.2.0 — Juin 2026*
