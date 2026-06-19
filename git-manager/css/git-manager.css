@@ -440,10 +440,11 @@ input[type="checkbox"]:checked::after {
 
 .btn-group {
   display: flex;
-  gap: 10px;
+  gap: 20px;
   margin-top: 15px;
   flex-wrap: wrap;
   justify-content: center;
+  align-items: flex-start;
 }
 
 .pull-container {

@@ -1,0 +1,3 @@
+# Fichiers exclus des archives de release (git archive / GitHub ZIP)
+.gitignore     export-ignore
+.gitattributes export-ignore

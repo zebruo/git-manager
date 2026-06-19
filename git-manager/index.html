@@ -28,13 +28,15 @@
         <h2><i class="fas fa-download"></i> Installation</h2>
         <h3>Au préalable</h3>
         <ol>
-          <li>Copiez le dossier <code>git-manager/</code> à la racine de votre projet.</li>
+          <li>Extrayez l'archive et copiez le dossier <code>git-manager/</code> à la racine de votre projet. Si le dossier extrait porte un numéro de version (ex : <code>git-manager-1.0.1/</code>), renommez-le en <code>git-manager/</code>.</li>
+          <li>Créer sur votre serveur local un virtual host Apache pour le nouveau dépôt.</li>
           <li>Renommez <code>git-config.example.php</code> en <code>git-config.php</code>et renseignez vos informations dans <code>git-config.php</code> :</li>
           <li>Token dans l'URL (https://TOKEN@github.com/user/repo.git) : fonctionne sans <code>git-config.php</code>car l'authentification est dans l'URL du remote elle-même.</li>
           <li>Credential Manager (git config --global credential.helper store ou wincred) : fonctionne sans <code>git-config.php</code>car les identifiants sont stockés au niveau global de Git.</li>
           <li>Le <code>git-config.php</code>est vraiment indispensable pour le SSH (qui ne fonctionnera pas si <code>sshKeyPath</code>est vide, le processus PHP ne trouvera pas les clés).</li>
         </ol>
-        <p>Voir aussi la page authentification Token/SSH dans l'interface git-manager.</p>
+        <p><i class="fas fa-exclamation-triangle text-warning"></i> Tant que <code>git-config.php</code> n'est pas configuré, un bandeau orange s'affiche en haut de l'interface git-manager pour vous le rappeler.</p>
+        <p>Voir aussi la <a href="git-auth.html">page authentification Token/SSH</a> dans l'interface git-manager.</p>
         <pre><code><span class="code-tag">&lt;?php</span>
 <span class="code-keyword">return</span> [
     <span class="code-comment">// Identité Git pour les commits</span>
@@ -52,21 +54,16 @@
         <span class="code-string">'maxFileLogItems'</span> => <span class="code-keyword">10</span>,      <span class="code-comment">// Nombre de commits par fichier</span>
     ]
 ];</code></pre>
-        <p style="margin-top: 10px; font-size: 0.9em; color: var(--text-secondary);"><i class="fas fa-exclamation-triangle" style="color: #ff9800;"></i> <strong>Note :</strong> <code>git-config.php</code> contient vos données personnelles et ne doit pas être versionné. Il est automatiquement ajouté au <code>.gitignore</code>.</p>
+        <p style="margin-top: 10px; font-size: 0.9em; color: var(--text-secondary);"><i class="fas fa-exclamation-triangle text-warning"></i> <strong>Note :</strong> <code>git-config.php</code> contient vos données personnelles et ne doit pas être versionné. Il est automatiquement ajouté au <code>.gitignore</code>.</p>
 
-        <h3 style="margin-top: 25px;">Via Git Manager</h3>
+        <h3 style="margin-top: 25px;">Lancez l'interface Git Manager</h3>
         <p style="margin-top: 15px;"><strong>Lancez l'interface</strong> (bouton en haut ou en bas de page) — Rappel : Le dossier <code>git-manager/</code> doit être copié dans le répertoire du projet :</p>
         <ul>
           <li>Lancez <strong>git init</strong> depuis l'interface git-manager</li>
           <li>Le <code>.gitignore</code> est automatiquement créé avec <code>git-manager/</code></li>
-          <li>Renommez <code>git-config.example.php</code> en <code>git-config.php</code> et renseignez vos informations</li>
+          <li>— Rappel si présence bandeau renommez <code>git-config.example.php</code> en <code>git-config.php</code> et renseignez vos informations</li>
         </ul>
-        <p><strong>Clone</strong> — Git Manager s'occupe de tout :</p>
-        <ul>
-          <li>Les fichiers de l'application sont automatiquement copiés dans le dossier <code>git-manager/</code> du nouveau projet</li>
-          <li>Le <code>.gitignore</code> est complété avec <code>git-manager/</code> pour que le dossier ne soit jamais versionné</li>
-          <li>Il ne reste plus qu'à renommer <code>git-config.example.php</code> en <code>git-config.php</code> et renseigner vos informations</li>
-        </ul>
+        <p><strong>Cloner un dépôt existant</strong> — depuis un projet où git-manager est déjà en place, utilisez <a href="git-clone.html">git-clone.html</a> pour cloner un dépôt distant dans un nouveau dossier voisin. Git Manager copie automatiquement ses fichiers dans le nouveau projet.</p>
       </section>
 
       <section class="git-section">
