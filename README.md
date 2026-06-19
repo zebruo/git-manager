@@ -30,6 +30,7 @@ Interface web pour gérer un dépôt Git sans ligne de commande.
 | `api/status.php` | status, repoInfo, addRemote, removeRemote |
 | `api/sync.php` | push, pull, fetch |
 | `api/tags.php` | listTags, createTag, deleteTag, pushTag, deleteRemoteTag |
+| `api/repos.php` | listRepos |
 
 ### Feuilles de style (`css/`)
 
@@ -147,6 +148,16 @@ Interface web pour gérer un dépôt Git sans ligne de commande.
 - Ajouter un pattern personnalisé (ex: `*.log`, `temp/`)
 - Retirer un pattern du .gitignore
 
+### Multi-dépôts
+
+Permet de basculer entre plusieurs dépôts Git depuis le même navigateur, sans changer de virtual host.
+
+- **Activation** : définir `reposRoot` dans `git-config.php` (chemin absolu du dossier contenant vos projets)
+- **Sélecteur** : menu déroulant affiché dans le header à côté du nom du dépôt courant
+- **Scan** : liste uniquement les sous-dossiers directs de `reposRoot` qui contiennent un `.git/`
+- **Sécurité** : chaque chemin est validé avec `realpath()` pour éviter toute traversée de répertoire
+- Si `reposRoot` est vide ou absent, le sélecteur n'est pas affiché
+
 ### Interface
 
 - **Mode sombre** : Thème clair/sombre avec mémorisation
@@ -192,6 +203,7 @@ Contenu HTML de l'aide intégrée, chargé dynamiquement dans la modale de `git-
 - Gestion des branches
 - HEAD détaché
 - Clonage, réinitialisation du remote, authentification
+- Multi-dépôts (sélecteur de dépôt)
 - Workflow typique
 
 ### git-reset-remote.html - Réinitialisation du remote
@@ -209,6 +221,11 @@ return [
     'userName' => 'votre-username',
     'userEmail' => 'votre-email@example.com',
     'sshKeyPath' => 'C:/Users/votre-nom/.ssh/id_rsa',  // ou id_ed25519
+
+    // Multi-dépôts (facultatif) — chemin absolu du dossier contenant vos projets
+    // Laisser vide pour désactiver le sélecteur de dépôt
+    'reposRoot' => 'C:/Users/votre-nom/projets',
+
     'options' => [
         'maxHistoryItems' => 20,    // Nombre de commits dans l'historique
         'maxFileLogItems' => 10,    // Nombre de commits par fichier (récupération)
@@ -242,7 +259,8 @@ mon-projet/                    <- Dépôt Git géré
 │   │   ├── stash.php
 │   │   ├── status.php
 │   │   ├── sync.php
-│   │   └── tags.php
+│   │   ├── tags.php
+│   │   └── repos.php
 │   ├── css/                   <- Feuilles de style
 │   │   ├── common.css
 │   │   ├── git-auth.css

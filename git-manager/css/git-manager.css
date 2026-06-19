@@ -1,3 +1,15 @@
+/* ── Multi-dépôts ────────────────────────────────────────────────────── */
+#repoSwitcher select {
+  background: var(--bg-color);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 0.9em;
+  cursor: pointer;
+}
+#repoSwitcher select:focus { outline: none; border-color: var(--accent-color); }
+
 /* ── Utilitaires ────────────────────────────────────────────────────── */
 .text-muted    { color: var(--text-secondary); font-size: 0.85em; }
 .text-muted-sm { color: var(--text-secondary); font-size: 0.9em; }
@@ -39,7 +51,7 @@ body {
   background: var(--bg-primary);
   border-radius: 12px;
   padding: 10px 30px 10px 30px;
-  margin-bottom: 30px;
+  margin-bottom: 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   display: flex;
   justify-content: space-between;
@@ -109,13 +121,13 @@ body {
 .git-layout {
   display: flex;
   flex-wrap: wrap;
-  gap: 25px;
+  gap: 20px;
 }
 
 .git-section {
   background: var(--bg-primary);
   border-radius: 12px;
-  padding: 25px;
+  padding: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   flex: 1 1 calc(33.333% - 17px);
   min-width: 300px;
@@ -269,8 +281,7 @@ body {
 .status-info {
   background: var(--bg-primary);
   border-radius: 8px;
-  padding: 15px;
-  margin-bottom: 20px;
+  padding: 10px;
 }
 
 .status-row {

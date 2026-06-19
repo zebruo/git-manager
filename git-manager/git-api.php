@@ -11,8 +11,6 @@ header('Access-Control-Allow-Headers: Content-Type');
 
 // ── Configuration ─────────────────────────────────────────────────────────────
 
-$repoPath = dirname(__DIR__);
-
 $configFile = __DIR__ . '/git-config.php';
 if (file_exists($configFile)) {
     $config = require $configFile;
@@ -22,6 +20,26 @@ if (file_exists($configFile)) {
     $config = [];
     $gitUserName  = '';
     $gitUserEmail = '';
+}
+
+// Lecture anticipée de l'input pour déterminer le repo
+$input  = json_decode(file_get_contents('php://input'), true) ?? [];
+$action = $input['action'] ?? '';
+
+// Détermination du dépôt actif
+$defaultRepoPath = dirname(__DIR__);
+$repoParam = $input['repo'] ?? '';
+$reposRoot = !empty($config['reposRoot']) ? realpath($config['reposRoot']) : null;
+
+if (!empty($repoParam) && $reposRoot) {
+    $candidate = realpath($reposRoot . DIRECTORY_SEPARATOR . $repoParam);
+    if ($candidate && str_starts_with($candidate, $reposRoot) && is_dir($candidate . DIRECTORY_SEPARATOR . '.git')) {
+        $repoPath = $candidate;
+    } else {
+        $repoPath = $defaultRepoPath;
+    }
+} else {
+    $repoPath = $defaultRepoPath;
 }
 
 $isGitRepoCheck = is_dir($repoPath . '/.git');
@@ -100,13 +118,16 @@ function cleanEmptyDirs(string $dir, array $excludeDirs = ['.git', 'git-manager'
 
 // ── Dispatcher ────────────────────────────────────────────────────────────────
 
-$input  = json_decode(file_get_contents('php://input'), true);
-$action = $input['action'] ?? '';
-
 // Actions pré-dépôt (pas besoin d'un dépôt Git existant)
 $preRepoActions = ['checkRepo', 'init', 'clone', 'listFolders', 'listRemoteBranches', 'resetRemote'];
 if (in_array($action, $preRepoActions)) {
     require __DIR__ . '/api/setup.php';
+    exit;
+}
+
+// Multi-dépôts
+if ($action === 'listRepos') {
+    require __DIR__ . '/api/repos.php';
     exit;
 }
 

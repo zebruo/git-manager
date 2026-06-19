@@ -1,6 +1,7 @@
 const API_URL = 'git-api.php';
 let modalResolve = null;
 let currentAhead = 0;
+let activeRepo = new URLSearchParams(window.location.search).get('repo') || '';
 
 // Initialisation
 document.addEventListener('DOMContentLoaded', async function () {
@@ -13,6 +14,9 @@ document.addEventListener('DOMContentLoaded', async function () {
   // LED état serveur
   checkServerStatus();
   setInterval(checkServerStatus, 30000);
+
+  // Charger le sélecteur de dépôts (si reposRoot configuré)
+  loadRepoSwitcher();
 
   // Vérifier si c'est un dépôt Git
   const repoCheck = await checkRepo();
@@ -363,7 +367,7 @@ async function apiCall(action, params = {}) {
     const response = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action, ...params })
+      body: JSON.stringify({ action, ...(activeRepo ? { repo: activeRepo } : {}), ...params })
     });
     return await response.json();
   } catch (error) {
@@ -1989,4 +1993,34 @@ function escapeHtml(str) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+}
+
+// ── Multi-dépôts ─────────────────────────────────────────────────────────────
+
+async function loadRepoSwitcher() {
+  const result = await apiCall('listRepos');
+  if (!result.success || !result.data || result.data.length === 0) return;
+
+  const switcher = document.getElementById('repoSwitcher');
+  const select   = document.getElementById('repoSelect');
+
+  const currentFolder = activeRepo || window.location.hostname;
+
+  select.innerHTML = '';
+  result.data.forEach(repo => {
+    const opt = document.createElement('option');
+    opt.value = repo;
+    opt.textContent = repo;
+    if (repo === currentFolder) opt.selected = true;
+    select.appendChild(opt);
+  });
+
+  switcher.style.display = 'block';
+}
+
+function switchRepo(repoName) {
+  if (!repoName) return;
+  const url = new URL(window.location.href);
+  url.searchParams.set('repo', repoName);
+  window.location.href = url.toString();
 }

@@ -19,7 +19,7 @@
     </header>
 
     <main class="git-layout">
-      <section style="text-align: center; padding: 20px 0;">
+      <section class="section-cta">
         <a href="git-manager.html" class="btn btn-primary">
           <i class="fas fa-rocket"></i> Interface git-manager
         </a>
@@ -48,16 +48,20 @@
     <span class="code-comment">// Clé ED25519 : C:/Users/votre-nom/.ssh/id_ed25519</span>
     <span class="code-string">'sshKeyPath'</span> => <span class="code-string">'C:/Users/votre-nom/.ssh/id_rsa'</span>,
 
+    <span class="code-comment">// Multi-dépôts (facultatif) — dossier contenant vos projets Git</span>
+    <span class="code-comment">// Affiche un sélecteur de dépôt dans le header. Laisser vide pour désactiver.</span>
+    <span class="code-string">'reposRoot'</span> => <span class="code-string">'C:/Users/votre-nom/projets'</span>,
+
     <span class="code-comment">// Options d'affichage (facultatif)</span>
     <span class="code-string">'options'</span> => [
         <span class="code-string">'maxHistoryItems'</span> => <span class="code-keyword">20</span>,      <span class="code-comment">// Nombre de commits dans l'historique</span>
         <span class="code-string">'maxFileLogItems'</span> => <span class="code-keyword">10</span>,      <span class="code-comment">// Nombre de commits par fichier</span>
     ]
 ];</code></pre>
-        <p style="margin-top: 10px; font-size: 0.9em; color: var(--text-secondary);"><i class="fas fa-exclamation-triangle text-warning"></i> <strong>Note :</strong> <code>git-config.php</code> contient vos données personnelles et ne doit pas être versionné. Il est automatiquement ajouté au <code>.gitignore</code>.</p>
+        <p class="text-note"><i class="fas fa-exclamation-triangle text-warning"></i> <strong>Note :</strong> <code>git-config.php</code> contient vos données personnelles et ne doit pas être versionné. Il est automatiquement ajouté au <code>.gitignore</code>.</p>
 
-        <h3 style="margin-top: 25px;">Lancez l'interface Git Manager</h3>
-        <p style="margin-top: 15px;"><strong>Lancez l'interface</strong> (bouton en haut ou en bas de page) — Rappel : Le dossier <code>git-manager/</code> doit être copié dans le répertoire du projet :</p>
+        <h3 class="mt-25">Lancez l'interface Git Manager</h3>
+        <p class="mt-15"><strong>Lancez l'interface</strong> (bouton en haut ou en bas de page) — Rappel : Le dossier <code>git-manager/</code> doit être copié dans le répertoire du projet :</p>
         <ul>
           <li>Lancez <strong>git init</strong> depuis l'interface git-manager</li>
           <li>Le <code>.gitignore</code> est automatiquement créé avec <code>git-manager/</code></li>
@@ -118,36 +122,36 @@
         <h2><i class="fas fa-lightbulb"></i> Cas d'utilisation</h2>
         <div class="use-cases">
           <div class="card">
-            <i class="fas fa-plus-circle fa-2x" style="color: var(--accent-color);"></i>
+            <i class="fas fa-plus-circle fa-2x" class="text-accent"></i>
             <h3>Nouveau Projet</h3>
             <p>Initialisez un nouveau dépôt ou clonez une source existante.</p>
           </div>
           <div class="card">
-            <i class="fas fa-code-branch fa-2x" style="color: var(--accent-color);"></i>
+            <i class="fas fa-code-branch fa-2x" class="text-accent"></i>
             <h3>Branches</h3>
             <p>Créez, basculez et fusionnez vos branches de développement.</p>
           </div>
           <div class="card">
-            <i class="fas fa-history fa-2x" style="color: var(--accent-color);"></i>
+            <i class="fas fa-history fa-2x" class="text-accent"></i>
             <h3>Historique</h3>
             <p>Parcourez vos commits et restaurez des versions précédentes.</p>
           </div>
           <div class="card">
-            <i class="fas fa-cloud-sync fa-2x" style="color: var(--accent-color);"></i>
+            <i class="fas fa-cloud-sync fa-2x" class="text-accent"></i>
             <h3>Synchronisation</h3>
             <p>Push et Pull pour synchroniser avec GitHub ou GitLab.</p>
           </div>
         </div>
       </section>
 
-      <section style="text-align: center; padding: 20px 0;">
+      <section class="section-cta">
         <a href="git-manager.html" class="btn btn-primary">
           <i class="fas fa-rocket"></i> Interface git-manager
         </a>
       </section>
     </main>
 
-    <footer style="text-align: center; margin-top: 30px; color: var(--text-secondary); font-size: 0.9em; border-top: 1px solid var(--border-color); padding-top: 20px;">
+    <footer>
       <p>Git Manager &copy; 2026 - Interface de gestion simplifiée</p>
     </footer>
   </div>

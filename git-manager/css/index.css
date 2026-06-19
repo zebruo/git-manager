@@ -1,5 +1,11 @@
-a { color: var(--accent-color); }
+a            { color: var(--accent-color); }
 .text-warning { color: #ff9800; }
+.text-accent  { color: var(--accent-color); }
+.text-note    { margin-top: 10px; font-size: 0.9em; color: var(--text-secondary); }
+.section-cta  { text-align: center; padding: 20px 0; }
+.mt-15        { margin-top: 15px; }
+.mt-25        { margin-top: 25px; }
+footer        { text-align: center; margin-top: 30px; color: var(--text-secondary); font-size: 0.9em; border-top: 1px solid var(--border-color); padding-top: 20px; }
 
 :root {
   --code-bg: #1e1e1e;

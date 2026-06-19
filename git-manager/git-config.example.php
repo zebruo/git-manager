@@ -28,6 +28,12 @@ return [
     //   Mac     : '/Users/votre-nom/.ssh/id_ed25519'
     'sshKeyPath' => 'C:/Users/votre-nom/.ssh/id_rsa',
 
+    // Multi-dépôts (facultatif) — chemin absolu du dossier contenant vos projets
+    //   Windows : 'C:/Users/votre-nom/projets'
+    //   Linux   : '/home/votre-nom/projets'
+    // Laisser vide pour désactiver le sélecteur de dépôt
+    'reposRoot' => 'C:/Users/votre-nom/projets',
+
     // Options d'affichage (facultatif)
     'options' => [
         'maxHistoryItems' => 20,      // Nombre de commits dans l'historique

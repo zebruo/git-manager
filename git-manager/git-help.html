@@ -445,6 +445,34 @@
     </div>
   </div>
   <div class="help-category">
+    <h4><i class="fas fa-layer-group"></i> Multi-dépôts</h4>
+    <dl>
+      <dt><i class="fas fa-list"></i> Sélecteur de dépôt</dt>
+      <dd>Menu déroulant affiché dans le header à côté du nom du dépôt courant. Permet de basculer entre plusieurs
+        projets Git sans changer de virtual host.</dd>
+      <dt><i class="fas fa-folder-open"></i> Activation du sélecteur</dt>
+      <dd>Définir la clé <code>reposRoot</code> dans <code>git-config.php</code> avec le chemin absolu du dossier
+        contenant vos projets. Si la clé est absente ou vide, le sélecteur n'est pas affiché.</dd>
+    </dl>
+    <div class="help-info-box">
+      <div class="mb-8"><strong>Configuration dans <code>git-config.php</code> :</strong></div>
+      <div class="help-code-box">
+        <div><span class="syn-string">'reposRoot'</span> => <span class="syn-string">'C:/Users/votre-nom/projets'</span>,</div>
+      </div>
+      <div class="mt-10 mb-8"><strong>Structure attendue :</strong></div>
+      <div class="help-code-box">
+        <div>projets/</div>
+        <div>&nbsp; ├── mon-site/        <span class="syn-comment">&lt;- affiché dans le menu</span></div>
+        <div>&nbsp; │   └── .git/</div>
+        <div>&nbsp; ├── api-projet/      <span class="syn-comment">&lt;- affiché dans le menu</span></div>
+        <div>&nbsp; │   └── .git/</div>
+        <div>&nbsp; └── dossier-sans-git/ <span class="syn-comment">&lt;- ignoré</span></div>
+      </div>
+      <div class="mt-8">Seuls les sous-dossiers <strong>directs</strong> contenant un <code>.git/</code> sont listés.</div>
+      <div class="mt-8"><i class="fas fa-info-circle"></i> Si vous déplacez votre dossier de projets, pensez à mettre à jour le chemin <code>reposRoot</code> dans <code>git-config.php</code>.</div>
+    </div>
+  </div>
+  <div class="help-category">
     <h4><i class="fas fa-clone"></i> Cloner un dépôt</h4>
     <dl>
       <dt><a href="git-clone.html" style="color: var(--accent-color);">Page de clonage</a></dt>

@@ -17,9 +17,15 @@
     <div class="git-header">
       <div class="git-header-content">
         <h1><i class="fab fa-git-alt"></i> Gestion Git <span class="server-led" id="serverLed" title="État du serveur"></span></h1>
-        <p id="repoInfo" class="repo-info">
-          <i class="fas fa-spinner fa-spin"></i> Chargement...
-        </p>
+        <div style="display:flex; align-items:start; gap:12px;">
+          <p id="repoInfo" class="repo-info" style="margin:0;">
+            <i class="fas fa-spinner fa-spin"></i> Chargement...
+          </p>
+          <div id="repoSwitcher" style="display:none;">
+            <select id="repoSelect" onchange="switchRepo(this.value)" title="Changer de dépôt">
+            </select>
+          </div>
+        </div>
       </div>
       <div style="display: flex; gap: 10px;">
         <a href="git-clone.html" class="btn btn-secondary" title="Cloner un dépôt">
