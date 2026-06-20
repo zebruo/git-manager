@@ -33,7 +33,8 @@ $reposRoot = !empty($config['reposRoot']) ? realpath($config['reposRoot']) : nul
 
 if (!empty($repoParam) && $reposRoot) {
     $candidate = realpath($reposRoot . DIRECTORY_SEPARATOR . $repoParam);
-    if ($candidate && str_starts_with($candidate, $reposRoot) && is_dir($candidate . DIRECTORY_SEPARATOR . '.git')) {
+    // Valider uniquement que le dossier est dans reposRoot — le check .git est délégué à chaque action
+    if ($candidate && str_starts_with($candidate, $reposRoot) && is_dir($candidate)) {
         $repoPath = $candidate;
     } else {
         $repoPath = $defaultRepoPath;

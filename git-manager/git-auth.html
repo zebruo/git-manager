@@ -30,7 +30,7 @@
   <div class="container">
     <div class="card">
       <h2><i class="fas fa-info-circle"></i> Choisir une méthode d'authentification</h2>
-      <p style="color: var(--text-secondary); margin-bottom: 15px;">
+      <p class="text-muted mb-15">
         Pour interagir avec GitHub (push, pull, clone), vous devez vous authentifier. Deux méthodes principales sont disponibles :
       </p>
 
@@ -45,8 +45,8 @@
         <tbody>
           <tr>
             <td><strong>Sécurité</strong></td>
-            <td><i class="fas fa-star" style="color: var(--success-color);"></i> Excellente</td>
-            <td><i class="fas fa-star" style="color: var(--warning-color);"></i> Bonne</td>
+            <td><i class="fas fa-star text-success"></i> Excellente</td>
+            <td><i class="fas fa-star icon-warning"></i> Bonne</td>
           </tr>
           <tr>
             <td><strong>Configuration</strong></td>
@@ -110,12 +110,12 @@
               <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i></button>
               ls -la ~/.ssh/
             </div>
-            <div style="margin-top: 15px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
+            <div class="hint-box">
               <p><strong>Résultat possible :</strong></p>
-              <ul style="color: var(--text-secondary); font-size: 0.9em; margin-top: 10px;">
-                <li><code>id_rsa</code> et <code>id_rsa.pub</code> → Vous avez une clé <strong>RSA</strong> → <span style="color: var(--success-color);">Passez à l'étape 3</span></li>
-                <li><code>id_ed25519</code> et <code>id_ed25519.pub</code> → Vous avez une clé <strong>ED25519</strong> → <span style="color: var(--success-color);">Passez à l'étape 3</span></li>
-                <li>Aucun fichier <code>id_*</code> → Pas de clé → <span style="color: var(--warning-color);">Continuez à l'étape 2</span></li>
+              <ul class="text-muted text-sm mt-10">
+                <li><code>id_rsa</code> et <code>id_rsa.pub</code> → Vous avez une clé <strong>RSA</strong> → <span class="text-success">Passez à l'étape 3</span></li>
+                <li><code>id_ed25519</code> et <code>id_ed25519.pub</code> → Vous avez une clé <strong>ED25519</strong> → <span class="text-success">Passez à l'étape 3</span></li>
+                <li>Aucun fichier <code>id_*</code> → Pas de clé → <span class="text-warning">Continuez à l'étape 2</span></li>
               </ul>
             </div>
           </div>
@@ -124,7 +124,7 @@
         <div class="step">
           <div class="step-number">2</div>
           <div class="step-content">
-            <h4>Générer une nouvelle clé SSH <span style="color: var(--text-secondary); font-size: 0.8em;">(seulement si vous n'en avez pas)</span></h4>
+            <h4>Générer une nouvelle clé SSH <span class="text-muted text-xs">(seulement si vous n'en avez pas)</span></h4>
             <div class="form-group">
               <label for="sshEmail">Votre email GitHub</label>
               <input type="email" id="sshEmail" placeholder="votre-email@example.com">
@@ -134,12 +134,12 @@
               <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i></button>
               ssh-keygen -t ed25519 -C "votre-email@example.com"
             </div>
-            <p style="margin-top: 15px;"><strong>Option B - RSA</strong> (compatibilité maximale) :</p>
+            <p class="mt-15"><strong>Option B - RSA</strong> (compatibilité maximale) :</p>
             <div class="code-block">
               <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i></button>
               ssh-keygen -t rsa -b 4096 -C "votre-email@example.com"
             </div>
-            <p style="margin-top: 15px; color: var(--text-secondary); font-size: 0.9em;">
+            <p class="mt-15">
               Appuyez sur <strong>Entrée</strong> pour accepter l'emplacement par défaut.<br>
               Vous pouvez définir une passphrase ou laisser vide.
             </p>
@@ -154,7 +154,7 @@
               <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i></button>
               eval "$(ssh-agent -s)"
             </div>
-            <p style="color: var(--text-secondary); font-size: 0.9em; margin-top: 10px;">
+            <p class="mt-10">
               Vous devriez voir : <code>Agent pid 12345</code>
             </p>
           </div>
@@ -165,17 +165,17 @@
           <div class="step-content">
             <h4>Ajouter votre clé à l'agent</h4>
             <p>Choisissez la commande selon <strong>votre type de clé</strong> (vérifié à l'étape 1) :</p>
-            <p style="margin-top: 10px;"><strong>Si vous avez une clé RSA</strong> (<code>id_rsa</code>) :</p>
+            <p class="mt-10"><strong>Si vous avez une clé RSA</strong> (<code>id_rsa</code>) :</p>
             <div class="code-block">
               <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i></button>
               ssh-add ~/.ssh/id_rsa
             </div>
-            <p style="margin-top: 15px;"><strong>Si vous avez une clé ED25519</strong> (<code>id_ed25519</code>) :</p>
+            <p class="mt-15"><strong>Si vous avez une clé ED25519</strong> (<code>id_ed25519</code>) :</p>
             <div class="code-block">
               <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i></button>
               ssh-add ~/.ssh/id_ed25519
             </div>
-            <p style="color: var(--text-secondary); font-size: 0.9em; margin-top: 10px;">
+            <p class="mt-10">
               Vous devriez voir : <code>Identity added: ...</code>
             </p>
           </div>
@@ -186,18 +186,18 @@
           <div class="step-content">
             <h4>Copier la clé publique</h4>
             <p>Choisissez selon <strong>votre type de clé</strong> :</p>
-            <p style="margin-top: 10px;"><strong>Si RSA</strong> :</p>
+            <p class="mt-10"><strong>Si RSA</strong> :</p>
             <div class="code-block">
               <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i></button>
               cat ~/.ssh/id_rsa.pub
             </div>
-            <p style="margin-top: 15px;"><strong>Si ED25519</strong> :</p>
+            <p class="mt-15"><strong>Si ED25519</strong> :</p>
             <div class="code-block">
               <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i></button>
               cat ~/.ssh/id_ed25519.pub
             </div>
-            <p style="margin-top: 15px; color: var(--text-secondary); font-size: 0.9em;">
-              <i class="fas fa-exclamation-triangle" style="color: var(--warning-color);"></i>
+            <p class="mt-15">
+              <i class="fas fa-exclamation-triangle icon-warning"></i>
               Copiez <strong>toute la ligne</strong> affichée (commence par <code>ssh-rsa</code> ou <code>ssh-ed25519</code>).
             </p>
           </div>
@@ -207,8 +207,8 @@
           <div class="step-number">6</div>
           <div class="step-content">
             <h4>Ajouter la clé sur GitHub</h4>
-            <ol style="color: var(--text-secondary); padding-left: 20px; font-size: 0.9em;">
-              <li>Allez sur <a href="https://github.com/settings/keys" target="_blank" style="color: var(--accent-color);">GitHub → Settings → SSH and GPG keys</a></li>
+            <ol class="text-muted text-sm pl-20">
+              <li>Allez sur <a href="https://github.com/settings/keys" target="_blank" class="link-accent">GitHub → Settings → SSH and GPG keys</a></li>
               <li>Cliquez sur <strong>New SSH key</strong></li>
               <li>Donnez un titre (ex: "Mon PC", "Laptop travail")</li>
               <li>Collez la clé publique complète</li>
@@ -230,13 +230,13 @@
               <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i></button>
               ssh -T git@github.com
             </div>
-            <p style="margin-top: 10px;">Si c'est la première connexion, tapez <strong>yes</strong> pour accepter.</p>
-            <p style="margin-top: 10px;"><strong>Résultat attendu :</strong></p>
-            <div style="padding: 10px; background: rgba(40, 167, 69, 0.1); border-radius: 5px; margin-top: 5px;">
-              <code style="color: var(--success-color);">Hi username! You've successfully authenticated, but GitHub does not provide shell access.</code>
+            <p class="mt-10">Si c'est la première connexion, tapez <strong>yes</strong> pour accepter.</p>
+            <p class="mt-10"><strong>Résultat attendu :</strong></p>
+            <div class="result-success-box">
+              <code class="text-success">Hi username! You've successfully authenticated, but GitHub does not provide shell access.</code>
             </div>
-            <p style="margin-top: 15px;"><strong>Si vous voyez "Permission denied" :</strong></p>
-            <ul style="color: var(--text-secondary); font-size: 0.9em;">
+            <p class="mt-15"><strong>Si vous voyez "Permission denied" :</strong></p>
+            <ul class="text-muted text-sm">
               <li>Vérifiez que vous avez bien ajouté la clé sur GitHub (étape 6)</li>
               <li>Relancez les étapes 3 et 4 (l'agent SSH se ferme parfois)</li>
             </ul>
@@ -252,8 +252,8 @@
               <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i></button>
               git@github.com:votre-username/votre-repo.git
             </div>
-            <p style="margin-top: 10px; color: var(--text-secondary); font-size: 0.9em;">
-              <i class="fas fa-lightbulb" style="color: var(--warning-color);"></i>
+            <p class="mt-10">
+              <i class="fas fa-lightbulb icon-warning"></i>
               Vous pouvez trouver cette URL sur la page de votre dépôt GitHub → bouton <strong>Code</strong> → onglet <strong>SSH</strong>
             </p>
           </div>
@@ -268,7 +268,7 @@
 
         <div class="info-box">
           <h4><i class="fas fa-info-circle"></i> À propos des tokens</h4>
-          <p style="color: var(--text-secondary); font-size: 0.9em;">
+          <p class="text-muted text-sm">
             Depuis août 2021, GitHub n'accepte plus les mots de passe pour les opérations Git via HTTPS.
             Vous devez utiliser un <strong>Personal Access Token (PAT)</strong> à la place.
           </p>
@@ -278,20 +278,20 @@
           <div class="step-number">1</div>
           <div class="step-content">
             <h4>Créer un Personal Access Token</h4>
-            <ol style="color: var(--text-secondary); padding-left: 20px; font-size: 0.9em;">
-              <li>Allez sur <a href="https://github.com/settings/tokens?type=beta" target="_blank" style="color: var(--accent-color);">GitHub → Settings → Developer settings → Personal access tokens</a></li>
+            <ol class="text-muted text-sm pl-20">
+              <li>Allez sur <a href="https://github.com/settings/tokens?type=beta" target="_blank" class="link-accent">GitHub → Settings → Developer settings → Personal access tokens</a></li>
               <li>Cliquez sur <strong>Generate new token</strong></li>
               <li>Choisissez <strong>Fine-grained tokens</strong> (recommandé) ou <strong>Classic</strong></li>
               <li>Donnez un nom descriptif (ex: "Git Manager local")</li>
               <li>Définissez une date d'expiration</li>
               <li>Sélectionnez les permissions nécessaires :
-                <ul style="margin-top: 5px;">
+                <ul class="mt-5">
                   <li><strong>repo</strong> : accès complet aux dépôts privés</li>
                   <li><strong>workflow</strong> : si vous utilisez GitHub Actions</li>
                 </ul>
               </li>
               <li>Cliquez sur <strong>Generate token</strong></li>
-              <li><strong style="color: var(--danger-color);">Copiez le token immédiatement !</strong> Il ne sera plus affiché.</li>
+              <li><strong class="text-danger">Copiez le token immédiatement !</strong> Il ne sera plus affiché.</li>
             </ol>
             <div class="btn-group">
               <a href="https://github.com/settings/tokens/new" target="_blank" class="btn btn-primary">
@@ -310,31 +310,31 @@
             <h4>Utiliser le token</h4>
             <p>Il y a plusieurs façons d'utiliser votre token :</p>
 
-            <h5 style="margin-top: 15px; color: var(--text-primary);">Option A : Token dans l'URL (simple mais moins sécurisé)</h5>
+            <h5 class="mt-15">Option A : Token dans l'URL (simple mais moins sécurisé)</h5>
             <div class="code-block">
               <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i></button>
               https://TOKEN@github.com/username/repo.git
             </div>
-            <p style="color: var(--text-secondary); font-size: 0.9em;">
-              <i class="fas fa-exclamation-triangle" style="color: var(--warning-color);"></i>
+            <p>
+              <i class="fas fa-exclamation-triangle icon-warning"></i>
               Le token sera visible dans la configuration Git. À éviter sur des machines partagées.
             </p>
 
-            <h5 style="margin-top: 20px; color: var(--text-primary);">Option B : Credential Manager (recommandé)</h5>
-            <p style="color: var(--text-secondary); font-size: 0.9em;">
+            <h5 class="mt-20">Option B : Credential Manager (recommandé)</h5>
+            <p>
               Configurez Git pour stocker vos identifiants de manière sécurisée :
             </p>
             <div class="code-block">
               <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i></button>
               git config --global credential.helper store
             </div>
-            <p style="color: var(--text-secondary); font-size: 0.9em; margin-top: 10px;">
+            <p class="mt-10">
               Lors du prochain push/pull, entrez votre username GitHub et le token comme mot de passe.
               Git les mémorisera pour les prochaines fois.
             </p>
 
-            <h5 style="margin-top: 20px; color: var(--text-primary);">Option C : Windows Credential Manager</h5>
-            <p style="color: var(--text-secondary); font-size: 0.9em;">Sur Windows, utilisez le gestionnaire d'identifiants intégré :</p>
+            <h5 class="mt-20">Option C : Windows Credential Manager</h5>
+            <p>Sur Windows, utilisez le gestionnaire d'identifiants intégré :</p>
             <div class="code-block">
               <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i></button>
               git config --global credential.helper wincred
@@ -351,16 +351,16 @@
               <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i></button>
               https://github.com/votre-username/votre-repo.git
             </div>
-            <p style="margin-top: 10px; color: var(--text-secondary); font-size: 0.9em;">
-              <i class="fas fa-lightbulb" style="color: var(--warning-color);"></i>
+            <p class="mt-10">
+              <i class="fas fa-lightbulb icon-warning"></i>
               Vous pouvez trouver cette URL sur la page de votre dépôt GitHub → bouton <strong>Code</strong> → onglet <strong>HTTPS</strong>
             </p>
           </div>
         </div>
 
-        <div class="warning-box" style="margin-top: 20px;">
+        <div class="warning-box mt-20">
           <h4><i class="fas fa-exclamation-triangle"></i> Sécurité des tokens</h4>
-          <ul style="color: var(--text-secondary); font-size: 0.9em; padding-left: 20px;">
+          <ul class="text-muted text-sm pl-20">
             <li>Ne partagez <strong>jamais</strong> votre token</li>
             <li>Ne le commitez <strong>jamais</strong> dans un dépôt</li>
             <li>Utilisez des tokens avec des permissions minimales</li>
@@ -375,23 +375,23 @@
       <h2><i class="fas fa-question-circle"></i> Dépannage</h2>
 
       <h3>SSH : "Permission denied (publickey)"</h3>
-      <ul style="color: var(--text-secondary); padding-left: 20px; font-size: 0.9em;">
+      <ul class="text-muted text-sm pl-20">
         <li>Vérifiez que l'agent SSH est démarré</li>
         <li>Vérifiez que votre clé est ajoutée à l'agent : <code>ssh-add -l</code></li>
         <li>Vérifiez que la clé publique est bien ajoutée sur GitHub</li>
         <li>Testez avec : <code>ssh -vT git@github.com</code> pour voir les détails</li>
       </ul>
 
-      <h3 style="margin-top: 20px;">HTTPS : "Authentication failed"</h3>
-      <ul style="color: var(--text-secondary); padding-left: 20px; font-size: 0.9em;">
+      <h3 class="mt-20">HTTPS : "Authentication failed"</h3>
+      <ul class="text-muted text-sm pl-20">
         <li>Vérifiez que vous utilisez un token et non votre mot de passe</li>
         <li>Vérifiez que le token n'a pas expiré</li>
         <li>Vérifiez que le token a les permissions nécessaires (repo)</li>
         <li>Supprimez les anciennes entrées du credential manager et réessayez</li>
       </ul>
 
-      <h3 style="margin-top: 20px;">Changer de SSH vers HTTPS (ou inversement)</h3>
-      <p style="color: var(--text-secondary); font-size: 0.9em; margin-top: 10px;">
+      <h3 class="mt-20">Changer de SSH vers HTTPS (ou inversement)</h3>
+      <p class="text-muted text-sm mt-10">
         Utilisez Git Manager pour modifier l'URL du remote, ou en ligne de commande :
       </p>
       <div class="code-block">

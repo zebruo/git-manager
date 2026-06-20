@@ -2004,13 +2004,18 @@ async function loadRepoSwitcher() {
   const switcher = document.getElementById('repoSwitcher');
   const select   = document.getElementById('repoSelect');
 
-  const currentFolder = activeRepo || window.location.hostname;
+  const currentFolder = result.currentRepo || activeRepo || window.location.hostname;
+  const repos = result.data.slice();
+  if (result.currentRepo && !repos.includes(result.currentRepo)) {
+    repos.unshift(result.currentRepo);
+  }
 
   select.innerHTML = '';
-  result.data.forEach(repo => {
+  repos.forEach(repo => {
     const opt = document.createElement('option');
     opt.value = repo;
-    opt.textContent = repo;
+    const isUninit = repo === result.currentRepo && !result.data.includes(repo);
+    opt.textContent = isUninit ? repo + ' (non initialisé)' : repo;
     if (repo === currentFolder) opt.selected = true;
     select.appendChild(opt);
   });

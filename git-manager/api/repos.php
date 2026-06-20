@@ -27,7 +27,16 @@ switch ($action) {
         }
 
         sort($repos);
-        echo json_encode(['success' => true, 'data' => $repos, 'root' => $resolvedRoot]);
+
+        // Identifier le dépôt courant (peut ne pas être initialisé encore)
+        $currentRepo = null;
+        $resolvedCurrent = realpath($repoPath) ?: '';
+        if ($resolvedCurrent && $resolvedCurrent !== $resolvedRoot
+            && str_starts_with($resolvedCurrent, $resolvedRoot . DIRECTORY_SEPARATOR)) {
+            $currentRepo = basename($resolvedCurrent);
+        }
+
+        echo json_encode(['success' => true, 'data' => $repos, 'root' => $resolvedRoot, 'currentRepo' => $currentRepo]);
         break;
 
     default:

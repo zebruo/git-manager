@@ -1,3 +1,35 @@
+/* Utilitaires */
+.text-muted    { color: var(--text-secondary); }
+.text-sm       { font-size: 0.9em; }
+.text-xs       { font-size: 0.8em; }
+.text-success  { color: var(--success-color); }
+.text-warning  { color: var(--warning-color); }
+.link-accent   { color: var(--accent-color); }
+.icon-warning  { color: var(--warning-color); }
+.text-danger   { color: var(--danger-color); }
+.mt-5   { margin-top: 5px; }
+.mt-10  { margin-top: 10px; }
+.mt-15  { margin-top: 15px; }
+.mt-20  { margin-top: 20px; }
+.mb-15  { margin-bottom: 15px; }
+.pl-20  { padding-left: 20px; }
+
+/* Boîte "résultat possible" dans les étapes */
+.hint-box {
+  margin-top: 15px;
+  padding: 15px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 8px;
+}
+
+/* Boîte résultat SSH attendu */
+.result-success-box {
+  padding: 10px;
+  background: rgba(40, 167, 69, 0.1);
+  border-radius: 5px;
+  margin-top: 5px;
+}
+
 .card h3 {
   font-size: 1em;
   margin: 20px 0 10px 0;
