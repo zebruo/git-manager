@@ -2,6 +2,13 @@
 
 Interface web pour gérer un dépôt Git sans ligne de commande.
 
+## Interface
+
+| Mode sombre | Mode clair |
+|---|---|
+| ![Mode sombre — vue principale](png/mode_sombre_01.png) | ![Mode clair — vue principale](png/mode_clair_01.png) |
+| ![Mode sombre — historique & tags](png/mode_sombre_02.png) | ![Mode clair — historique & tags](png/mode_clair_02.png) |
+
 ## Fichiers
 
 | Fichier | Description |
