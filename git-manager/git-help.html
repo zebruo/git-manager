@@ -537,6 +537,25 @@
   </div>
 
   <div class="help-workflow">
+    <h4><i class="fas fa-layer-group"></i> Statut A et M simultanés sur le même fichier</h4>
+    <p class="mt-5">Vous stagez un fichier, puis vous le modifiez à nouveau sans commiter. Git suit deux états séparément — le fichier apparaît deux fois.</p>
+    <table class="help-table mt-8">
+      <tr>
+        <td><span class="status-badge added">A</span> <strong>Staging</strong></td>
+        <td class="text-muted">La version stagée — celle qui sera commitée si vous commitez maintenant</td>
+      </tr>
+      <tr>
+        <td><span class="status-badge modified">M</span> <strong>Working tree</strong></td>
+        <td class="text-muted">La version actuelle sur disque — avec les nouvelles modifications</td>
+      </tr>
+    </table>
+    <div class="help-info-box mt-8">
+      Si vous commitez maintenant, les modifications du working tree <strong>ne seront pas incluses</strong> — seule la version <span class="status-badge added">A</span> partirait dans le commit.<br>
+      Pour inclure les dernières modifications, il faut <strong>re-stager</strong> le fichier (bouton Stager ou <code>git add</code>), ce qui écrase le A avec le contenu actuel.
+    </div>
+  </div>
+
+  <div class="help-workflow">
     <h4><i class="fas fa-project-diagram"></i> Workflow typique</h4>
     <ol>
       <li><strong>Modifier</strong> vos fichiers dans votre éditeur de code</li>
