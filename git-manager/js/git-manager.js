@@ -1403,15 +1403,15 @@ async function loadBranches() {
     // Avertissement si HEAD détaché
     if (isDetached) {
       html += `
-        <div class="alert alert-info" style="margin-bottom: 15px;">
-          <i class="fas fa-exclamation-triangle"></i>
-          <strong>HEAD détaché</strong> sur le commit <code>${detachedAt}</code><br>
-          <small>Vous n'êtes sur aucune branche. Basculez sur une branche ou créez-en une depuis ce commit.</small>
-          <div style="margin-top: 10px;">
-            <button class="btn btn-primary" onclick="createBranchFromDetached()" style="padding: 5px 12px; font-size: 0.85em;">
-              <i class="fas fa-code-branch"></i> Créer une branche ici
-            </button>
-          </div>
+        <div class="detached-banner">
+          <i class="fas fa-exclamation-triangle" style="color: var(--warning-color);"></i>
+          <span class="detached-info">
+            <strong>HEAD détaché</strong> · <code>${detachedAt}</code>
+            <span style="color: var(--text-secondary);"> — aucune branche active</span>
+          </span>
+          <button class="btn btn-primary detached-btn" onclick="createBranchFromDetached()">
+            <i class="fas fa-code-branch"></i> Créer une branche
+          </button>
         </div>
       `;
     }
