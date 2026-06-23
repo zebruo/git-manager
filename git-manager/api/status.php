@@ -8,26 +8,44 @@
 switch ($action) {
 
     case 'status':
-        $branch = trim(execGit('git branch --show-current')['output']);
+        // git status --porcelain=v2 --branch remplace 6 appels git séparés
+        $statusResult = execGit('git status --porcelain=v2 --branch');
+        $lines = explode("\n", $statusResult['output']);
 
-        $isDetached = empty($branch);
+        $branch = '';
+        $isDetached = false;
         $detachedAt = '';
-        if ($isDetached) {
-            $detachedAt = trim(execGit('git rev-parse --short HEAD')['output']);
-        }
-
-        $modified  = filterGitWarnings(explode("\n", execGit('git diff --name-only')['output']));
-        $staged    = filterGitWarnings(explode("\n", execGit('git diff --cached --name-only --diff-filter=AM')['output']));
-        $stagedDeleted = filterGitWarnings(explode("\n", execGit('git diff --cached --name-only --diff-filter=D')['output']));
-        $untracked = filterGitWarnings(explode("\n", execGit('git ls-files --others --exclude-standard')['output']));
-
         $ahead = 0;
         $behind = 0;
-        if (!$isDetached) {
-            $aheadBehind = execGit('git rev-list --left-right --count origin/' . $branch . '...' . $branch);
-            $counts = preg_split('/\s+/', trim($aheadBehind['output']));
-            $behind = isset($counts[0]) ? intval($counts[0]) : 0;
-            $ahead  = isset($counts[1]) ? intval($counts[1]) : 0;
+        $modified = [];
+        $staged = [];
+        $stagedDeleted = [];
+        $untracked = [];
+
+        foreach ($lines as $line) {
+            if ($line === '') continue;
+            if (str_starts_with($line, '# branch.head ')) {
+                $head = substr($line, 14);
+                $isDetached = ($head === '(detached)');
+                if (!$isDetached) $branch = $head;
+            } elseif (str_starts_with($line, '# branch.oid ') && $isDetached) {
+                $detachedAt = substr(substr($line, 13), 0, 7);
+            } elseif (str_starts_with($line, '# branch.ab ')) {
+                if (preg_match('/\+(\d+) -(\d+)/', $line, $m)) {
+                    $ahead  = intval($m[1]);
+                    $behind = intval($m[2]);
+                }
+            } elseif ($line[0] === '1') {
+                // Fichier modifié ordinaire : "1 XY <sub> <mH> <mI> <mW> <hH> <hI> <path>"
+                $parts = explode(' ', $line);
+                $xy   = $parts[1];
+                $file = end($parts);
+                if ($xy[1] === 'M') $modified[] = $file;
+                if (in_array($xy[0], ['M', 'A'])) $staged[] = $file;
+                if ($xy[0] === 'D') $stagedDeleted[] = $file;
+            } elseif ($line[0] === '?') {
+                $untracked[] = substr($line, 2);
+            }
         }
 
         $allFiles = filterGitWarnings(explode("\n", execGit('git ls-files')['output']));
@@ -40,17 +58,17 @@ switch ($action) {
         echo json_encode([
             'success' => true,
             'data' => [
-                'branch'       => $branch,
-                'isDetached'   => $isDetached,
-                'detachedAt'   => $detachedAt,
-                'modified'     => array_values($modified),
-                'staged'       => array_values($staged),
-                'stagedDeleted'=> array_values($stagedDeleted),
-                'untracked'    => array_values($untracked),
-                'ahead'        => $ahead,
-                'behind'       => $behind,
-                'allFiles'     => array_values($allFiles),
-                'stashCount'   => $stashCount
+                'branch'        => $branch,
+                'isDetached'    => $isDetached,
+                'detachedAt'    => $detachedAt,
+                'modified'      => $modified,
+                'staged'        => $staged,
+                'stagedDeleted' => $stagedDeleted,
+                'untracked'     => $untracked,
+                'ahead'         => $ahead,
+                'behind'        => $behind,
+                'allFiles'      => array_values($allFiles),
+                'stashCount'    => $stashCount
             ]
         ]);
         break;

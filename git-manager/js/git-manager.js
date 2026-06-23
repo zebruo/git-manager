@@ -11,15 +11,15 @@ document.addEventListener('DOMContentLoaded', async function () {
     updateDarkModeIcon();
   }
 
-  // LED état serveur
-  checkServerStatus();
-  setInterval(checkServerStatus, 30000);
-
   // Charger le sélecteur de dépôts (si reposRoot configuré)
   loadRepoSwitcher();
 
-  // Vérifier si c'est un dépôt Git
-  const repoCheck = await checkRepo();
+  // Vérifier si c'est un dépôt Git (résultat réutilisé pour la LED serveur)
+  const repoRaw   = await apiCall('checkRepo');
+  const repoCheck = repoRaw.success ? repoRaw.data : { isGitRepo: false, path: '' };
+  updateServerLed(repoRaw.success);
+  setInterval(checkServerStatus, 30000);
+
   if (repoCheck.isGitRepo) {
     document.getElementById('initSection').style.display = 'none';
     document.getElementById('mainContent').style.display = 'block';
@@ -33,25 +33,16 @@ document.addEventListener('DOMContentLoaded', async function () {
   }
 });
 
-// Vérifier si le dossier est un dépôt Git
-async function checkRepo() {
-  const result = await apiCall('checkRepo');
-  if (result.success) {
-    return result.data;
-  }
-  return { isGitRepo: false, path: '' };
+function updateServerLed(online) {
+  const led = document.getElementById('serverLed');
+  if (!led) return;
+  led.className = online ? 'server-led online' : 'server-led offline';
+  led.title    = online ? 'Serveur en ligne'  : 'Serveur hors ligne';
 }
 
 async function checkServerStatus() {
-  const led = document.getElementById('serverLed');
   const result = await apiCall('checkRepo');
-  if (result.success) {
-    led.className = 'server-led online';
-    led.title = 'Serveur en ligne';
-  } else {
-    led.className = 'server-led offline';
-    led.title = 'Serveur hors ligne';
-  }
+  updateServerLed(result.success);
 }
 
 // Initialiser un nouveau dépôt Git
