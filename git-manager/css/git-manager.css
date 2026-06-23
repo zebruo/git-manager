@@ -369,6 +369,11 @@ body {
   color: white;
 }
 
+.file-status.conflicted, .status-badge.conflicted {
+  background: var(--warning-color);
+  color: #1a1a1a;
+}
+
 .file-name {
   flex: 1;
   color: var(--text-primary);

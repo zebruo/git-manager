@@ -383,6 +383,7 @@ async function loadStatus() {
       const untracked = data.untracked || [];
       const staged = data.staged || [];
       const stagedDeleted = data.stagedDeleted || [];
+      const conflicted = data.conflicted || [];
       const allFiles = data.allFiles || [];
       const totalStaged = staged.length + stagedDeleted.length;
       const totalTracked = allFiles.length;
@@ -400,6 +401,11 @@ async function loadStatus() {
             <span class="status-label"><i class="fas fa-file-alt" style="color: var(--accent-color);"></i> Fichiers suivis</span>
             <span class="status-value">${totalTracked}</span>
           </div>
+          ${conflicted.length > 0 ? `
+          <div class="status-row">
+            <span class="status-label"><span class="status-badge conflicted">C</span> Conflits</span>
+            <span class="status-value" style="color: var(--warning-color); font-weight: bold;">${conflicted.length}</span>
+          </div>` : ''}
           <div class="status-row">
             <span class="status-label"><span class="status-badge modified">M</span> Modifiés</span>
             <span class="status-value">${modified.length}</span>
@@ -432,7 +438,7 @@ async function loadStatus() {
       `;
 
       // Mettre à jour la liste des fichiers
-      updateFileList(modified, untracked, staged, stagedDeleted);
+      updateFileList(modified, untracked, staged, stagedDeleted, conflicted);
 
       // Mettre à jour le select pour checkout
       updateCheckoutSelect(modified, allFiles);
@@ -679,19 +685,24 @@ async function doStashDrop(stashId) {
 }
 
 // Mettre à jour la liste des fichiers
-function updateFileList(modified, untracked, staged, stagedDeleted) {
+function updateFileList(modified, untracked, staged, stagedDeleted, conflicted) {
   const fileList = document.getElementById('fileList');
   const deletedSet = new Set(stagedDeleted || []);
+  const conflictedSet = new Set(conflicted || []);
 
   // Filtrer les fichiers non suivis qui sont aussi stagés pour suppression
   // (évite les doublons D et U pour le même fichier)
   const filteredUntracked = untracked.filter(f => !deletedSet.has(f));
+  // Exclure les fichiers en conflit des listes modified/staged pour éviter les doublons
+  const filteredModified = modified.filter(f => !conflictedSet.has(f));
+  const filteredStaged   = (staged || []).filter(f => !conflictedSet.has(f));
 
   const allFiles = [
+    ...(conflicted || []).map(f => ({ name: f, status: 'C', type: 'conflicted' })),
     ...(stagedDeleted || []).map(f => ({ name: f, status: 'D', type: 'deleted' })),
-    ...modified.map(f => ({ name: f, status: 'M', type: 'modified' })),
+    ...filteredModified.map(f => ({ name: f, status: 'M', type: 'modified' })),
     ...filteredUntracked.map(f => ({ name: f, status: 'U', type: 'untracked' })),
-    ...(staged || []).map(f => ({ name: f, status: 'A', type: 'added' }))
+    ...filteredStaged.map(f => ({ name: f, status: 'A', type: 'added' }))
   ];
 
   if (allFiles.length === 0) {

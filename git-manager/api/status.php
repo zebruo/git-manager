@@ -21,6 +21,7 @@ switch ($action) {
         $staged = [];
         $stagedDeleted = [];
         $untracked = [];
+        $conflicted = [];
 
         foreach ($lines as $line) {
             if ($line === '') continue;
@@ -43,6 +44,10 @@ switch ($action) {
                 if ($xy[1] === 'M') $modified[] = $file;
                 if (in_array($xy[0], ['M', 'A'])) $staged[] = $file;
                 if ($xy[0] === 'D') $stagedDeleted[] = $file;
+            } elseif ($line[0] === 'u') {
+                // Fichier en conflit : "u XY <sub> <m1> <m2> <m3> <mW> <h1> <h2> <h3> <path>"
+                $parts = explode(' ', $line);
+                $conflicted[] = end($parts);
             } elseif ($line[0] === '?') {
                 $untracked[] = substr($line, 2);
             }
@@ -64,6 +69,7 @@ switch ($action) {
                 'modified'      => $modified,
                 'staged'        => $staged,
                 'stagedDeleted' => $stagedDeleted,
+                'conflicted'    => $conflicted,
                 'untracked'     => $untracked,
                 'ahead'         => $ahead,
                 'behind'        => $behind,
