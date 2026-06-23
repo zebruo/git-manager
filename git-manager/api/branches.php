@@ -37,12 +37,11 @@ switch ($action) {
         }
 
         $remoteResult  = execGit('git branch -r --format="%(refname:short)"');
-        $remoteBranches = filterGitWarnings(explode("\n", $remoteResult['output']));
-        $remoteBranches = array_filter($remoteBranches, function($b) use ($localBranches) {
+        $remoteBranches = array_map('trim', filterGitWarnings(explode("\n", $remoteResult['output'])));
+        $remoteBranches = array_filter($remoteBranches, function($b) {
+            if (empty($b)) return false;
             if (strpos($b, '/HEAD') !== false) return false;
-            foreach ($localBranches as $local) {
-                if ($local['upstream'] === $b) return false;
-            }
+            if (strpos($b, '/') === false) return false; // exclut les noms de remote purs (ex. "origin")
             return true;
         });
 
@@ -175,8 +174,8 @@ switch ($action) {
         if (empty($branch)) {
             echo json_encode(['success' => false, 'error' => 'Nom de branche requis']); break;
         }
-        if (!preg_match('/^[a-zA-Z0-9_\-\.]+$/', $branch)) {
-            echo json_encode(['success' => false, 'error' => 'Nom de branche invalide. Utilisez uniquement lettres, chiffres, tirets, underscores et points.']); break;
+        if (!preg_match('/^[a-zA-Z0-9_\-\.\/]+$/', $branch)) {
+            echo json_encode(['success' => false, 'error' => 'Nom de branche invalide. Utilisez uniquement lettres, chiffres, tirets, underscores, points et slashes.']); break;
         }
         if (!empty($sourceBranch) && !preg_match('/^[a-zA-Z0-9_\-\.\/]+$/', $sourceBranch)) {
             echo json_encode(['success' => false, 'error' => 'Nom de branche source invalide']); break;
@@ -406,7 +405,7 @@ switch ($action) {
         if (empty($branch)) {
             echo json_encode(['success' => false, 'error' => 'Nom de branche requis']); break;
         }
-        if (!preg_match('/^[a-zA-Z0-9_\-\.]+$/', $branch)) {
+        if (!preg_match('/^[a-zA-Z0-9_\-\.\/]+$/', $branch)) {
             echo json_encode(['success' => false, 'error' => 'Nom de branche invalide']); break;
         }
 
@@ -430,7 +429,7 @@ switch ($action) {
         if (empty($branch)) {
             echo json_encode(['success' => false, 'error' => 'Nom de branche requis']); break;
         }
-        if (!preg_match('/^[a-zA-Z0-9_\-\.]+$/', $branch)) {
+        if (!preg_match('/^[a-zA-Z0-9_\-\.\/]+$/', $branch)) {
             echo json_encode(['success' => false, 'error' => 'Nom de branche invalide']); break;
         }
         $result = execGit("git push origin --delete " . escapeArg($branch));

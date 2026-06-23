@@ -1,6 +1,7 @@
 const API_URL = 'git-api.php';
 let modalResolve = null;
 let currentAhead = 0;
+let currentHasRemote = false;
 let activeRepo = new URLSearchParams(window.location.search).get('repo') || '';
 
 // Initialisation
@@ -74,6 +75,8 @@ async function loadRepoInfo() {
 
     // Afficher le bouton remote dans le header
     remoteBtn.style.display = 'inline-flex';
+
+    currentHasRemote = result.data.hasRemote || false;
 
     if (result.data.hasRemote && result.data.name && result.data.url) {
       const githubUrl = result.data.url.replace(/\.git$/, '').replace('git@github.com:', 'https://github.com/');
@@ -1043,7 +1046,7 @@ async function doAmendLastCommit() {
     return;
   }
 
-  if (currentAhead === 0) {
+  if (currentHasRemote && currentAhead === 0) {
     const ok = await showConfirm('Ce commit a déjà été pushé sur le remote. Un git push --force sera nécessaire pour l\'écraser. Continuer quand même ?');
     if (!ok) return;
   }
