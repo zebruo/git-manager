@@ -1405,7 +1405,7 @@ async function loadBranches() {
     if (isDetached) {
       html += `
         <div class="detached-banner">
-          <i class="fas fa-exclamation-triangle" style="color: var(--warning-color);"></i>
+          <i class="fas fa-exclamation-triangle" style="color: var(--warning-color); font-size: 0.7em;"></i>
           <span class="detached-info">
             <strong>HEAD détaché</strong> · <code>${detachedAt}</code>
             <span style="color: var(--text-secondary);"> — aucune branche active</span>
