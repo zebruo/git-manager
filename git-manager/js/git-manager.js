@@ -85,6 +85,7 @@ async function loadRepoInfo() {
         ? '<span style="background: color-mix(in srgb, var(--success-color) 15%, transparent); color: var(--success-color); padding: 2px 8px; border-radius: 10px; font-size: 0.75em; margin-left: 8px;" title="Connexion SSH"><i class="fas fa-key"></i> SSH</span>'
         : '<span style="background: color-mix(in srgb, var(--info-color) 15%, transparent); color: var(--info-color); padding: 2px 8px; border-radius: 10px; font-size: 0.75em; margin-left: 8px;" title="Connexion HTTPS / Token"><i class="fas fa-lock"></i> HTTPS</span>';
       repoInfo.innerHTML = `
+        <span style="color: var(--text-secondary); font-size: 0.85em; margin-right: 4px;">origin</span>
         <i class="fab fa-github repo-icon"></i>
         <a href="${githubUrl}" target="_blank" title="Ouvrir sur GitHub">${result.data.name}</a>
         ${authBadge}
