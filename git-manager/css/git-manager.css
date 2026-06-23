@@ -552,7 +552,7 @@ body {
 
 .commit-message {
   color: var(--text-primary);
-  font-weight: 500;
+  font-size: 0.8em;
   margin: 8px 0;
 }
 
