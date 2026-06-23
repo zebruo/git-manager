@@ -79,7 +79,9 @@
 .syn-string  { color: #ce9178; }
 /* ── Tableaux ─────────────────────────────────────────────────────── */
 .help-table { width: 100%; font-size: 0.95em; border-collapse: collapse; }
-.help-table td { padding: 4px 8px; }
+.help-table th { padding: 6px 8px; text-align: left; border-bottom: 2px solid var(--border-color); color: var(--text-primary); }
+.help-table td { padding: 6px 8px; border-bottom: 1px solid var(--border-color); color: var(--text-secondary); }
+.help-table tr:last-child td { border-bottom: none; }
 /* ── Diff visuel ──────────────────────────────────────────────────── */
 .diff-col-num  { width: 30px; color: var(--text-secondary); }
 .diff-row-del  { background: rgba(244,67,54,0.1); }

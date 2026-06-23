@@ -577,4 +577,102 @@
       </ul>
     </div>
   </div>
-</div>
+</div><!-- /helpTab-pratiques -->
+
+<div class="help-tab-panel" id="helpTab-exercices">
+
+  <div class="help-workflow">
+    <h4><i class="fas fa-flag"></i> Exercice — Premier commit</h4>
+    <p class="mt-5">Créer le tout premier commit d'un dépôt.</p>
+    <ol class="mt-8">
+      <li>Ouvrir git-manager et sélectionner le dépôt</li>
+      <li>Dans la zone de staging, repérer les fichiers en statut <span class="status-badge untracked">U</span> (non suivis)</li>
+      <li>Cocher les fichiers à inclure (ex : <code>CLAUDE.md</code> et <code>.gitignore</code>)</li>
+      <li>Écrire le message : <code>Initial commit</code></li>
+      <li>Valider le commit</li>
+    </ol>
+    <div class="help-info-box mt-8">
+      <strong>Ce qu'on observe :</strong>
+      <ul class="help-list">
+        <li>Statut avant staging : <span class="status-badge untracked">U</span> (Untracked)</li>
+        <li>Statut après staging : <span class="status-badge added">A</span> (Added)</li>
+        <li><code>root-commit</code> dans la sortie → premier commit du dépôt, sans parent</li>
+        <li>Le hash (ex : <code>d21c8ce</code>) identifie ce commit de façon unique</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="help-workflow">
+    <h4><i class="fas fa-eye"></i> Exercice — Modifier un fichier et observer les statuts</h4>
+    <p class="mt-5">Comprendre la zone de staging en observant les statuts en temps réel.</p>
+    <ol class="mt-8">
+      <li>Créer un nouveau fichier (ex : <code>niveau-1/notes.md</code>)</li>
+      <li>Observer son statut dans git-manager : <span class="status-badge untracked">U</span></li>
+      <li>Le stager → statut passe à <span class="status-badge added">A</span></li>
+      <li>Modifier le fichier sans le re-stager</li>
+      <li>Observer : le fichier apparaît en <span class="status-badge added">A</span> ET en <span class="status-badge modified">M</span> simultanément</li>
+      <li>Re-stager pour inclure les dernières modifications</li>
+      <li>Commiter : <code>feat: add niveau-1 notes</code></li>
+    </ol>
+    <div class="help-info-box mt-8">
+      <strong>Ce qu'on observe :</strong> le même fichier apparaît deux fois parce que Git suit deux états séparément.
+      <table class="help-table mt-8">
+        <thead>
+          <tr><th>Statut</th><th>Zone</th><th>Ce que ça représente</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="status-badge added">A</span></td><td>Staging</td><td>La version stagée — celle qui sera commitée si tu commites maintenant</td></tr>
+          <tr><td><span class="status-badge modified">M</span></td><td>Working tree</td><td>La version actuelle sur disque — avec ta nouvelle modification</td></tr>
+        </tbody>
+      </table>
+      <p class="mt-8">Si tu commites maintenant, ta dernière modification <strong>ne sera pas incluse</strong> — seule la version <span class="status-badge added">A</span> (l'ancienne) partirait dans le commit. Pour inclure la modification, il faut <strong>re-stager</strong> le fichier (bouton Stager ou <code>git add</code>), ce qui écrase le <span class="status-badge added">A</span> avec le contenu actuel.</p>
+    </div>
+  </div>
+
+  <div class="help-workflow">
+    <h4><i class="fas fa-search"></i> Exercice — Lire un diff</h4>
+    <p class="mt-5">Comprendre ce que Git affiche quand un fichier est modifié.</p>
+    <ol class="mt-8">
+      <li>Modifier un fichier déjà commité (ajouter ou supprimer quelques lignes)</li>
+      <li>Dans git-manager, repérer le fichier en statut <span class="status-badge modified">M</span></li>
+      <li>Cliquer sur son nom pour ouvrir la vue diff</li>
+      <li>Identifier dans le diff :
+        <ul class="help-list mt-5">
+          <li>L'en-tête <code>@@ -x,y +x,y @@</code> → numéro de ligne et nombre de lignes dans l'ancien/nouveau fichier</li>
+          <li>Les lignes <code>+</code> en vert → lignes ajoutées</li>
+          <li>Les lignes <code>-</code> en rouge → lignes supprimées</li>
+          <li>Les lignes sans signe → contexte inchangé</li>
+        </ul>
+      </li>
+    </ol>
+    <div class="help-info-box mt-8">
+      Exemple : <code>@@ -26,3 +26,11 @@</code> → bloc à partir de la ligne 26 ; 3 lignes avant, 11 après (8 lignes ajoutées).
+    </div>
+  </div>
+
+  <div class="help-workflow">
+    <h4><i class="fas fa-pencil-alt"></i> Exercice — Amend</h4>
+    <p class="mt-5">Corriger un message oublié ou ajouter un fichier oublié dans le dernier commit.</p>
+    <strong class="mt-8">Corriger le message :</strong>
+    <ol class="mt-5">
+      <li>Faire un commit avec un message volontairement mauvais (ex : <code>fix: notes</code>)</li>
+      <li>Dans git-manager, charger le message via le crayon ✏️ dans l'historique</li>
+      <li>Corriger le message dans le champ</li>
+      <li>Cliquer <strong>Amend</strong> (sans rien cocher)</li>
+      <li>Vérifier dans l'historique que le message a changé — et que le hash a changé</li>
+    </ol>
+    <strong class="mt-15">Ajouter un fichier oublié :</strong>
+    <ol class="mt-5">
+      <li>Faire un commit en oubliant volontairement un fichier</li>
+      <li>Ne pas toucher au champ message</li>
+      <li>Cocher le fichier oublié dans la liste</li>
+      <li>Cliquer <strong>Amend</strong></li>
+      <li>Vérifier que le fichier est maintenant dans le commit</li>
+    </ol>
+    <div class="help-info-box mt-8">
+      <strong><i class="fas fa-exclamation-triangle text-warning"></i> À retenir :</strong> l'amend réécrit le commit (nouveau hash). Ne jamais amender un commit déjà pushé sur une branche partagée.
+    </div>
+  </div>
+
+
+</div><!-- /helpTab-exercices -->
