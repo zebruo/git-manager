@@ -1,4 +1,4 @@
-# Git Manager
+# Git Manager test-conflit
 
 Interface web pour gérer un dépôt Git sans ligne de commande.
 
