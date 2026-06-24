@@ -826,7 +826,7 @@ async function loadHistory() {
           <button class="checkout-commit-btn" onclick="checkoutCommit('${commit.hash}')" title="Se placer sur ce commit (HEAD détaché) — plutôt pour explorer ou récupérer un fichier précis">
             <i class="fas fa-sign-in-alt"></i>
           </button>
-          <button class="revert-commit-btn" onclick="revertCommit('${commit.hash}', '${commit.message.replace(/'/g, "\\'")}')" title="Revert — Annuler ce commit (crée un nouveau commit inverse) — solution la plus propre pour annuler des commits déjà pushés">
+          <button class="revert-commit-btn" data-hash="${commit.hash}" data-msg="${escapeHtml(commit.message)}" onclick="revertCommit(this.dataset.hash, this.dataset.msg)" title="Revert — Annuler ce commit (crée un nouveau commit inverse) — solution la plus propre pour annuler des commits déjà pushés">
             <i class="fas fa-undo"></i>
           </button>
         </div>
