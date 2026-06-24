@@ -652,7 +652,7 @@
   </div>
 </div><!-- /helpTab-pratiques -->
 
-<div class="help-tab-panel" id="helpTab-exercices">
+<div class="help-tab-panel" id="helpTab-exercices1">
 
   <div class="help-workflow">
     <h4><i class="fas fa-flag"></i> Exercice — Premier commit</h4>
@@ -748,4 +748,131 @@
   </div>
 
 
-</div><!-- /helpTab-exercices -->
+</div><!-- /helpTab-exercices1 -->
+
+<div class="help-tab-panel" id="helpTab-exercices2">
+
+  <div class="help-workflow">
+    <h4><i class="fas fa-code-branch"></i> Exercice — Créer une branche, commiter, fusionner</h4>
+    <p class="mt-5">Comprendre le cycle de vie d'une branche feature.</p>
+    <ol class="mt-8">
+      <li>Créer une branche depuis <code>main</code> : bouton <strong>Créer</strong> → nommer <code>feature-nom</code></li>
+      <li>Basculer sur cette branche, faire un ou plusieurs commits</li>
+      <li>Revenir sur <code>main</code></li>
+      <li>Fusionner : cliquer le bouton <strong><i class="fas fa-code-branch"></i></strong> sur la ligne de <code>feature-nom</code></li>
+      <li>Supprimer la branche une fois fusionnée</li>
+    </ol>
+    <p class="mt-8"><strong>Ce qu'on observe :</strong></p>
+    <ul class="mt-5">
+      <li><strong>Fast-forward</strong> : si <code>main</code> n'a pas bougé pendant le travail sur la branche, Git avance simplement le pointeur — aucun commit de fusion créé</li>
+      <li><strong>Merge commit</strong> : si <code>main</code> a reçu un commit pendant qu'on travaillait sur la branche, les deux branches ont divergé. Git crée alors un commit de fusion qui réconcilie les deux — il apparaît dans l'historique avec deux lignes entrantes</li>
+    </ul>
+    <div class="help-info-box mt-8">
+      Un merge commit n'implique pas forcément un conflit. Si les deux branches ont touché des fichiers différents — ou des parties différentes des mêmes fichiers — Git fusionne automatiquement. Le conflit n'arrive que si les deux branches ont modifié les <strong>mêmes lignes</strong> du même fichier.
+    </div>
+  </div>
+
+  <div class="help-workflow">
+    <h4><i class="fas fa-bomb"></i> Exercice — Provoquer et résoudre un conflit</h4>
+    <p class="mt-5">Comprendre pourquoi un conflit se produit et comment le résoudre.</p>
+    <p><strong>Prérequis :</strong> avoir un fichier commité sur <code>main</code>.</p>
+    <strong class="mt-8">Créer le conflit :</strong>
+    <ol class="mt-5">
+      <li>S'assurer d'être sur <code>main</code></li>
+      <li>Créer la branche <code>conflit-test</code> et basculer dessus</li>
+      <li>Sur <code>conflit-test</code> : modifier la ligne 1 du fichier → commiter</li>
+      <li>Revenir sur <code>main</code></li>
+      <li>Sur <code>main</code> : modifier la <strong>même ligne 1</strong> → commiter</li>
+      <li>Fusionner <code>conflit-test</code> dans <code>main</code></li>
+    </ol>
+    <strong class="mt-8">Résoudre le conflit :</strong>
+    <ol class="mt-5">
+      <li>Le fichier en conflit apparaît avec le statut <strong>C</strong> dans git-manager</li>
+      <li>Ouvrir le fichier — Git a inséré des marqueurs :</li>
+    </ol>
+    <pre class="mt-5"><code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+# Titre (version main)
+=======
+# Titre (version conflit-test)
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; conflit-test</code></pre>
+    <ol start="3" class="mt-5">
+      <li>Choisir quelle version garder (ou écrire une version combinée)</li>
+      <li>Supprimer les marqueurs <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code>, <code>=======</code>, <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code></li>
+      <li>Sauvegarder — cliquer le nom du fichier dans git-manager : le bandeau passe au vert</li>
+      <li>Stager le fichier puis commiter</li>
+    </ol>
+    <p class="mt-8"><strong>Ce qu'on observe :</strong></p>
+    <ul class="mt-5">
+      <li>Le commit de résolution est un <strong>merge commit</strong> (deux parents visibles dans l'historique)</li>
+      <li>Pendant la résolution, le fichier peut apparaître avec les statuts <strong>C</strong> et <strong>M</strong> simultanément — c'est normal</li>
+    </ul>
+    <div class="help-info-box mt-8">
+      <strong>Piège fréquent :</strong> il faut impérativement commiter sur <code>main</code> <em>après</em> avoir créé <code>conflit-test</code>. Sans ce commit sur <code>main</code>, Git fait un fast-forward au lieu d'un conflit.
+    </div>
+  </div>
+
+  <div class="help-workflow">
+    <h4><i class="fas fa-unlink"></i> Exercice — HEAD détaché</h4>
+    <p class="mt-5">Explorer un ancien commit sans modifier l'historique.</p>
+    <ol class="mt-8">
+      <li>Dans l'historique, cliquer sur un ancien commit puis <strong><i class="fas fa-sign-in-alt"></i> Checkout</strong> — Git se place sur ce commit en mode HEAD détaché</li>
+      <li>Observer : aucune branche n'est active, les fichiers correspondent à l'état exact de ce commit (les fichiers créés après ce commit ont disparu du dossier)</li>
+      <li>Pour revenir à la normale : cliquer <strong><i class="fas fa-exchange-alt"></i></strong> sur la ligne de <code>main</code> dans la liste des branches</li>
+    </ol>
+    <p class="mt-8"><strong>Ce qu'on peut faire depuis un HEAD détaché :</strong></p>
+    <ul class="mt-5">
+      <li>Consulter le code à un instant passé, copier des fichiers</li>
+      <li>Cliquer <strong>Créer une branche ici</strong> pour transformer cet état en branche officielle et y commiter</li>
+    </ul>
+    <div class="help-warning-box mt-8">
+      Tout commit fait en HEAD détaché sans créer de branche est inaccessible une fois qu'on change de branche — Git ne le supprime pas immédiatement mais il n'apparaît plus dans aucun historique.
+    </div>
+  </div>
+
+</div><!-- /helpTab-exercices2 -->
+
+<div class="help-tab-panel" id="helpTab-exercices3">
+
+  <div class="help-workflow">
+    <h4><i class="fas fa-users"></i> Exercice — Simuler un travail à deux</h4>
+    <p class="mt-5">Comprendre comment récupérer des modifications faites par quelqu'un d'autre (ou directement depuis GitHub).</p>
+    <ol class="mt-8">
+      <li>Sur GitHub, ouvrir un fichier et le modifier via l'interface web → commiter</li>
+      <li>En local, cliquer <strong><i class="fas fa-sync"></i> Fetch</strong> → observer <code>↓1</code> sur la branche</li>
+      <li>Cliquer <strong><i class="fas fa-download"></i> Pull</strong> → le commit distant arrive en local</li>
+    </ol>
+    <p class="mt-8"><strong>Ce qu'on observe :</strong></p>
+    <ul class="mt-5">
+      <li>Fetch met à jour <code>origin/main</code> sans toucher à <code>main</code> locale — le compteur <code>↓</code> indique qu'il y a des commits à récupérer</li>
+      <li>Pull fusionne <code>origin/main</code> dans <code>main</code> locale</li>
+    </ul>
+  </div>
+
+  <div class="help-workflow">
+    <h4><i class="fas fa-retweet"></i> Exercice — Conflit local/distant avec pull --rebase</h4>
+    <p class="mt-5">Comprendre la différence entre pull classique et pull --rebase, et résoudre un conflit de synchronisation.</p>
+    <ol class="mt-8">
+      <li>Modifier une ligne d'un fichier en local → commiter (sans pusher)</li>
+      <li>Modifier la <strong>même ligne</strong> directement sur GitHub → commiter</li>
+      <li>En local, cliquer <strong><i class="fas fa-download"></i> Pull</strong> avec l'option <strong>--rebase</strong> activée → conflit</li>
+      <li>Ouvrir le fichier conflictuel, résoudre, supprimer les marqueurs, sauvegarder</li>
+      <li>Stager le fichier dans git-manager</li>
+      <li>Finaliser le rebase dans le terminal : <code>git rebase --continue</code></li>
+      <li>Pusher</li>
+    </ol>
+    <p class="mt-8"><strong>Ce qu'on observe :</strong></p>
+    <ul class="mt-5">
+      <li>Pendant le rebase, git-manager affiche "HEAD détaché" — c'est temporaire et normal, Git rejoue les commits un par un</li>
+      <li>Le résultat est un historique <strong>linéaire</strong> : pas de commit de fusion, l'historique est plus lisible</li>
+    </ul>
+    <div class="help-info-box mt-8">
+      <strong>pull vs pull --rebase :</strong><br>
+      <code>pull</code> classique → crée un commit de fusion avec deux parents<br>
+      <code>pull --rebase</code> → rejoue le commit local <em>après</em> le commit distant, pas de merge commit
+    </div>
+    <div class="help-warning-box mt-8">
+      L'étape <code>git rebase --continue</code> n'est pas disponible dans git-manager — elle requiert le terminal. C'est la seule étape qui sort de l'interface.
+    </div>
+  </div>
+
+</div><!-- /helpTab-exercices3 -->
