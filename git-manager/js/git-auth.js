@@ -1,8 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-  if (localStorage.getItem('gitManagerDarkMode') === 'true') {
-    document.body.classList.add('dark-mode');
-    updateDarkModeIcon();
-  }
+  initDarkMode();
 
   document.getElementById('sshEmail').addEventListener('input', function() {
     const email = this.value || 'votre-email@example.com';
@@ -11,19 +8,6 @@ document.addEventListener('DOMContentLoaded', function() {
        ssh-keygen -t ed25519 -C "${email}"`;
   });
 });
-
-function toggleDarkMode() {
-  document.body.classList.toggle('dark-mode');
-  const isDark = document.body.classList.contains('dark-mode');
-  localStorage.setItem('gitManagerDarkMode', isDark);
-  updateDarkModeIcon();
-}
-
-function updateDarkModeIcon() {
-  const btn = document.getElementById('darkModeBtn');
-  const isDark = document.body.classList.contains('dark-mode');
-  btn.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-}
 
 function showTab(tabName) {
   document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));

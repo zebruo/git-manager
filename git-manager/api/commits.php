@@ -224,17 +224,6 @@ switch ($action) {
         echo json_encode(['success' => true, 'output' => $result['output']]);
         break;
 
-    case 'diff':
-        $file = $input['file'] ?? '';
-
-        if (empty($file) || !isValidFile($file)) {
-            echo json_encode(['success' => false, 'error' => 'Fichier invalide']); break;
-        }
-
-        $result = execGit("git diff " . escapeArg($file));
-        echo json_encode(['success' => true, 'output' => $result['output']]);
-        break;
-
     default:
         echo json_encode(['success' => false, 'error' => 'Action non reconnue']);
         break;

@@ -613,6 +613,22 @@
   </div>
 
   <div class="help-workflow">
+    <h4><i class="fas fa-code-branch"></i> Changer de branche avec des modifications en cours</h4>
+    <p class="mt-5">Toujours commiter ou stasher avant de changer de branche. Le Stash est exactement fait pour ça — un stash prend deux secondes et votre travail reste intact.</p>
+    <ol class="mt-8">
+      <li>Vous avez des modifications en cours sur <em>main</em> et devez basculer sur <em>feature</em></li>
+      <li>Cliquez <strong>Mettre de côté</strong> dans la section Stash — vos modifications sont sauvegardées</li>
+      <li>Basculez sur <em>feature</em> — le working tree est propre, aucun risque d'écrasement</li>
+      <li>Travaillez sur <em>feature</em>, commitez si nécessaire</li>
+      <li>Revenez sur <em>main</em> → cliquez <strong>Pop</strong> — vos modifications sont restaurées</li>
+    </ol>
+    <div class="help-warning-box mt-8">
+      <strong><i class="fas fa-exclamation-triangle text-danger"></i> Ce qui arrive si vous ne le faites pas :</strong>
+      Git tente d'emporter vos modifications non commitées vers la branche cible. Si la branche cible a ses propres versions commitées des mêmes fichiers, Git écrase silencieusement votre working tree au retour — <strong>les modifications sont perdues sans avertissement</strong>.
+    </div>
+  </div>
+
+  <div class="help-workflow">
     <h4><i class="fas fa-project-diagram"></i> Workflow typique</h4>
     <ol>
       <li><strong>Modifier</strong> vos fichiers dans votre éditeur de code</li>

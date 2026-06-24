@@ -248,7 +248,6 @@ $routes = [
     'amendLastCommit'     => 'commits.php',
     'getCommitMessage'    => 'commits.php',
     'showCommit'          => 'commits.php',
-    'diff'                => 'commits.php',
     // Synchronisation
     'push'                => 'sync.php',
     'pull'                => 'sync.php',

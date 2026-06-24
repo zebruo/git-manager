@@ -6,6 +6,10 @@
 // Branches : branches, switchBranch, createBranch, renameBranch,
 //            deleteBranch, mergeBranch, pushBranch, deleteRemoteBranch
 
+function isValidBranchName(string $name): bool {
+    return preg_match('/^[a-zA-Z0-9_\-\.\/]+$/', $name) === 1;
+}
+
 switch ($action) {
 
     case 'branches':
@@ -64,7 +68,7 @@ switch ($action) {
         if (empty($branch)) {
             echo json_encode(['success' => false, 'error' => 'Nom de branche requis']); break;
         }
-        if (!preg_match('/^[a-zA-Z0-9_\-\.\/]+$/', $branch)) {
+        if (!isValidBranchName($branch)) {
             echo json_encode(['success' => false, 'error' => 'Nom de branche invalide']); break;
         }
 
@@ -174,10 +178,10 @@ switch ($action) {
         if (empty($branch)) {
             echo json_encode(['success' => false, 'error' => 'Nom de branche requis']); break;
         }
-        if (!preg_match('/^[a-zA-Z0-9_\-\.\/]+$/', $branch)) {
+        if (!isValidBranchName($branch)) {
             echo json_encode(['success' => false, 'error' => 'Nom de branche invalide. Utilisez uniquement lettres, chiffres, tirets, underscores, points et slashes.']); break;
         }
-        if (!empty($sourceBranch) && !preg_match('/^[a-zA-Z0-9_\-\.\/]+$/', $sourceBranch)) {
+        if (!empty($sourceBranch) && !isValidBranchName($sourceBranch)) {
             echo json_encode(['success' => false, 'error' => 'Nom de branche source invalide']); break;
         }
 
@@ -320,7 +324,7 @@ switch ($action) {
         if (empty($oldName) || empty($newName)) {
             echo json_encode(['success' => false, 'error' => 'Ancien et nouveau nom requis']); break;
         }
-        if (!preg_match('/^[a-zA-Z0-9_\-\.\/]+$/', $oldName) || !preg_match('/^[a-zA-Z0-9_\-\.\/]+$/', $newName)) {
+        if (!isValidBranchName($oldName) || !isValidBranchName($newName)) {
             echo json_encode(['success' => false, 'error' => 'Nom de branche invalide']); break;
         }
 
@@ -363,7 +367,7 @@ switch ($action) {
         if (empty($branch)) {
             echo json_encode(['success' => false, 'error' => 'Nom de branche requis']); break;
         }
-        if (!preg_match('/^[a-zA-Z0-9_\-\.\/]+$/', $branch)) {
+        if (!isValidBranchName($branch)) {
             echo json_encode(['success' => false, 'error' => 'Nom de branche invalide']); break;
         }
         if (in_array($branch, ['main', 'master'])) {
@@ -386,7 +390,7 @@ switch ($action) {
         if (empty($branch)) {
             echo json_encode(['success' => false, 'error' => 'Nom de branche requis']); break;
         }
-        if (!preg_match('/^[a-zA-Z0-9_\-\.\/]+$/', $branch)) {
+        if (!isValidBranchName($branch)) {
             echo json_encode(['success' => false, 'error' => 'Nom de branche invalide']); break;
         }
 
@@ -405,7 +409,7 @@ switch ($action) {
         if (empty($branch)) {
             echo json_encode(['success' => false, 'error' => 'Nom de branche requis']); break;
         }
-        if (!preg_match('/^[a-zA-Z0-9_\-\.\/]+$/', $branch)) {
+        if (!isValidBranchName($branch)) {
             echo json_encode(['success' => false, 'error' => 'Nom de branche invalide']); break;
         }
 
@@ -429,7 +433,7 @@ switch ($action) {
         if (empty($branch)) {
             echo json_encode(['success' => false, 'error' => 'Nom de branche requis']); break;
         }
-        if (!preg_match('/^[a-zA-Z0-9_\-\.\/]+$/', $branch)) {
+        if (!isValidBranchName($branch)) {
             echo json_encode(['success' => false, 'error' => 'Nom de branche invalide']); break;
         }
         $result = execGit("git push origin --delete " . escapeArg($branch));

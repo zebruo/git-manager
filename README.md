@@ -56,6 +56,7 @@ Interface web pour gérer un dépôt Git sans ligne de commande.
 
 | Fichier | Description |
 |---------|-------------|
+| `js/common.js` | Fonctions partagées entre toutes les pages : dark mode, alertes toast |
 | `js/git-manager.js` | Logique de l'interface principale |
 | `js/git-auth.js` | Logique de la page authentification |
 | `js/git-clone.js` | Logique de la page clonage |
@@ -279,6 +280,7 @@ mon-projet/                    <- Dépôt Git géré
 │   │   ├── git-reset-remote.css
 │   │   └── index.css
 │   ├── js/                    <- Scripts frontend
+│   │   ├── common.js
 │   │   ├── git-auth.js
 │   │   ├── git-clone.js
 │   │   ├── git-manager.js

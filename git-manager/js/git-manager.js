@@ -6,11 +6,7 @@ let activeRepo = new URLSearchParams(window.location.search).get('repo') || '';
 
 // Initialisation
 document.addEventListener('DOMContentLoaded', async function () {
-  // Charger le mode sombre sauvegardé
-  if (localStorage.getItem('gitManagerDarkMode') === 'true') {
-    document.body.classList.add('dark-mode');
-    updateDarkModeIcon();
-  }
+  initDarkMode();
 
   // Charger le sélecteur de dépôts (si reposRoot configuré)
   loadRepoSwitcher();
@@ -215,13 +211,6 @@ async function removeRemote() {
 }
 
 // Toggle mode sombre
-function toggleDarkMode() {
-  document.body.classList.toggle('dark-mode');
-  const isDark = document.body.classList.contains('dark-mode');
-  localStorage.setItem('gitManagerDarkMode', isDark);
-  updateDarkModeIcon();
-}
-
 // Afficher la modale d'aide
 let helpLoaded = false;
 async function showHelpModal() {
@@ -253,13 +242,6 @@ function showHelpTab(tabId) {
   if (panel) panel.classList.add('active');
   const btn = document.querySelector(`.help-tab-btn[data-tab="${tabId}"]`);
   if (btn) btn.classList.add('active');
-}
-
-function updateDarkModeIcon() {
-  const btn = document.getElementById('darkModeBtn');
-  const isDark = document.body.classList.contains('dark-mode');
-  btn.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-  btn.title = isDark ? 'Mode clair' : 'Mode sombre';
 }
 
 // Actualiser toutes les sections
@@ -319,28 +301,6 @@ document.addEventListener('click', function (e) {
 });
 
 // Afficher une alerte
-function showAlert(type, message) {
-  const container = document.getElementById('alertContainer');
-  const toast = document.createElement('div');
-  toast.className = `alert alert-${type}`;
-
-  let icon = 'info-circle';
-  if (type === 'success') icon = 'check-circle';
-  else if (type === 'error') icon = 'exclamation-circle';
-  else if (type === 'warning') icon = 'exclamation-triangle';
-
-  toast.innerHTML = `<i class="fas fa-${icon}"></i> ${message}`;
-  container.appendChild(toast);
-
-  const duration = type === 'error' ? 8000 : type === 'warning' ? 6000 : 4000;
-  const dismiss = () => {
-    toast.classList.add('toast-out');
-    toast.addEventListener('animationend', () => toast.remove(), { once: true });
-  };
-  toast.addEventListener('click', dismiss);
-  setTimeout(dismiss, duration);
-}
-
 // Ajouter du texte au terminal
 function terminalLog(text, type = '') {
   const terminal = document.getElementById('terminalOutput');
@@ -980,6 +940,7 @@ async function doCommit() {
   if (result.success) {
     terminalLog(result.output, 'success');
     showAlert('success', 'Commit effectué avec succès');
+    currentAhead++;
     clearMessageField();
     refreshAll();
   } else {
@@ -1015,6 +976,7 @@ async function doCommitAndPush() {
   if (result.success) {
     terminalLog(result.output, 'success');
     showAlert('success', 'Commit et Push effectués avec succès');
+    currentAhead = 0;
     clearMessageField();
     refreshAll();
   } else {
@@ -1100,6 +1062,7 @@ async function doPush() {
   if (result.success) {
     terminalLog(result.output, 'success');
     showAlert('success', 'Push effectué avec succès');
+    currentAhead = 0;
     refreshAll();
   } else {
     terminalLog(result.error, 'error');
@@ -1856,6 +1819,15 @@ async function pushBranch(branch) {
 
 let _diffRaw = '';
 
+function setDiffTitle(titleEl, file, label) {
+  titleEl.innerHTML = `<i class="fas fa-code"></i> ${file} <small style="font-weight:normal;color:var(--text-secondary);">(${label})</small>`;
+}
+
+function renderDiffHtml(raw, emptyMsg = 'Aucune modification détectable') {
+  const hunks = parseDiff(raw);
+  return hunks.length ? renderDiff(hunks) : `<div class="diff-empty">${emptyMsg}</div>`;
+}
+
 async function showFileDiff(file, type) {
   const modal   = document.getElementById('diffModal');
   const title   = document.getElementById('diffModalTitle');
@@ -1883,7 +1855,7 @@ async function showFileDiff(file, type) {
     if (hunksUnstaged.length === 0 && hunksStaged.length === 0) {
       html = '<div class="diff-empty">Aucune modification détectable</div>';
     } else if (hunksStaged.length > 0 && hunksUnstaged.length > 0) {
-      title.innerHTML = `<i class="fas fa-code"></i> ${file} <small style="font-weight:normal;color:var(--text-secondary);">(stagé + non stagé)</small>`;
+      setDiffTitle(title, file, 'stagé + non stagé');
       html = `
         <div class="diff-tabs">
           <button class="diff-tab active" id="diffTabUnstaged" onclick="switchDiffTab('unstaged')">
@@ -1896,8 +1868,7 @@ async function showFileDiff(file, type) {
         <div id="diffPaneUnstaged">${renderDiff(hunksUnstaged)}</div>
         <div id="diffPaneStaged" style="display:none">${renderDiff(hunksStaged)}</div>`;
     } else {
-      const label = hunksStaged.length ? 'stagé' : 'non stagé';
-      title.innerHTML = `<i class="fas fa-code"></i> ${file} <small style="font-weight:normal;color:var(--text-secondary);">(${label})</small>`;
+      setDiffTitle(title, file, hunksStaged.length ? 'stagé' : 'non stagé');
       html = renderDiff(hunksUnstaged.length ? hunksUnstaged : hunksStaged);
     }
   } else if (type === 'conflicted') {
@@ -1912,21 +1883,19 @@ async function showFileDiff(file, type) {
       banner = `<div style="${bannerStyle}background:color-mix(in srgb,var(--warning-color) 15%,transparent);border-color:var(--warning-color);color:var(--text-primary);">
         <i class="fas fa-exclamation-triangle" style="color:var(--warning-color);margin-right:6px;"></i>Marqueurs de conflit détectés — résolvez les conflits avant de stager.
       </div>`;
-      title.innerHTML = `<i class="fas fa-code"></i> ${file} <small style="font-weight:normal;color:var(--text-secondary);">(conflits à résoudre)</small>`;
+      setDiffTitle(title, file, 'conflits à résoudre');
     } else {
       banner = `<div style="${bannerStyle}background:color-mix(in srgb,var(--success-color) 15%,transparent);border-color:var(--success-color);color:var(--text-primary);">
         <i class="fas fa-check-circle" style="color:var(--success-color);margin-right:6px;"></i>Conflit résolu — stagez ce fichier pour finaliser la fusion.
       </div>`;
-      title.innerHTML = `<i class="fas fa-code"></i> ${file} <small style="font-weight:normal;color:var(--text-secondary);">(conflit résolu)</small>`;
+      setDiffTitle(title, file, 'conflit résolu');
     }
-    html = banner + (hunks.length ? renderDiff(hunks) : '<div class="diff-empty">Aucune modification par rapport à HEAD</div>');
+    html = banner + renderDiffHtml(_diffRaw, 'Aucune modification par rapport à HEAD');
   } else {
-    const res   = await apiCall('fileDiff', { file, staged });
-    _diffRaw    = res.data?.diff ?? '';
-    const hunks = parseDiff(_diffRaw);
-    const label = staged ? 'stagé' : 'non stagé';
-    title.innerHTML = `<i class="fas fa-code"></i> ${file} <small style="font-weight:normal;color:var(--text-secondary);">(${label})</small>`;
-    html = hunks.length ? renderDiff(hunks) : '<div class="diff-empty">Aucune modification détectable</div>';
+    const res = await apiCall('fileDiff', { file, staged });
+    _diffRaw  = res.data?.diff ?? '';
+    setDiffTitle(title, file, staged ? 'stagé' : 'non stagé');
+    html = renderDiffHtml(_diffRaw);
   }
 
   content.innerHTML = html;
