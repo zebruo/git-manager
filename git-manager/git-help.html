@@ -60,6 +60,8 @@
       <dd>Fichier en conflit de fusion — Git n'a pas pu fusionner automatiquement les deux versions. Ouvrez le fichier,
         supprimez les marqueurs <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code> / <code>=======</code> / <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code>,
         enregistrez, puis cochez et stagez le fichier pour marquer le conflit comme résolu.</dd>
+      <dt><i class="fas fa-box-archive" style="color: var(--info-color);"></i> Stash</dt>
+      <dd>Modifications temporairement mises de côté sans commit. Le compteur indique le nombre de stashes en attente. Utilisez <strong>Pop</strong> pour les restaurer.</dd>
     </dl>
     <div class="help-info-box">
       <div class="mb-8"><strong><i class="fas fa-layer-group"></i> Zone de staging (index)</strong></div>
@@ -87,7 +89,7 @@
       <dt><i class="fas fa-mouse-pointer"></i> Cliquer sur un nom de fichier</dt>
       <dd>Dans la section <strong>Fichiers modifiés — Diff & Commit</strong>, les fichiers <span class="status-badge modified">M</span>
         <span class="status-badge added">A</span> <span class="status-badge deleted">D</span> <span class="status-badge conflicted">C</span> ont leur nom souligné
-        et cliquable. Cliquer ouvre une modale avec les modifications ligne par ligne — pour <span class="status-badge conflicted">C</span>, le diff affiche les marqueurs de conflit.<br>
+        et cliquable. Cliquer ouvre une modale avec les modifications ligne par ligne — pour <span class="status-badge conflicted">C</span>, la modale indique si des marqueurs de conflit sont encore présents (bandeau orange) ou si le fichier est résolu (bandeau vert).<br>
         Les fichiers <span class="status-badge untracked">U</span> ne sont pas cliquables — Git n'a rien à comparer.
       </dd>
       <dt><i class="fas fa-columns"></i> Lecture du diff</dt>
@@ -141,6 +143,21 @@
       <div class="mt-5">4. Actualisez → le fichier apparaît en <span class="status-badge added">A</span> <em>et</em> en <span class="status-badge modified">M</span></div>
       <div class="mt-5">5. Cliquez sur  <span class="status-badge modified">M</span> → deux onglets <strong>Non stagé</strong> / <strong>Stagé</strong></div>
       <div class="mt-5">6. Cliquez sur  <span class="status-badge added">A</span> → deux onglets <strong>Non stagé</strong> / <strong>Stagé</strong></div>
+    </div>
+    <div class="help-info-box mt-10">
+      <div class="mb-8"><strong><i class="fas fa-exclamation-triangle text-warning"></i> Fichiers <span class="status-badge conflicted">C</span> — modale de conflit</strong></div>
+      <div>Le titre de la modale indique l'état du fichier :</div>
+      <table class="help-table mt-8">
+        <tr>
+          <td><strong>(conflits à résoudre)</strong></td>
+          <td class="text-muted">Bandeau <span class="text-warning">orange</span> — des marqueurs <code>&lt;&lt;&lt;</code> sont encore présents</td>
+        </tr>
+        <tr>
+          <td><strong>(conflit résolu)</strong></td>
+          <td class="text-muted">Bandeau <span class="text-success">vert</span> — plus de marqueurs, prêt à stager</td>
+        </tr>
+      </table>
+      <div class="mt-8">Le diff affiché (bandeau vert) montre la différence entre HEAD et votre version résolue — c'est ce qui ira dans le commit de fusion.</div>
     </div>
   </div>
   <div class="help-category">
@@ -216,9 +233,9 @@
     </div>
   </div>
   <div class="help-category">
-    <h4><i class="fas fa-archive"></i> Stash (Mettre de côté)</h4>
+    <h4><i class="fas fa-box-archive"></i> Stash (Mettre de côté)</h4>
     <dl>
-      <dt><i class="fas fa-archive"></i> Mettre de côté</dt>
+      <dt><i class="fas fa-box-archive"></i> Mettre de côté</dt>
       <dd>Sauvegarde temporairement vos modifications en cours sans faire de commit. Utile pour changer de branche
         rapidement ou tester quelque chose sur un code propre.</dd>
       <dt><i class="fas fa-redo"></i> Pop (Restaurer)</dt>
@@ -556,6 +573,42 @@
     <div class="help-info-box mt-8">
       Si vous commitez maintenant, les modifications du working tree <strong>ne seront pas incluses</strong> — seule la version <span class="status-badge added">A</span> partirait dans le commit.<br>
       Pour inclure les dernières modifications, il faut <strong>re-stager</strong> le fichier (bouton Stager ou <code>git add</code>), ce qui écrase le A avec le contenu actuel.
+    </div>
+  </div>
+
+  <div class="help-workflow">
+    <h4><i class="fas fa-exclamation-triangle text-warning"></i> Résoudre un conflit de fusion</h4>
+    <p class="mt-5">Un Pull ou un Merge a créé un conflit — Git n'a pas pu fusionner automatiquement un ou plusieurs fichiers.</p>
+    <ol class="mt-8">
+      <li>Le(s) fichier(s) en conflit apparaissent en <span class="status-badge conflicted">C</span> dans la liste des fichiers</li>
+      <li>Cliquer sur le nom du fichier <span class="status-badge conflicted">C</span> → la modale indique l'état :
+        <ul class="help-list mt-5">
+          <li>Bandeau <strong class="text-warning">orange</strong> → des marqueurs de conflit sont encore présents dans le fichier</li>
+          <li>Bandeau <strong class="text-success">vert</strong> → le fichier est résolu, il reste à le stager</li>
+        </ul>
+      </li>
+      <li>Ouvrir le fichier dans votre éditeur de code</li>
+      <li>Repérer les marqueurs et choisir la version à garder :
+        <div class="help-inner-box mt-5 font-mono">
+          &lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD<br>
+          Version actuelle (votre branche)<br>
+          =======<br>
+          Version entrante (branche fusionnée)<br>
+          &gt;&gt;&gt;&gt;&gt;&gt;&gt; feature
+        </div>
+      </li>
+      <li>Supprimer les trois marqueurs <code>&lt;&lt;&lt;</code> <code>===</code> <code>&gt;&gt;&gt;</code> et ne garder que le contenu voulu</li>
+      <li>Sauvegarder le fichier</li>
+      <li>Cliquer à nouveau sur le fichier dans git-manager → le bandeau doit passer au <strong class="text-success">vert</strong> "Conflit résolu"</li>
+      <li>Cocher le fichier, écrire un message si nécessaire, cliquer <strong>Commit</strong> pour finaliser la fusion</li>
+    </ol>
+    <div class="help-info-box mt-8">
+      <strong><i class="fas fa-info-circle"></i> Notes :</strong>
+      <ul class="help-list">
+        <li>Si plusieurs fichiers sont en <span class="status-badge conflicted">C</span>, répéter les étapes 3 à 7 pour chacun avant de commiter</li>
+        <li>Le diff affiché dans la modale (bandeau vert) montre la différence entre HEAD et votre version résolue. C'est exactement ce qui ira dans le commit de fusion. Le diff est juste et utile — il confirme quelle version vous avez gardée.</li>
+        <li>En cas de doute avant de commencer, utilisez le <strong>Stash</strong> pour sauvegarder votre état actuel</li>
+      </ul>
     </div>
   </div>
 
