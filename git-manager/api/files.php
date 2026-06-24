@@ -98,8 +98,9 @@ switch ($action) {
         break;
 
     case 'fileDiff':
-        $file   = $input['file'] ?? '';
-        $staged = $input['staged'] ?? false;
+        $file       = $input['file'] ?? '';
+        $staged     = $input['staged'] ?? false;
+        $conflicted = $input['conflicted'] ?? false;
 
         if (empty($file) || !isValidFile($file)) {
             echo json_encode(['success' => false, 'error' => 'Fichier invalide']); break;
@@ -107,9 +108,15 @@ switch ($action) {
 
         // shell_exec() obligatoire : exec() perd les lignes vides sur Windows,
         // ce qui fausse les numéros de lignes dans le diff unifié.
-        $arg    = escapeArg($file);
-        $flag   = $staged ? '--cached ' : '';
-        $cmd    = "git -C " . escapeshellarg($safeRepoPath) . " diff {$flag}-- {$arg}";
+        $arg = escapeArg($file);
+        if ($conflicted) {
+            // Fichier en conflit : stage 0 absent, git diff retournerait vide.
+            // git diff HEAD montre HEAD vs working tree (marqueurs de conflit inclus).
+            $cmd = "git -C " . escapeshellarg($safeRepoPath) . " diff HEAD -- {$arg}";
+        } else {
+            $flag = $staged ? '--cached ' : '';
+            $cmd  = "git -C " . escapeshellarg($safeRepoPath) . " diff {$flag}-- {$arg}";
+        }
         $output = shell_exec($cmd);
 
         echo json_encode(['success' => true, 'data' => ['diff' => $output ?? '']]);

@@ -1900,6 +1900,26 @@ async function showFileDiff(file, type) {
       title.innerHTML = `<i class="fas fa-code"></i> ${file} <small style="font-weight:normal;color:var(--text-secondary);">(${label})</small>`;
       html = renderDiff(hunksUnstaged.length ? hunksUnstaged : hunksStaged);
     }
+  } else if (type === 'conflicted') {
+    const res        = await apiCall('fileDiff', { file, staged: false, conflicted: true });
+    _diffRaw         = res.data?.diff ?? '';
+    const hasMarkers = _diffRaw.split('\n').some(l => /^\+[<=>]{7}/.test(l));
+    const hunks      = parseDiff(_diffRaw);
+
+    const bannerStyle = 'padding:8px 12px;margin-bottom:10px;border-radius:4px;font-size:0.88em;border-left:3px solid;';
+    let banner;
+    if (hasMarkers) {
+      banner = `<div style="${bannerStyle}background:color-mix(in srgb,var(--warning-color) 15%,transparent);border-color:var(--warning-color);color:var(--text-primary);">
+        <i class="fas fa-exclamation-triangle" style="color:var(--warning-color);margin-right:6px;"></i>Marqueurs de conflit détectés — résolvez les conflits avant de stager.
+      </div>`;
+      title.innerHTML = `<i class="fas fa-code"></i> ${file} <small style="font-weight:normal;color:var(--text-secondary);">(conflits à résoudre)</small>`;
+    } else {
+      banner = `<div style="${bannerStyle}background:color-mix(in srgb,var(--success-color) 15%,transparent);border-color:var(--success-color);color:var(--text-primary);">
+        <i class="fas fa-check-circle" style="color:var(--success-color);margin-right:6px;"></i>Conflit résolu — stagez ce fichier pour finaliser la fusion.
+      </div>`;
+      title.innerHTML = `<i class="fas fa-code"></i> ${file} <small style="font-weight:normal;color:var(--text-secondary);">(conflit résolu)</small>`;
+    }
+    html = banner + (hunks.length ? renderDiff(hunks) : '<div class="diff-empty">Aucune modification par rapport à HEAD</div>');
   } else {
     const res   = await apiCall('fileDiff', { file, staged });
     _diffRaw    = res.data?.diff ?? '';
