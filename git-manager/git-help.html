@@ -847,9 +847,9 @@
       <li>Pull fusionne <code>origin/main</code> dans <code>main</code> locale</li>
     </ul>
     <div class="help-info-box mt-8">
-      <strong>Pull classique vs pull --rebase :</strong><br><br>
-      <strong>Sans --rebase</strong> : Git fait un merge entre le distant et le local. Si les deux ont divergé, un merge commit est créé — l'historique montre une fourche qui se referme.<br><br>
-      <strong>Avec --rebase</strong> : Git retire temporairement tes commits locaux, avance sur les commits distants, puis rejoue tes commits par-dessus. Résultat : un historique linéaire, comme si tu avais travaillé après le commit distant. Tes commits sont réécrits (nouveaux hash).<br><br>
+      <strong>Pull classique vs pull --rebase :</strong><br>
+      <strong>Sans --rebase</strong> : Git fait un merge entre le distant et le local. Si les deux ont divergé, un merge commit est créé — l'historique montre une fourche qui se referme.<br>
+      <strong>Avec --rebase</strong> : Git retire temporairement tes commits locaux, avance sur les commits distants, puis rejoue tes commits par-dessus. Résultat : un historique linéaire, comme si tu avais travaillé après le commit distant. Tes commits sont réécrits (nouveaux hash).<br>
       <strong>Règle pratique :</strong> <code>--rebase</code> pour garder un historique propre sur une branche personnelle — pull classique sur une branche partagée (réécrire des commits déjà pushés crée des conflits pour les autres).
     </div>
   </div>
@@ -878,9 +878,109 @@
       <code>pull --rebase</code> → rejoue le commit local <em>après</em> le commit distant, pas de merge commit
     </div>
     <div class="help-info-box mt-8">
-      <strong>Continuer</strong> : finalise le rebase en rejouant le commit original avec le contenu résolu. Le fichier conflictuel doit être stagé au préalable.<br><br>
+      <strong>Continuer</strong> : finalise le rebase en rejouant le commit original avec le contenu résolu. Le fichier conflictuel doit être stagé au préalable.<br>
       <strong>Abandonner</strong> : annule le rebase et ramène le dépôt exactement à l'état qu'il avait avant le <code>pull --rebase</code> — tes commits locaux sont restaurés, les commits distants ne sont pas intégrés. Utile si le conflit est trop complexe ou si tu veux recommencer autrement.
     </div>
   </div>
 
+  <div class="help-workflow">
+    <h4><i class="fas fa-box-archive"></i> Exercice — Stash</h4>
+    <p class="mt-5">Mettre de côté des modifications en cours pour changer de contexte sans perdre son travail.</p>
+
+    <strong class="mt-8">Partie 1 — Stash basique :</strong>
+    <ol class="mt-5">
+      <li>Modifier un fichier sans commiter — il apparaît en <span class="status-badge modified">M</span></li>
+      <li>Cliquer <strong>Mettre de côté</strong> → saisir un message descriptif (ex : <code>wip: ajout ligne notes</code>) — la case <strong>+ non suivis</strong> inclut les fichiers <span class="status-badge untracked">U</span> dans le stash si elle est cochée</li>
+      <li>Observer : le fichier <span class="status-badge modified">M</span> disparaît, le compteur Stash passe à <code>1</code></li>
+      <li>Basculer sur une autre branche — working tree propre, aucun risque</li>
+      <li>Revenir sur <code>main</code> → cliquer <strong>Pop</strong> — modifications restaurées, stash supprimé</li>
+    </ol>
+
+    <strong class="mt-8">Partie 2 — Plusieurs stashes :</strong>
+    <ol class="mt-5">
+      <li>Modifier un premier fichier (ex : <code>notes.md</code>) → <strong>Mettre de côté</strong> avec le message <code>wip: modification A</code></li>
+      <li>Modifier un second fichier (ex : <code>CLAUDE.md</code>) → <strong>Mettre de côté</strong> avec le message <code>wip: modification B</code></li>
+      <li>Cliquer <strong>Appliquer</strong> sur le stash A (<code>notes.md</code>) → modifications restaurées, stash A conservé dans la liste</li>
+      <li>Cliquer <strong>Pop</strong> sur le stash B (<code>CLAUDE.md</code>) → modifications restaurées et stash B supprimé</li>
+      <li>Cliquer <strong>Supprimer</strong> sur le stash A restant — il a déjà été appliqué, on peut le jeter</li>
+    </ol>
+    <div class="help-info-box mt-8">
+      <strong>Appliquer ≠ Pop</strong> : Appliquer restaure les modifications en conservant le stash — utile pour appliquer le même stash sur plusieurs branches. Pop restaure et supprime en une seule opération.<br>
+      <strong>Piège :</strong> ne pas Pop un stash qui vient d'être Appliqué — le fichier est déjà dans le working tree, Git ne peut pas l'écraser et retourne une erreur.
+    </div>
+
+    <strong class="mt-8">Partie 3 — Stash avant changement de branche (règle fondamentale) :</strong>
+    <ol class="mt-5">
+      <li>Modifier un fichier sur <code>main</code> sans commiter</li>
+      <li>Tenter de basculer sur une autre branche sans stasher — observer le comportement</li>
+      <li>Revenir sur <code>main</code>, stasher les modifications</li>
+      <li>Basculer sur l'autre branche, faire un commit, revenir sur <code>main</code></li>
+      <li><strong>Pop</strong> → continuer le travail interrompu</li>
+    </ol>
+    <div class="help-warning-box mt-8">
+      <strong>Piège :</strong> si les modifications n'entrent pas en conflit avec la branche cible, Git les emporte silencieusement — les fichiers "voyagent" avec le HEAD sans avertissement. On croit le working tree propre alors qu'il ne l'est pas. Le stash est la seule garantie.
+    </div>
+  </div>
+
 </div><!-- /helpTab-exercices3 -->
+
+<div class="help-tab-panel" id="helpTab-exercices4">
+
+  <div class="help-workflow">
+    <h4><i class="fas fa-undo"></i> Exercice — Revert d'un commit</h4>
+    <p class="mt-5">Comprendre qu'annuler un commit ne supprime pas l'historique — Git crée un nouveau commit inverse.</p>
+    <p><strong>Prérequis :</strong> avoir <code>notes.md</code> avec du contenu déjà commité.</p>
+    <ol class="mt-8">
+      <li>Faire un commit volontairement "mauvais" (ex : supprimer une ligne dans <code>notes.md</code> → message <code>bug: suppression accidentelle</code>)</li>
+      <li>Dans l'historique, cliquer sur ce commit → bouton <strong><i class="fas fa-undo"></i> Revert</strong></li>
+      <li>Confirmer — git-manager crée un commit inverse automatiquement</li>
+      <li>Vérifier que le fichier est revenu à son état d'avant</li>
+    </ol>
+    <p class="mt-8"><strong>Ce qu'on observe :</strong></p>
+    <ul class="mt-5">
+      <li>L'historique montre désormais deux commits : le mauvais ET le revert — rien n'est effacé</li>
+      <li>Fonctionne que le commit soit pushé ou non — indispensable quand il est déjà pushé car c'est la seule façon d'annuler sans réécrire l'historique partagé</li>
+    </ul>
+    <div class="help-info-box mt-8">
+      <strong>Revert vs Reset :</strong><br>
+      <code>revert</code> → crée un commit inverse, safe sur une branche partagée<br>
+      <code>reset --hard</code> → réécrit l'historique, dangereux si déjà pushé (force push requis) — non disponible dans git-manager, requiert le terminal<br>
+      <code>push --force</code> n'est pas non plus disponible dans git-manager — réécrire l'historique partagé écrase les commits des autres collaborateurs sur le remote et peut causer des pertes de travail irréversibles.
+    </div>
+  </div>
+
+  <div class="help-workflow">
+    <h4><i class="fas fa-file-import"></i> Exercice — Récupérer un fichier depuis un commit précis</h4>
+    <p class="mt-5">Restaurer un fichier à une version antérieure sans toucher aux autres fichiers.</p>
+    <ol class="mt-8">
+      <li>Dans la section <strong>Récupération de fichiers</strong>, sélectionner <code>notes.md</code></li>
+      <li>Choisir l'accès rapide <strong>HEAD~1</strong> → valider — le fichier revient à sa version d'avant le dernier commit</li>
+      <li>Le fichier apparaît en <span class="status-badge modified">M</span> — ouvrir le diff pour vérifier</li>
+      <li>Commiter la restauration avec un message explicite (ex : <code>restore: notes.md version HEAD~1</code>)</li>
+    </ol>
+    <strong class="mt-8">Variante — depuis un commit précis :</strong>
+    <ol class="mt-5">
+      <li>Cliquer <strong>Historique du fichier</strong> — la liste des commits qui ont touché ce fichier s'affiche</li>
+      <li>Cliquer sur le commit voulu → le fichier est restauré à cette version exacte</li>
+    </ol>
+    <div class="help-info-box mt-8">
+      La récupération ne crée pas de commit automatiquement — c'est une modification dans le working tree à commiter ensuite. On peut récupérer un seul fichier sans toucher au reste du dépôt.
+    </div>
+  </div>
+
+  <div class="help-workflow">
+    <h4><i class="fas fa-history"></i> Exercice — Utiliser l'historique par fichier</h4>
+    <p class="mt-5">Retrouver à quel commit une modification précise a été introduite.</p>
+    <ol class="mt-8">
+      <li>Dans la section <strong>Récupération de fichiers</strong>, sélectionner <code>notes.md</code></li>
+      <li>Cliquer <strong>Historique du fichier</strong> — seuls les commits qui ont modifié ce fichier apparaissent</li>
+      <li>Pour chaque commit : cliquer sur le hash pour voir le détail</li>
+      <li>Identifier le commit qui a introduit une ligne précise</li>
+      <li>Restaurer le fichier à la version juste avant ce commit</li>
+    </ol>
+    <div class="help-warning-box mt-8">
+      <strong>Piège :</strong> un revert crée un nouveau commit dans l'historique par fichier — si on a reverté <code>notes.md</code>, il apparaîtra deux fois pour le même contenu.
+    </div>
+  </div>
+
+</div><!-- /helpTab-exercices4 -->

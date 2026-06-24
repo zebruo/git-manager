@@ -124,6 +124,9 @@
             <button class="help-tab-btn" data-tab="exercices3" onclick="showHelpTab('exercices3')">
               <i class="fas fa-graduation-cap"></i> Exercices N°3
             </button>
+            <button class="help-tab-btn" data-tab="exercices4" onclick="showHelpTab('exercices4')">
+              <i class="fas fa-graduation-cap"></i> Exercices N°4
+            </button>
           </div>
         </div>
         <div class="panel-body scrollable">
@@ -298,7 +301,9 @@
             Sauvegarde temporairement vos modifications en cours sans créer de commit.<br>
             Utile pour changer de branche rapidement ou tester quelque chose sur un code propre.<br>
             Utilisez <strong>Pop</strong> pour restaurer et supprimer le stash, ou <strong>Appliquer</strong> pour
-            restaurer en le conservant, ou <strong>Supprimez</strong> définitivement le stash.
+            restaurer en le conservant, ou <strong>Supprimez</strong> définitivement le stash.<br>
+            <i class="fas fa-exclamation-triangle" style="color: var(--warning-color);"></i>
+            Ne pas <strong>Pop</strong> un stash déjà <strong>Appliqué</strong> — le fichier est déjà dans le working tree et Git retourne une erreur.
           </p>
         </div>
 
