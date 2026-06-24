@@ -1125,6 +1125,7 @@ body {
 .detached-banner .detached-info {
   flex: 1;
   color: var(--text-primary);
+  font-size: 0.85em;
 }
 
 .detached-banner .detached-btn {

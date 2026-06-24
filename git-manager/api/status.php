@@ -29,8 +29,8 @@ switch ($action) {
                 $head = substr($line, 14);
                 $isDetached = ($head === '(detached)');
                 if (!$isDetached) $branch = $head;
-            } elseif (str_starts_with($line, '# branch.oid ') && $isDetached) {
-                $detachedAt = substr(substr($line, 13), 0, 7);
+            } elseif (str_starts_with($line, '# branch.oid ')) {
+                $detachedAt = substr($line, 13, 7); // toujours capturé, utilisé seulement si isDetached
             } elseif (str_starts_with($line, '# branch.ab ')) {
                 if (preg_match('/\+(\d+) -(\d+)/', $line, $m)) {
                     $ahead  = intval($m[1]);

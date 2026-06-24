@@ -56,6 +56,10 @@
       <dt><span class="status-badge untracked">U</span> Non suivi</dt>
       <dd>Fichier présent sur le disque mais inconnu de Git. Il ne sera pas inclus dans les commits tant que vous ne le
         cochez pas. Vous pouvez aussi l'ajouter au <strong>.gitignore</strong> pour l'ignorer définitivement.</dd>
+      <dt><span class="status-badge conflicted">C</span> Conflit</dt>
+      <dd>Fichier en conflit de fusion — Git n'a pas pu fusionner automatiquement les deux versions. Ouvrez le fichier,
+        supprimez les marqueurs <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code> / <code>=======</code> / <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code>,
+        enregistrez, puis cochez et stagez le fichier pour marquer le conflit comme résolu.</dd>
     </dl>
     <div class="help-info-box">
       <div class="mb-8"><strong><i class="fas fa-layer-group"></i> Zone de staging (index)</strong></div>
@@ -82,8 +86,8 @@
     <dl>
       <dt><i class="fas fa-mouse-pointer"></i> Cliquer sur un nom de fichier</dt>
       <dd>Dans la section <strong>Fichiers modifiés — Diff & Commit</strong>, les fichiers <span class="status-badge modified">M</span>
-        <span class="status-badge added">A</span> <span class="status-badge deleted">D</span> ont leur nom souligné
-        et cliquable. Cliquer ouvre une modale avec les modifications ligne par ligne.<br>
+        <span class="status-badge added">A</span> <span class="status-badge deleted">D</span> <span class="status-badge conflicted">C</span> ont leur nom souligné
+        et cliquable. Cliquer ouvre une modale avec les modifications ligne par ligne — pour <span class="status-badge conflicted">C</span>, le diff affiche les marqueurs de conflit.<br>
         Les fichiers <span class="status-badge untracked">U</span> ne sont pas cliquables — Git n'a rien à comparer.
       </dd>
       <dt><i class="fas fa-columns"></i> Lecture du diff</dt>
@@ -561,8 +565,8 @@
       <li><strong>Modifier</strong> vos fichiers dans votre éditeur de code</li>
       <li><strong>Vérifier</strong> les changements dans la section "Fichiers modifiés" — vos fichiers apparaissent avec
         le statut <span class="status-badge modified">M</span> (modifié), <span class="status-badge added">A</span>
-        (ajouté) ou <span class="status-badge untracked">U</span> (non suivi) ou <span
-          class="status-badge deleted">D</span> (supprimé).</li>
+        (ajouté), <span class="status-badge untracked">U</span> (non suivi), <span
+          class="status-badge deleted">D</span> (supprimé) ou <span class="status-badge conflicted">C</span> (conflit).</li>
       <li><strong>Cocher</strong> les fichiers à inclure dans le commit — le <code>git add</code> se fait automatiquement au moment du commit</li>
       <li><strong>Écrire</strong> un message clair décrivant les changements (ex: "Ajout du formulaire de contact")</li>
       <li><strong>Commit</strong> pour enregistrer un instantané de vos fichiers stagés dans l'historique local</li>

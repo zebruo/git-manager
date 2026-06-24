@@ -390,7 +390,7 @@ async function loadStatus() {
       const totalTracked = allFiles.length;
       currentAhead = data.ahead || 0;
       const branchDisplay = data.isDetached
-        ? `<span style="color: var(--warning-color);"><i class="fas fa-exclamation-triangle"></i> HEAD détaché</span> <code>${data.detachedAt || '?'}</code>`
+        ? `<span style="color: var(--warning-color); font-size: 0.7em;"><i class="fas fa-exclamation-triangle"></i> HEAD détaché</span> <code style="font-size: 0.7em;">${data.detachedAt || '?'}</code>`
         : (data.branch || '—');
       statusContent.innerHTML = `
         <div class="status-info">
@@ -432,7 +432,7 @@ async function loadStatus() {
             <span class="status-value">${data.behind || 0}</span>
           </div>
           <div class="status-row">
-            <span class="status-label"><i class="fas fa-archive" style="color: var(--warning-color);"></i> Stash</span>
+            <span class="status-label"><i class="fas fa-archive" style="color: var(--info-color);"></i> Stash</span>
             <span class="status-value">${data.stashCount || 0}</span>
           </div>
         </div>
@@ -1405,7 +1405,7 @@ async function loadBranches() {
     if (isDetached) {
       html += `
         <div class="detached-banner">
-          <i class="fas fa-exclamation-triangle" style="color: var(--warning-color); font-size: 0.7em;"></i>
+          <i class="fas fa-exclamation-triangle" style="color: var(--warning-color);"></i>
           <span class="detached-info">
             <strong>HEAD détaché</strong> · <code>${detachedAt}</code>
             <span style="color: var(--text-secondary);"> — aucune branche active</span>
