@@ -16,6 +16,8 @@ switch ($action) {
         $currentBranch = trim(execGit('git branch --show-current')['output']);
         $isDetached    = empty($currentBranch);
         $detachedAt    = $isDetached ? trim(execGit('git rev-parse --short HEAD')['output']) : '';
+        $isRebasing    = (is_dir($repoPath . '/.git/rebase-merge') && file_exists($repoPath . '/.git/rebase-merge/head-name'))
+                      || (is_dir($repoPath . '/.git/rebase-apply') && file_exists($repoPath . '/.git/rebase-apply/head-name'));
 
         $localResult = execGit('git branch --format="%(refname:short)|%(upstream:short)|%(upstream:track)"');
         $localBranches = [];
@@ -52,11 +54,12 @@ switch ($action) {
         echo json_encode([
             'success' => true,
             'data' => [
-                'current'    => $currentBranch,
-                'local'      => $localBranches,
-                'remote'     => array_values($remoteBranches),
-                'isDetached' => $isDetached,
-                'detachedAt' => $detachedAt
+                'current'     => $currentBranch,
+                'local'       => $localBranches,
+                'remote'      => array_values($remoteBranches),
+                'isDetached'  => $isDetached,
+                'detachedAt'  => $detachedAt,
+                'isRebasing'  => $isRebasing
             ]
         ]);
         break;

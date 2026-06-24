@@ -55,6 +55,9 @@ switch ($action) {
 
         $allFiles = filterGitWarnings(explode("\n", execGit('git ls-files')['output']));
 
+        $isRebasing = (is_dir($repoPath . '/.git/rebase-merge') && file_exists($repoPath . '/.git/rebase-merge/head-name'))
+                   || (is_dir($repoPath . '/.git/rebase-apply') && file_exists($repoPath . '/.git/rebase-apply/head-name'));
+
         $stashCountResult = execGit('git stash list');
         $stashCount = ($stashCountResult['code'] === 0 && !empty(trim($stashCountResult['output'])))
             ? count(array_filter(explode("\n", $stashCountResult['output'])))
@@ -66,6 +69,7 @@ switch ($action) {
                 'branch'        => $branch,
                 'isDetached'    => $isDetached,
                 'detachedAt'    => $detachedAt,
+                'isRebasing'    => $isRebasing,
                 'modified'      => $modified,
                 'staged'        => $staged,
                 'stagedDeleted' => $stagedDeleted,

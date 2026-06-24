@@ -158,5 +158,13 @@
       <p>Git Manager &copy; 2026 - Interface de gestion simplifiée</p>
     </footer>
   </div>
+<script>
+  const _repo = new URLSearchParams(window.location.search).get('repo');
+  if (_repo) {
+    document.querySelectorAll('a[href="git-manager.html"]').forEach(a => {
+      a.href = 'git-manager.html?repo=' + encodeURIComponent(_repo);
+    });
+  }
+</script>
 </body>
 </html>

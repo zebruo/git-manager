@@ -19,6 +19,11 @@ function updateDarkModeIcon() {
   btn.title = isDark ? 'Mode clair' : 'Mode sombre';
 }
 
+function navigateBack() {
+  const repo = new URLSearchParams(window.location.search).get('repo');
+  window.location.href = repo ? 'git-manager.html?repo=' + encodeURIComponent(repo) : 'git-manager.html';
+}
+
 function showAlert(type, message) {
   const container = document.getElementById('alertContainer');
   const toast = document.createElement('div');

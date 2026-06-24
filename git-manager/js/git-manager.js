@@ -8,6 +8,15 @@ let activeRepo = new URLSearchParams(window.location.search).get('repo') || '';
 document.addEventListener('DOMContentLoaded', async function () {
   initDarkMode();
 
+  // Propager ?repo= sur les liens vers les pages secondaires
+  if (activeRepo) {
+    ['git-clone.html', 'git-auth.html', 'git-reset-remote.html', 'index.html'].forEach(page => {
+      document.querySelectorAll(`a[href="${page}"]`).forEach(a => {
+        a.href = page + '?repo=' + encodeURIComponent(activeRepo);
+      });
+    });
+  }
+
   // Charger le sélecteur de dépôts (si reposRoot configuré)
   loadRepoSwitcher();
 
@@ -349,9 +358,11 @@ async function loadStatus() {
       const totalStaged = staged.length + stagedDeleted.length;
       const totalTracked = allFiles.length;
       currentAhead = data.ahead || 0;
-      const branchDisplay = data.isDetached
-        ? `<span style="color: var(--warning-color); font-size: 0.7em;"><i class="fas fa-exclamation-triangle"></i> HEAD détaché</span> <code style="font-size: 0.7em;">${data.detachedAt || '?'}</code>`
-        : (data.branch || '—');
+      const branchDisplay = data.isRebasing
+        ? `<span style="color: var(--info-color); font-size: 0.7em;"><i class="fas fa-sync"></i> Rebase en cours</span>`
+        : data.isDetached
+          ? `<span style="color: var(--warning-color); font-size: 0.7em;"><i class="fas fa-exclamation-triangle"></i> HEAD détaché</span> <code style="font-size: 0.7em;">${data.detachedAt || '?'}</code>`
+          : (data.branch || '—');
       statusContent.innerHTML = `
         <div class="status-info">
           <div class="status-row">
@@ -1105,6 +1116,34 @@ async function doFetch() {
   }
 }
 
+// Rebase — continuer
+async function doRebaseContinue() {
+  terminalLog('$ git rebase --continue', 'info');
+  const result = await apiCall('rebaseContinue');
+  if (result.success) {
+    showAlert('success', 'Rebase terminé');
+    refreshAll();
+  } else {
+    terminalLog(result.error, 'error');
+    showAlert('error', 'Erreur : ' + result.error);
+  }
+}
+
+// Rebase — abandonner
+async function doRebaseAbort() {
+  const confirmed = await showConfirm('Abandonner le rebase ? Les modifications en cours de rebase seront annulées et vous retrouverez l\'état avant le pull --rebase.');
+  if (!confirmed) return;
+  terminalLog('$ git rebase --abort', 'info');
+  const result = await apiCall('rebaseAbort');
+  if (result.success) {
+    showAlert('success', 'Rebase abandonné');
+    refreshAll();
+  } else {
+    terminalLog(result.error, 'error');
+    showAlert('error', 'Erreur : ' + result.error);
+  }
+}
+
 // Charger les commits d'un fichier spécifique
 async function loadFileCommits() {
   const file = document.getElementById('checkoutFileSelect').value;
@@ -1361,11 +1400,27 @@ async function loadBranches() {
   const result = await apiCall('branches');
 
   if (result.success) {
-    const { current, local, remote, isDetached, detachedAt } = result.data;
+    const { current, local, remote, isDetached, detachedAt, isRebasing } = result.data;
     let html = '';
 
-    // Avertissement si HEAD détaché
-    if (isDetached) {
+    // Avertissement si rebase en cours (priorité sur HEAD détaché générique)
+    if (isRebasing) {
+      html += `
+        <div class="detached-banner" style="border-color: var(--info-color);">
+          <i class="fas fa-sync" style="color: var(--info-color);"></i>
+          <span class="detached-info">
+            <strong>Rebase en cours</strong>
+            <span style="color: var(--text-secondary);"> — HEAD temporairement détaché</span>
+          </span>
+          <button class="btn btn-primary detached-btn" onclick="doRebaseContinue()">
+            <i class="fas fa-play"></i> Continuer
+          </button>
+          <button class="btn btn-danger detached-btn" onclick="doRebaseAbort()">
+            <i class="fas fa-times"></i> Abandonner
+          </button>
+        </div>
+      `;
+    } else if (isDetached) {
       html += `
         <div class="detached-banner">
           <i class="fas fa-exclamation-triangle" style="color: var(--warning-color);"></i>
@@ -1466,10 +1521,10 @@ async function loadBranches() {
 
     content.innerHTML = html;
 
-    // Masquer le formulaire de création en HEAD détaché (le bouton "Créer une branche ici" suffit)
+    // Masquer le formulaire de création en HEAD détaché ou rebase en cours
     const createForm = document.querySelector('.create-branch-form');
     if (createForm) {
-      createForm.style.display = isDetached ? 'none' : '';
+      createForm.style.display = (isDetached || isRebasing) ? 'none' : '';
     }
 
     // Remplir le sélecteur de branche source

@@ -787,7 +787,7 @@
     </ol>
     <strong class="mt-8">Résoudre le conflit :</strong>
     <ol class="mt-5">
-      <li>Le fichier en conflit apparaît avec le statut <strong>C</strong> dans git-manager</li>
+      <li>Faire un <strong><i class="fas fa-sync-alt"></i> Refresh</strong> — le fichier en conflit apparaît avec le statut <span class="status-badge conflicted">C</span> dans la liste</li>
       <li>Ouvrir le fichier — Git a inséré des marqueurs :</li>
     </ol>
     <pre class="mt-5"><code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
@@ -839,13 +839,19 @@
     <ol class="mt-8">
       <li>Sur GitHub, ouvrir un fichier et le modifier via l'interface web → commiter</li>
       <li>En local, cliquer <strong><i class="fas fa-sync"></i> Fetch</strong> → observer <code>↓1</code> sur la branche</li>
-      <li>Cliquer <strong><i class="fas fa-download"></i> Pull</strong> → le commit distant arrive en local</li>
+      <li>Cliquer <strong><i class="fas fa-download"></i> Pull</strong> sans cocher <code>--rebase</code> → le commit distant arrive en local</li>
     </ol>
     <p class="mt-8"><strong>Ce qu'on observe :</strong></p>
     <ul class="mt-5">
       <li>Fetch met à jour <code>origin/main</code> sans toucher à <code>main</code> locale — le compteur <code>↓</code> indique qu'il y a des commits à récupérer</li>
       <li>Pull fusionne <code>origin/main</code> dans <code>main</code> locale</li>
     </ul>
+    <div class="help-info-box mt-8">
+      <strong>Pull classique vs pull --rebase :</strong><br><br>
+      <strong>Sans --rebase</strong> : Git fait un merge entre le distant et le local. Si les deux ont divergé, un merge commit est créé — l'historique montre une fourche qui se referme.<br><br>
+      <strong>Avec --rebase</strong> : Git retire temporairement tes commits locaux, avance sur les commits distants, puis rejoue tes commits par-dessus. Résultat : un historique linéaire, comme si tu avais travaillé après le commit distant. Tes commits sont réécrits (nouveaux hash).<br><br>
+      <strong>Règle pratique :</strong> <code>--rebase</code> pour garder un historique propre sur une branche personnelle — pull classique sur une branche partagée (réécrire des commits déjà pushés crée des conflits pour les autres).
+    </div>
   </div>
 
   <div class="help-workflow">
@@ -855,14 +861,15 @@
       <li>Modifier une ligne d'un fichier en local → commiter (sans pusher)</li>
       <li>Modifier la <strong>même ligne</strong> directement sur GitHub → commiter</li>
       <li>En local, cliquer <strong><i class="fas fa-download"></i> Pull</strong> avec l'option <strong>--rebase</strong> activée → conflit</li>
+      <li>Faire un <strong><i class="fas fa-sync-alt"></i> Refresh</strong> — les fichiers en conflit apparaissent avec le statut <span class="status-badge conflicted">C</span> dans la liste</li>
       <li>Ouvrir le fichier conflictuel, résoudre, supprimer les marqueurs, sauvegarder</li>
-      <li>Stager le fichier dans git-manager</li>
-      <li>Finaliser le rebase dans le terminal : <code>git rebase --continue</code></li>
+      <li>Stager le fichier dans git-manager — idéalement sans commiter : c'est <strong>Continuer</strong> qui rejoue le commit original. Commiter avant fonctionne aussi mais crée un commit supplémentaire dans l'historique</li>
+      <li>Dans le panneau Branches, un banner bleu <strong>Rebase en cours</strong> apparaît → cliquer <strong><i class="fas fa-play"></i> Continuer</strong></li>
       <li>Pusher</li>
     </ol>
     <p class="mt-8"><strong>Ce qu'on observe :</strong></p>
     <ul class="mt-5">
-      <li>Pendant le rebase, git-manager affiche "HEAD détaché" — c'est temporaire et normal, Git rejoue les commits un par un</li>
+      <li>Pendant le rebase, git-manager affiche "Rebase en cours" en bleu dans le statut et dans le panneau Branches</li>
       <li>Le résultat est un historique <strong>linéaire</strong> : pas de commit de fusion, l'historique est plus lisible</li>
     </ul>
     <div class="help-info-box mt-8">
@@ -870,8 +877,9 @@
       <code>pull</code> classique → crée un commit de fusion avec deux parents<br>
       <code>pull --rebase</code> → rejoue le commit local <em>après</em> le commit distant, pas de merge commit
     </div>
-    <div class="help-warning-box mt-8">
-      L'étape <code>git rebase --continue</code> n'est pas disponible dans git-manager — elle requiert le terminal. C'est la seule étape qui sort de l'interface.
+    <div class="help-info-box mt-8">
+      <strong>Continuer</strong> : finalise le rebase en rejouant le commit original avec le contenu résolu. Le fichier conflictuel doit être stagé au préalable.<br><br>
+      <strong>Abandonner</strong> : annule le rebase et ramène le dépôt exactement à l'état qu'il avait avant le <code>pull --rebase</code> — tes commits locaux sont restaurés, les commits distants ne sont pas intégrés. Utile si le conflit est trop complexe ou si tu veux recommencer autrement.
     </div>
   </div>
 

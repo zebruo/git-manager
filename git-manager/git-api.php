@@ -252,6 +252,8 @@ $routes = [
     'push'                => 'sync.php',
     'pull'                => 'sync.php',
     'fetch'               => 'sync.php',
+    'rebaseContinue'      => 'sync.php',
+    'rebaseAbort'         => 'sync.php',
     // Fichiers
     'checkout'            => 'files.php',
     'discardAll'          => 'files.php',
