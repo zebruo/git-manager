@@ -1,4 +1,4 @@
-# Git Manager main
+# Git Manager
 
 Interface web pour gérer un dépôt Git sans ligne de commande.
 
