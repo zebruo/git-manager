@@ -1165,6 +1165,7 @@ body {
 .create-branch-form {
   display: flex;
   gap: 10px;
+  justify-content: center;
   margin-top: 15px;
 }
 
@@ -1175,7 +1176,6 @@ body {
   border-radius: 8px;
   background: var(--bg-primary);
   color: var(--text-primary);
-  font-size: 0.9em;
 }
 
 .create-branch-form input:focus {

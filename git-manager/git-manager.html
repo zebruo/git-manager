@@ -214,10 +214,11 @@
           <div class="create-branch-form" style="flex-wrap: wrap;">
             <select id="sourceBranchSelect" class="file-select" style="min-width: 150px;"
               title="Branche source (optionnel)">
-              <option value="">Depuis: branche actuelle</option>
+              <option value="">Depuis: branche en cours</option>
               <option value="__orphan__">🆕 Branche vide (sans fichiers, sans historique)</option>
               <option value="__freshstart__">🔄 Nouveau départ (fichiers actuels, sans historique)</option>
             </select>
+            <input type="text" id="sourceHashInput" placeholder="ou hash / ref..." style="width: 130px;" title="Créer depuis un commit précis — laisser le menu Depuis sur la première option et entrer le hash ici">
             <input type="text" id="newBranchName" placeholder="Nom de la nouvelle branche" style="flex: 1;">
             <button class="btn btn-primary" onclick="createBranch()" title="Créer une nouvelle branche">
               <i class="fas fa-plus"></i> Créer
@@ -273,6 +274,11 @@
                   <i class="fas fa-upload"></i> Commit & Push
                 </button>
               </div>
+              <div class="btn-group" style="padding-top:10px; border-top:1px solid var(--border-color);">
+                <button class="btn btn-danger" onclick="doDiscardAll()" title="Annuler toutes les modifications non committées (irréversible)">
+                  <i class="fas fa-trash"></i> Annuler les modifications
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -313,7 +319,7 @@
           <select id="checkoutFileSelect" class="file-select" onchange="loadFileCommits()">
             <option value="">-- Sélectionner un fichier --</option>
           </select>
-          <select id="checkoutSource" class="file-select">
+          <select id="checkoutSource" class="file-select" onchange="onCheckoutSourceChange()">
             <option value="HEAD">HEAD (dernier commit)</option>
             <option value="HEAD~1">HEAD~1 (commit précédent)</option>
             <option value="HEAD~2">HEAD~2 (2 commits avant)</option>
@@ -330,17 +336,12 @@
             <button class="btn btn-secondary" onclick="doCheckout()" title="Restaurer le fichier sélectionné à la version choisie (accès rapide)">
               <i class="fas fa-undo"></i> Récupérer
             </button>
-            <button class="btn btn-danger" onclick="doDiscardAll()" title="Annuler toutes les modifications non committées (irréversible)">
-              <i class="fas fa-trash"></i> Annuler toutes les modifications
-            </button>
           </div>
           <p class="text-muted mb-10">
             <i class="fas fa-info-circle"></i>
-            Restaurer un fichier à une version précédente sans affecter les autres fichiers:<br>
+            Restaure un fichier à une version précédente sans affecter les autres fichiers.<br>
             Sélectionnez le fichier, choisissez la source (commit précédent, distant...) puis cliquez sur
-            <strong><i class="fas fa-undo"></i> Récupérer</strong>.<br>
-            <strong>Annuler toutes les modifications</strong> en cours remet tous les fichiers modifiés (M) au dernier commit. <span
-              class="text-danger">Irréversible.</span>
+            <strong><i class="fas fa-undo"></i> Récupérer</strong>.
           </p>
         </div>
 

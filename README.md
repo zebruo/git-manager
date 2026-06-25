@@ -114,7 +114,7 @@ Interface web pour gérer un dépôt Git sans ligne de commande.
 
 | Action | Description |
 |--------|-------------|
-| Créer | Nouvelle branche à partir de la branche courante ou d'une autre branche |
+| Créer | Nouvelle branche à partir de la branche en cours, d'une autre branche locale, d'une branche distante ou d'un hash/ref précis |
 | Branche orpheline | Branche vide sans fichiers et sans historique (conserve git-manager/) |
 | Nouveau départ | Branche avec les fichiers actuels mais sans historique |
 | Renommer | Changer le nom d'une branche (local et distant si publiée). La branche par défaut (main/master) ne peut pas être renommée |
@@ -246,10 +246,9 @@ return [
 
 ## Installation
 
-1. Créer un sous-dossier `git-manager/` dans votre projet
-2. Copier tous les fichiers dans ce sous-dossier
-3. Renommez `git-config.example.php` en `git-config.php` et renseigner vos informations
-4. Accéder à `http://votre-site/git-manager/git-manager.html`
+1. Copier le dossier `git-manager/` dans votre projet
+2. Renommez `git-config.example.php` en `git-config.php` et renseigner vos informations
+3. Accéder à `http://votre-site/git-manager/git-manager.html`
 
 **Important** : Les fichiers doivent être dans un **sous-dossier** du projet à gérer. L'API gère automatiquement le dossier parent comme dépôt Git.
 

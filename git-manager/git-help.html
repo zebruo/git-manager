@@ -337,43 +337,6 @@
     </div>
   </div>
   <div class="help-category">
-    <h4><i class="fas fa-code-branch"></i> Fusionner (Merge)</h4>
-    <dl>
-      <dt><i class="fas fa-code-branch text-info"></i> Bouton Fusionner</dt>
-      <dd>Le bouton bleu <i class="fas fa-code-branch text-info"></i> apparaît à côté des branches qui ne
-        sont pas la branche courante.</dd>
-      <dt>Que fait le merge ?</dt>
-      <dd>Il intègre les commits de la branche sélectionnée <strong>dans</strong> la branche courante.</dd>
-    </dl>
-    <div class="help-info-box">
-      <div class="mb-8"><strong>Exemple :</strong></div>
-      <div>Vous êtes sur <span class="ahead">main</span></div>
-      <div>Vous cliquez <i class="fas fa-code-branch text-info"></i> sur <span class="behind">feature</span></div>
-      <div class="mt-5">→ Les commits de <em>feature</em> sont ajoutés à <em>main</em></div>
-      <div class="mt-10 text-italic">Workflow : Basculer sur main → Merge de feature → Push</div>
-    </div>
-    <dl class="mt-15">
-      <dt><i class="fas fa-exclamation-triangle text-warning"></i> Conflits de fusion</dt>
-      <dd>Si le même fichier a été modifié sur les deux branches :</dd>
-    </dl>
-    <div class="help-info-box">
-      <div><strong>Lignes différentes</strong> → Git fusionne automatiquement</div>
-      <div class="mt-8"><strong>Mêmes lignes</strong> → <span class="text-warning">Conflit !</span> Git
-        marque le fichier :</div>
-      <div class="help-inner-box mt-5 font-mono">
-        &lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD<br>
-        Code sur main<br>
-        =======<br>
-        Code sur feature<br>
-        &gt;&gt;&gt;&gt;&gt;&gt;&gt; feature
-      </div>
-      <div class="mt-8"><strong>Résolution :</strong></div>
-      <div>1. Ouvrir le fichier et choisir quelle version garder</div>
-      <div>2. Supprimer les marqueurs &lt;&lt;&lt;, ===, &gt;&gt;&gt;</div>
-      <div>3. Sauvegarder → Commit</div>
-    </div>
-  </div>
-  <div class="help-category">
     <h4><i class="fas fa-code-branch"></i> Fork (contribution)</h4>
     <dl>
       <dt>Qu'est-ce qu'un fork ?</dt>
@@ -397,10 +360,41 @@
     </div>
   </div>
   <div class="help-category">
-    <h4><i class="fas fa-code-branch"></i> Gestion des branches</h4>
+    <h4><i class="fas fa-code-branch"></i> Branches & Fusion de branches</h4>
     <dl>
+      <dt><i class="fas fa-code-branch text-info"></i> Fusionner (Merge)</dt>
+      <dd>Le bouton bleu <i class="fas fa-code-branch text-info"></i> apparaît à côté des branches qui ne sont pas la branche en cours. Il intègre les commits de la branche sélectionnée <strong>dans</strong> la branche en cours.</dd>
+    </dl>
+    <div class="help-info-box">
+      <div class="mb-8"><strong>Exemple :</strong></div>
+      <div>Vous êtes sur <span class="ahead">main</span></div>
+      <div>Vous cliquez <i class="fas fa-code-branch text-info"></i> sur <span class="behind">feature</span></div>
+      <div class="mt-5">→ Les commits de <em>feature</em> sont ajoutés à <em>main</em></div>
+      <div class="mt-10 text-italic">Workflow : Basculer sur main → Merge de feature → Push</div>
+    </div>
+    <dl class="mt-15">
+      <dt><i class="fas fa-exclamation-triangle text-warning"></i> Conflits de fusion</dt>
+      <dd>Si le même fichier a été modifié sur les deux branches :</dd>
+    </dl>
+    <div class="help-info-box">
+      <div><strong>Lignes différentes</strong> → Git fusionne automatiquement</div>
+      <div class="mt-8"><strong>Mêmes lignes</strong> → <span class="text-warning">Conflit !</span> Git marque le fichier :</div>
+      <div class="help-inner-box mt-5 font-mono">
+        &lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD<br>
+        Code sur main<br>
+        =======<br>
+        Code sur feature<br>
+        &gt;&gt;&gt;&gt;&gt;&gt;&gt; feature
+      </div>
+      <div class="mt-8"><strong>Résolution :</strong></div>
+      <div>1. Ouvrir le fichier et choisir quelle version garder</div>
+      <div>2. Supprimer les marqueurs &lt;&lt;&lt;, ===, &gt;&gt;&gt;</div>
+      <div>3. Sauvegarder → Commit</div>
+    </div>
+    <dl class="mt-15">
       <dt><i class="fas fa-download"></i> Récupérer une branche distante</dt>
-      <dd>Cliquer sur une branche distante crée automatiquement une branche locale qui suit la branche distante.</dd>
+      <dd>Cliquer <i class="fas fa-download"></i> sur une branche distante crée automatiquement une branche locale qui suit la branche distante et bascule dessus.<br>
+      <strong>Cas d'usage :</strong> un collaborateur a poussé une nouvelle branche sur GitHub. Après un <strong>Fetch</strong>, elle apparaît dans "Branches distantes". Ce bouton la rapatrie en local en une seule action — sans avoir à créer la branche manuellement.</dd>
       <dt><i class="fas fa-trash"></i> Supprimer une branche distante</dt>
       <dd>Le bouton poubelle à côté des branches distantes permet de les supprimer directement sur GitHub.</dd>
       <dt><i class="fas fa-exclamation-triangle text-warning"></i> Forcer le basculement</dt>
@@ -430,10 +424,19 @@
           <td class="text-muted">Fichiers actuels, sans historique</td>
         </tr>
         <tr>
-          <td><strong>Autre branche</strong></td>
-          <td class="text-muted">Copie d'une branche spécifique</td>
+          <td><strong>Autre branche locale</strong></td>
+          <td class="text-muted">Démarre au dernier commit de cette branche — sans avoir à basculer dessus d'abord</td>
+        </tr>
+        <tr>
+          <td><strong>origin/main</strong> (ou autre branche distante)</td>
+          <td class="text-muted">Copie depuis le remote — état au dernier Fetch</td>
+        </tr>
+        <tr>
+          <td><strong>Hash / ref</strong> (champ texte)</td>
+          <td class="text-muted">Depuis un commit précis — prioritaire sur le menu Depuis si rempli</td>
         </tr>
       </table>
+      <div class="mt-8">Pour utiliser le champ <strong>hash / ref</strong> : laisser le menu <strong>Depuis</strong> sur la première option et entrer le hash — il est prioritaire sur le menu si rempli.</div>
     </div>
   </div>
   <div class="help-category">
@@ -829,6 +832,25 @@
     </div>
   </div>
 
+  <div class="help-workflow">
+    <h4><i class="fas fa-hashtag"></i> Exercice — Créer une branche depuis un commit précis (hash)</h4>
+    <p class="mt-5">Créer une branche qui repart exactement d'un état passé, sans passer par le HEAD détaché.</p>
+    <p><strong>Prérequis :</strong> avoir au moins 3 commits sur <code>main</code>.</p>
+    <ol class="mt-8">
+      <li>Dans la section <strong>Historique</strong>, noter le hash d'un commit ancien (ex : <code>a3f9c12</code>) en cliquant <i class="fas fa-search"></i> pour vérifier son contenu</li>
+      <li>Dans la section <strong>Branches</strong>, laisser le menu <strong>Depuis</strong> sur la première option</li>
+      <li>Saisir le hash dans le champ <strong>ou hash / ref...</strong></li>
+      <li>Entrer un nom de branche (ex : <code>hotfix-ancien</code>) → cliquer <strong>Créer</strong></li>
+      <li>Basculer sur <code>hotfix-ancien</code> — les fichiers correspondent à l'état exact du commit choisi</li>
+    </ol>
+    <div class="help-info-box mt-8">
+      <strong>Différence avec le HEAD détaché :</strong> le HEAD détaché place Git sur un commit sans branche — tout commit y est perdu si on repart. Créer une branche depuis un hash crée directement une branche stable depuis ce point, sans passer par l'état détaché.
+    </div>
+    <div class="help-info-box mt-8">
+      <strong>Cas d'usage :</strong> corriger un bug introduit il y a plusieurs commits sans toucher à <code>main</code> — on crée une branche depuis le commit juste avant le bug, on corrige, puis on merge.
+    </div>
+  </div>
+
 </div><!-- /helpTab-exercices2 -->
 
 <div class="help-tab-panel" id="helpTab-exercices3">
@@ -970,7 +992,7 @@
     <h4><i class="fas fa-history"></i> Exercice — Utiliser l'historique par fichier</h4>
     <p class="mt-5">Retrouver à quel commit une modification précise a été introduite, puis restaurer la version antérieure.</p>
     <ol class="mt-8">
-      <li>Dans la section <strong>Récupérer un fichier</strong>, sélectionner <code>notes.md</code></li>
+      <li>Dans la section <strong>Récupérer un fichier</strong>, sélectionner <code>(ex: notes.md)</code></li>
       <li>La liste <strong>Commits pour ce fichier</strong> apparaît — elle ne montre que les commits qui ont modifié ce fichier (plus court que l'historique global)</li>
       <li>Pour chaque commit : cliquer <i class="fas fa-search"></i> pour voir le détail (fichiers modifiés, contenu)</li>
       <li>Identifier le commit qui a introduit la ligne à annuler</li>
@@ -990,14 +1012,35 @@
     <p class="mt-5">Remettre tous les fichiers modifiés à l'état du dernier commit en une seule opération.</p>
     <ol class="mt-8">
       <li>Faire des modifications sur plusieurs fichiers sans commiter</li>
-      <li>Dans la section <strong>Récupérer un fichier</strong>, cliquer <strong><i class="fas fa-trash"></i> Annuler toutes les modifications</strong></li>
+      <li>Dans la section <strong>Fichiers modifiés — Diff &amp; Commit</strong>, cliquer <strong><i class="fas fa-trash"></i> Annuler toutes les modifications</strong> (en bas de la section)</li>
       <li>Confirmer — tous les fichiers <span class="status-badge modified">M</span> reviennent à leur version du dernier commit</li>
     </ol>
     <div class="help-warning-box mt-8">
       <strong>Irréversible</strong> — cette opération équivaut à <code>git checkout -- .</code> : toutes les modifications non commitées sont perdues définitivement. Les fichiers <span class="status-badge untracked">U</span> (non suivis) ne sont pas touchés.
     </div>
     <div class="help-info-box mt-8">
-      <strong>Différence avec Récupérer un fichier :</strong> la récupération cible un seul fichier et peut aller chercher une version ancienne. "Annuler toutes les modifications" remet tout à HEAD en une seule fois — utile pour repartir d'un état propre quand les modifications en cours ne valent pas la peine d'être gardées.
+      <strong>Différence avec Récupérer un fichier :</strong> les deux sections sont séparées — "Récupérer un fichier" cible un seul fichier et peut aller chercher une version ancienne. "Annuler toutes les modifications" est dans la section <strong>Fichiers modifiés</strong> et remet tout à HEAD en une seule fois — utile pour repartir d'un état propre quand les modifications en cours ne valent pas la peine d'être gardées.
+    </div>
+  </div>
+
+  <div class="help-workflow">
+    <h4><i class="fas fa-cloud-download-alt"></i> Exercice — Récupérer un fichier depuis le remote</h4>
+    <p class="mt-5">Restaurer un fichier à la version qui se trouve sur GitHub, en ignorant les commits locaux.</p>
+    <p><strong>Prérequis :</strong> un dépôt avec remote configuré <code>(ex: notes.md)</code> commité et pushé.</p>
+    <ol class="mt-8">
+      <li>Modifier <code>(ex: notes.md)</code> en local → commiter (sans pusher)</li>
+      <li>Faire un <strong>Fetch</strong> pour s'assurer qu'<code>origin/main</code> est à jour</li>
+      <li>Dans la section <strong>Récupérer un fichier</strong>, sélectionner <code>notes.md</code></li>
+      <li>Dans l'accès rapide, choisir <strong>origin/main (distant)</strong> → cliquer <strong><i class="fas fa-undo"></i> Récupérer</strong></li>
+      <li>Le fichier revient à la version pushée — badge <span class="status-badge added">A</span> dans la liste</li>
+      <li>Commiter la restauration (ex : <code>restore: notes.md depuis origin/main</code>)</li>
+    </ol>
+    <div class="help-info-box mt-8">
+      <strong>origin/main vs HEAD~1 :</strong> <code>HEAD~1</code> recule d'un commit local. <code>origin/main</code> ramène la version du remote — si tu as fait 3 commits locaux non pushés sur ce fichier, <code>origin/main</code> recule de 3 d'un coup, <code>HEAD~1</code> d'un seul.<br>
+      <strong>Fetch obligatoire</strong> avant d'utiliser <code>origin/main</code> — sans Fetch récent, la version récupérée peut être obsolète si quelqu'un a pushé depuis.
+    </div>
+    <div class="help-info-box mt-8">
+      <strong>Même résultat avec Revert ?</strong> Pas tout à fait — Revert annule un commit entier (tous les fichiers qu'il touchait). <code>origin/main</code> cible un seul fichier et l'amène à la version exacte du remote, indépendamment des autres fichiers du commit.
     </div>
   </div>
 

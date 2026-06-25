@@ -1144,6 +1144,17 @@ async function doRebaseAbort() {
   }
 }
 
+// Masquer la liste des commits quand origin/main est sélectionné (hashes locaux non pertinents)
+function onCheckoutSourceChange() {
+  const source = document.getElementById('checkoutSource').value;
+  const container = document.getElementById('fileCommitsContainer');
+  if (source === 'origin/main') {
+    container.style.display = 'none';
+  } else if (document.getElementById('fileCommitsList').innerHTML.trim() !== '') {
+    container.style.display = 'block';
+  }
+}
+
 // Ouvrir/fermer la liste des commits par fichier
 function toggleFileCommits() {
   const list = document.getElementById('fileCommitsList');
@@ -1558,7 +1569,7 @@ async function loadBranches() {
     if (!isDetached) {
       const sourceSelect = document.getElementById('sourceBranchSelect');
       if (sourceSelect) {
-        let options = `<option value="">Depuis: ${current || 'branche actuelle'}</option>`;
+        let options = `<option value="">Depuis: ${current || 'branche en cours'}</option>`;
         options += '<option value="__orphan__">🆕 Branche vide (sans fichiers, sans historique)</option>';
         options += '<option value="__freshstart__">🔄 Nouveau départ (fichiers actuels, sans historique)</option>';
         // Ajouter les branches locales (sauf la branche courante)
@@ -1668,8 +1679,9 @@ async function switchBranch(branch, force = false) {
 async function createBranch() {
   const input = document.getElementById('newBranchName');
   const sourceSelect = document.getElementById('sourceBranchSelect');
+  const sourceHash = (document.getElementById('sourceHashInput')?.value || '').trim();
   const branchName = input.value.trim();
-  const sourceBranch = sourceSelect ? sourceSelect.value : '';
+  const sourceBranch = sourceHash || (sourceSelect ? sourceSelect.value : '');
   const isOrphan = sourceBranch === '__orphan__';
   const isFreshStart = sourceBranch === '__freshstart__';
 
@@ -1709,6 +1721,8 @@ async function createBranch() {
     showAlert('success', result.output);
     input.value = '';
     if (sourceSelect) sourceSelect.value = '';
+    const hashInput = document.getElementById('sourceHashInput');
+    if (hashInput) hashInput.value = '';
     refreshAll();
   } else {
     terminalLog(result.error, 'error');
@@ -1859,7 +1873,7 @@ async function deleteRemoteBranchDirect(branch) {
 
 // Fusionner une branche
 async function mergeBranch(branch) {
-  const confirmed = await showConfirm(`Fusionner la branche "${branch}" dans la branche actuelle ?`);
+  const confirmed = await showConfirm(`Fusionner la branche "${branch}" dans la branche en cours ?`);
   if (!confirmed) return;
 
   terminalClear();
