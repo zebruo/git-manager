@@ -953,18 +953,20 @@
     <h4><i class="fas fa-file-import"></i> Exercice — Récupérer un fichier depuis un commit précis</h4>
     <p class="mt-5">Restaurer un fichier à une version antérieure sans toucher aux autres fichiers.</p>
     <ol class="mt-8">
-      <li>Dans la section <strong>Récupération de fichiers</strong>, sélectionner <code>notes.md</code></li>
-      <li>Choisir l'accès rapide <strong>HEAD~1</strong> → valider — le fichier revient à sa version d'avant le dernier commit</li>
-      <li>Le fichier apparaît en <span class="status-badge modified">M</span> — ouvrir le diff pour vérifier</li>
+      <li>Dans la section <strong>Récupérer un fichier</strong>, sélectionner <code>notes.md</code></li>
+      <li>Deux listes déroulantes apparaissent :
+        <ul class="mt-5">
+              <li>Choisir dans l'accès rapide ex : <strong>HEAD~1</strong> → cliquer <strong><i class="fas fa-undo"></i> Récupérer</strong></li>
+          <li>Ou choisir dans <strong>-- Commits pour ce fichier --</strong> un commit <strong>plus ancien que le premier</strong> (le premier a le même contenu que la version actuelle) → cliquer <strong><i class="fas fa-undo"></i> Récupérer</strong></li>
+        </ul>
+      </li>
+      <li>Le fichier apparaît avec le badge <span class="status-badge added">A</span> (stagé directement) — ouvrir le diff pour vérifier</li>
       <li>Commiter la restauration avec un message explicite (ex : <code>restore: notes.md version HEAD~1</code>)</li>
     </ol>
-    <strong class="mt-8">Variante — depuis un commit précis :</strong>
-    <ol class="mt-5">
-      <li>Cliquer <strong>Historique du fichier</strong> — la liste des commits qui ont touché ce fichier s'affiche</li>
-      <li>Cliquer sur le commit voulu → le fichier est restauré à cette version exacte</li>
-    </ol>
     <div class="help-info-box mt-8">
-      La récupération ne crée pas de commit automatiquement — c'est une modification dans le working tree à commiter ensuite. On peut récupérer un seul fichier sans toucher au reste du dépôt.
+      La récupération ne crée pas de commit automatiquement — le fichier est stagé <span class="status-badge added">A</span> prêt à commiter.<br>
+      Si git-manager affiche <em>"Le fichier à ce commit est identique à la version actuelle"</em>, le commit sélectionné n'a pas changé le fichier — choisir un commit plus ancien dans la liste.<br>
+      Le commit de restauration est annulable comme n'importe quel autre : un <strong>Revert</strong> dessus remet le fichier dans l'état où il était avant la récupération.
     </div>
   </div>
 
@@ -972,8 +974,8 @@
     <h4><i class="fas fa-history"></i> Exercice — Utiliser l'historique par fichier</h4>
     <p class="mt-5">Retrouver à quel commit une modification précise a été introduite.</p>
     <ol class="mt-8">
-      <li>Dans la section <strong>Récupération de fichiers</strong>, sélectionner <code>notes.md</code></li>
-      <li>Cliquer <strong>Historique du fichier</strong> — seuls les commits qui ont modifié ce fichier apparaissent</li>
+      <li>Dans la section <strong>Récupérer un fichier</strong>, sélectionner <code>notes.md</code></li>
+      <li>La dropdown <strong>Ou choisir un commit spécifique</strong> apparaît — elle ne liste que les commits qui ont modifié ce fichier</li>
       <li>Pour chaque commit : cliquer sur le hash pour voir le détail</li>
       <li>Identifier le commit qui a introduit une ligne précise</li>
       <li>Restaurer le fichier à la version juste avant ce commit</li>

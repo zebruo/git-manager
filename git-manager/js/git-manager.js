@@ -1191,8 +1191,13 @@ async function doCheckout() {
   const result = await apiCall('checkout', { file, source });
 
   if (result.success) {
-    terminalLog(result.output || 'Fichier récupéré avec succès', 'success');
-    showAlert('success', `Fichier "${file}" récupéré avec succès`);
+    if (result.noChange) {
+      terminalLog(result.output, 'warning');
+      showAlert('warning', `Le fichier "${file}" à ce commit est identique à la version actuelle — aucun changement`);
+    } else {
+      terminalLog(result.output || 'Fichier récupéré avec succès', 'success');
+      showAlert('success', `Fichier "${file}" récupéré — badge A dans la liste`);
+    }
     loadStatus();
   } else {
     terminalLog(result.error, 'error');

@@ -27,7 +27,13 @@ switch ($action) {
         if ($result['code'] !== 0) {
             echo json_encode(['success' => false, 'error' => $result['output']]);
         } else {
-            echo json_encode(['success' => true, 'output' => $result['output'] ?: 'Fichier récupéré']);
+            $diffCheck = execGit('git diff --staged -- ' . escapeArg($file));
+            $noChange  = empty(trim($diffCheck['output']));
+            echo json_encode([
+                'success'  => true,
+                'noChange' => $noChange,
+                'output'   => $noChange ? 'Aucune modification — le fichier à ce commit est identique à la version actuelle' : ($result['output'] ?: 'Fichier récupéré'),
+            ]);
         }
         break;
 
