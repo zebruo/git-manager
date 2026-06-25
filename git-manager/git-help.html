@@ -1045,3 +1045,65 @@
   </div>
 
 </div><!-- /helpTab-exercices4 -->
+
+<div class="help-tab-panel" id="helpTab-exercices5">
+
+  <div class="help-workflow">
+    <h4><i class="fas fa-tag"></i> Exercice — Tags annotés et release GitHub</h4>
+    <p class="mt-5">Marquer une version stable avec un tag annoté et la publier sur GitHub.</p>
+    <p><strong>Prérequis :</strong> avoir <code>main</code> avec plusieurs commits et un remote configuré.</p>
+    <ol class="mt-8">
+      <li>Dans la section <strong>Tags</strong>, saisir le nom du tag (ex : <code>v1.0</code>) et un message (ex : <code>Première version stable</code>) → cliquer <strong>Créer</strong></li>
+      <li>Observer : le tag apparaît dans la liste avec son message et la date</li>
+      <li>Cliquer <strong><i class="fas fa-upload"></i> Pousser</strong> sur le tag — il est envoyé sur GitHub</li>
+      <li>Sur GitHub, aller dans <strong>Releases</strong> → le tag est visible comme release</li>
+    </ol>
+    <div class="help-info-box mt-8">
+      <strong>Tag annoté vs tag léger :</strong><br>
+      Un tag annoté contient un message, une date et l'auteur — c'est un objet Git à part entière, recommandé pour les releases.<br>
+      Un tag léger est juste un pointeur vers un commit, sans métadonnées — utile pour marquer un point temporaire en local.
+    </div>
+    <div class="help-info-box mt-8">
+      <strong>Supprimer un tag :</strong> le bouton <i class="fas fa-trash"></i> supprime le tag localement et tente automatiquement de le supprimer sur GitHub. Si le tag n'avait jamais été pushé, la suppression distante est ignorée silencieusement.
+    </div>
+  </div>
+
+  <div class="help-workflow">
+    <h4><i class="fas fa-code-branch"></i> Exercice — Branches simultanées (hotfix + feature en parallèle)</h4>
+    <p class="mt-5">Gérer un correctif urgent sans interrompre un travail en cours sur une autre branche.</p>
+    <p><strong>Prérequis :</strong> avoir <code>main</code> avec du contenu commité.</p>
+    <ol class="mt-8">
+      <li>Créer <code>feature/ajout</code> depuis <code>main</code> → y faire 1 ou 2 commits</li>
+      <li>Réaliser qu'il y a un bug urgent sur <code>main</code> — <strong>stasher</strong> les modifications en cours si besoin</li>
+      <li>Créer <code>hotfix/bug</code> depuis <code>main</code> (menu <strong>Depuis</strong> → sélectionner <code>main</code>)</li>
+      <li>Corriger le bug sur <code>hotfix/bug</code> → commiter</li>
+      <li>Basculer sur <code>main</code> → fusionner <code>hotfix/bug</code> → pusher</li>
+      <li>Supprimer <code>hotfix/bug</code></li>
+      <li>Revenir sur <code>feature/ajout</code> → fusionner <code>main</code> pour récupérer le correctif</li>
+      <li>Continuer le travail sur <code>feature/ajout</code> → merger sur <code>main</code> quand terminé</li>
+    </ol>
+    <div class="help-info-box mt-8">
+      <strong>Principe :</strong> <code>main</code> reste toujours stable — les hotfix partent de <code>main</code> et y reviennent directement. Les features partent aussi de <code>main</code> mais vivent plus longtemps. Le merge de <code>main</code> dans <code>feature</code> (étape 7) évite un conflit important lors du merge final.
+    </div>
+    <div class="help-warning-box mt-8">
+      <strong>Piège :</strong> créer <code>hotfix/bug</code> depuis <code>feature/ajout</code> au lieu de <code>main</code> — le hotfix embarquerait alors les commits de la feature, et le merge sur <code>main</code> introduirait du code non validé.
+    </div>
+  </div>
+
+  <div class="help-workflow">
+    <h4><i class="fas fa-layer-group"></i> Exercice — Multi-dépôts</h4>
+    <p class="mt-5">Gérer plusieurs projets depuis une seule interface git-manager.</p>
+    <p><strong>Prérequis :</strong> avoir <code>reposRoot</code> configuré dans <code>git-config.php</code> avec le dossier parent contenant vos dépôts.</p>
+    <ol class="mt-8">
+      <li>Ouvrir git-manager — si <code>reposRoot</code> est configuré, un sélecteur de dépôts apparaît dans l'en-tête</li>
+      <li>Sélectionner un autre dépôt dans le menu déroulant — l'interface bascule sur ce dépôt (statut, branches, historique)</li>
+      <li>Faire un commit sur ce dépôt → revenir sur le premier via le sélecteur</li>
+      <li>Observer : chaque sélection recharge complètement l'interface pour le dépôt choisi</li>
+    </ol>
+    <div class="help-info-box mt-8">
+      <strong>Configuration :</strong> dans <code>git-config.php</code>, définir <code>reposRoot</code> avec le chemin du dossier qui contient vos dépôts. git-manager scanne ce dossier et liste tous les sous-dossiers qui contiennent un <code>.git/</code>.<br><br>
+      <strong>Navigation :</strong> les pages secondaires (Clone, Auth…) conservent le dépôt actif via le paramètre <code>?repo=</code> dans l'URL — le bouton Retour ramène toujours sur le bon dépôt.
+    </div>
+  </div>
+
+</div><!-- /helpTab-exercices5 -->

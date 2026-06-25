@@ -192,7 +192,7 @@ body {
 }
 
 .modal-content.modal-large {
-  max-width: 900px;
+  max-width: 995px;
   max-height: 85vh;
   overflow: hidden;
   display: flex;
@@ -853,7 +853,7 @@ body {
   border-radius: 8px;
   padding: 20px;
   border: 1px solid var(--border-color);
-  flex: 1 1 calc(33.333% - 17px);
+  flex: 1 1 calc(50% - 17px);
   min-width: 280px;
   box-sizing: border-box;
 }
@@ -1277,6 +1277,6 @@ body {
 .panel-header.fixed-header.help-modal-header { flex-direction: column; align-items: stretch; gap: 0; padding-bottom: 8px; }
 .help-header-top { display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; }
 .help-tabs-bar { display: flex; justify-content: flex-start; gap: 0; }
-.help-tab-btn { padding: 8px 16px; background: transparent; border: none; color: var(--text-secondary); cursor: pointer; font-size: 0.9em; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.2s; }
+.help-tab-btn { padding: 8px 16px; background: transparent; border: none; color: var(--text-secondary); cursor: pointer; font-size: 0.85em; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.2s; }
 .help-tab-btn:hover { color: var(--text-primary); }
 .help-tab-btn.active { color: var(--accent-color); border-bottom-color: var(--accent-color); }
