@@ -587,6 +587,25 @@ body {
   border-color: var(--accent-color);
 }
 
+.file-commits-toggle {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+  user-select: none;
+}
+
+.file-commits-chevron {
+  font-size: 0.75em;
+  line-height: 1;
+  width: 1em;
+  text-align: center;
+  flex-shrink: 0;
+  transition: transform 0.2s;
+  color: var(--text-muted);
+}
+
 .revert-commit-btn {
   background: none;
   border: 1px solid var(--border-color);

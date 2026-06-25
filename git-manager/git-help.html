@@ -906,7 +906,7 @@
     </ol>
     <div class="help-info-box mt-8">
       <strong>Appliquer ≠ Pop</strong> : Appliquer restaure les modifications en conservant le stash — utile pour appliquer le même stash sur plusieurs branches. Pop restaure et supprime en une seule opération.<br>
-      <strong>Piège :</strong> ne pas Pop un stash qui vient d'être Appliqué — le fichier est déjà dans le working tree, Git ne peut pas l'écraser et retourne une erreur.
+      <strong>Piège :</strong> ne pas faire Pop sur un stash qui vient d'être Appliqué — le fichier est déjà dans le working tree, Git ne peut pas l'écraser et retourne une erreur.
     </div>
 
     <strong class="mt-8">Partie 3 — Stash avant changement de branche (règle fondamentale) :</strong>
@@ -929,7 +929,7 @@
   <div class="help-workflow">
     <h4><i class="fas fa-undo"></i> Exercice — Revert d'un commit</h4>
     <p class="mt-5">Comprendre qu'annuler un commit ne supprime pas l'historique — Git crée un nouveau commit inverse.</p>
-    <p><strong>Prérequis :</strong> avoir <code>notes.md</code> avec du contenu déjà commité.</p>
+    <p><strong>Prérequis : </strong> avoir un fichier <code>(ex: notes.md)</code> avec du contenu déjà commité.</p>
     <ol class="mt-8">
       <li>Faire un commit volontairement "mauvais" (ex : supprimer une ligne dans <code>notes.md</code> → message <code>bug: suppression accidentelle</code>)</li>
       <li>Dans l'historique, cliquer sur ce commit → bouton <strong><i class="fas fa-undo"></i> Revert</strong></li>
@@ -953,35 +953,51 @@
     <h4><i class="fas fa-file-import"></i> Exercice — Récupérer un fichier depuis un commit précis</h4>
     <p class="mt-5">Restaurer un fichier à une version antérieure sans toucher aux autres fichiers.</p>
     <ol class="mt-8">
-      <li>Dans la section <strong>Récupérer un fichier</strong>, sélectionner <code>notes.md</code></li>
-      <li>Deux listes déroulantes apparaissent :
-        <ul class="mt-5">
-              <li>Choisir dans l'accès rapide ex : <strong>HEAD~1</strong> → cliquer <strong><i class="fas fa-undo"></i> Récupérer</strong></li>
-          <li>Ou choisir dans <strong>-- Commits pour ce fichier --</strong> un commit <strong>plus ancien que le premier</strong> (le premier a le même contenu que la version actuelle) → cliquer <strong><i class="fas fa-undo"></i> Récupérer</strong></li>
-        </ul>
-      </li>
-      <li>Le fichier apparaît avec le badge <span class="status-badge added">A</span> (stagé directement) — ouvrir le diff pour vérifier</li>
+      <li>Dans la section <strong>Récupérer un fichier</strong>, sélectionner <code>(ex: notes.md)</code> — deux zones apparaissent : l'accès rapide et la liste des commits</li>
+      <li>Via l'accès rapide : choisir ex: <strong>HEAD~1</strong> → cliquer <strong><i class="fas fa-undo"></i> Récupérer</strong></li>
+      <li>Ou via la liste <strong><i class="fas fa-chevron-right"></i> Commits pour ce fichier</strong> : cliquer le bouton <i class="fas fa-undo"></i> sur la ligne du commit voulu</li>
+      <li>Le fichier apparaît avec le badge <span class="status-badge added">A</span> dans la liste (stagé directement) — cliquer sur son nom pour vérifier le diff</li>
       <li>Commiter la restauration avec un message explicite (ex : <code>restore: notes.md version HEAD~1</code>)</li>
     </ol>
     <div class="help-info-box mt-8">
       La récupération ne crée pas de commit automatiquement — le fichier est stagé <span class="status-badge added">A</span> prêt à commiter.<br>
-      Si git-manager affiche <em>"Le fichier à ce commit est identique à la version actuelle"</em>, le commit sélectionné n'a pas changé le fichier — choisir un commit plus ancien dans la liste.<br>
-      Le commit de restauration est annulable comme n'importe quel autre : un <strong>Revert</strong> dessus remet le fichier dans l'état où il était avant la récupération.
+      Si git-manager affiche <em>"Le fichier à ce commit est identique à la version actuelle"</em>, le commit sélectionné n'a rien changé — choisir un commit plus ancien dans la liste.<br>
+      Le commit de restauration est annulable comme n'importe quel autre : un <strong>Revert</strong> dessus remet le fichier dans l'état d'avant la récupération.
     </div>
   </div>
 
   <div class="help-workflow">
     <h4><i class="fas fa-history"></i> Exercice — Utiliser l'historique par fichier</h4>
-    <p class="mt-5">Retrouver à quel commit une modification précise a été introduite.</p>
+    <p class="mt-5">Retrouver à quel commit une modification précise a été introduite, puis restaurer la version antérieure.</p>
     <ol class="mt-8">
       <li>Dans la section <strong>Récupérer un fichier</strong>, sélectionner <code>notes.md</code></li>
-      <li>La dropdown <strong>Ou choisir un commit spécifique</strong> apparaît — elle ne liste que les commits qui ont modifié ce fichier</li>
-      <li>Pour chaque commit : cliquer sur le hash pour voir le détail</li>
-      <li>Identifier le commit qui a introduit une ligne précise</li>
-      <li>Restaurer le fichier à la version juste avant ce commit</li>
+      <li>La liste <strong>Commits pour ce fichier</strong> apparaît — elle ne montre que les commits qui ont modifié ce fichier (plus court que l'historique global)</li>
+      <li>Pour chaque commit : cliquer <i class="fas fa-search"></i> pour voir le détail (fichiers modifiés, contenu)</li>
+      <li>Identifier le commit qui a introduit la ligne à annuler</li>
+      <li>Cliquer <i class="fas fa-undo"></i> sur le commit <strong>juste en dessous</strong> (le précédent dans la liste) — c'est la version d'avant la modification</li>
+      <li>Vérifier le diff → commiter la restauration</li>
+    </ol>
+    <div class="help-info-box mt-8">
+      Le premier commit de la liste (le plus récent) a toujours le même contenu que la version actuelle — le sélectionner ne produit aucun changement visible.
+    </div>
+    <div class="help-warning-box mt-8">
+      <strong>Piège :</strong> un revert crée un nouveau commit dans l'historique par fichier — si on a reverté <code>notes.md</code>, il apparaîtra deux fois pour le même contenu dans la liste.
+    </div>
+  </div>
+
+  <div class="help-workflow">
+    <h4><i class="fas fa-trash"></i> Exercice — Annuler toutes les modifications</h4>
+    <p class="mt-5">Remettre tous les fichiers modifiés à l'état du dernier commit en une seule opération.</p>
+    <ol class="mt-8">
+      <li>Faire des modifications sur plusieurs fichiers sans commiter</li>
+      <li>Dans la section <strong>Récupérer un fichier</strong>, cliquer <strong><i class="fas fa-trash"></i> Annuler toutes les modifications</strong></li>
+      <li>Confirmer — tous les fichiers <span class="status-badge modified">M</span> reviennent à leur version du dernier commit</li>
     </ol>
     <div class="help-warning-box mt-8">
-      <strong>Piège :</strong> un revert crée un nouveau commit dans l'historique par fichier — si on a reverté <code>notes.md</code>, il apparaîtra deux fois pour le même contenu.
+      <strong>Irréversible</strong> — cette opération équivaut à <code>git checkout -- .</code> : toutes les modifications non commitées sont perdues définitivement. Les fichiers <span class="status-badge untracked">U</span> (non suivis) ne sont pas touchés.
+    </div>
+    <div class="help-info-box mt-8">
+      <strong>Différence avec Récupérer un fichier :</strong> la récupération cible un seul fichier et peut aller chercher une version ancienne. "Annuler toutes les modifications" remet tout à HEAD en une seule fois — utile pour repartir d'un état propre quand les modifications en cours ne valent pas la peine d'être gardées.
     </div>
   </div>
 

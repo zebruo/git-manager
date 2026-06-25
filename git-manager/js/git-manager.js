@@ -1144,11 +1144,21 @@ async function doRebaseAbort() {
   }
 }
 
+// Ouvrir/fermer la liste des commits par fichier
+function toggleFileCommits() {
+  const list = document.getElementById('fileCommitsList');
+  const chevron = document.getElementById('fileCommitsChevron');
+  const isOpen = list.style.display !== 'none';
+  list.style.display = isOpen ? 'none' : 'block';
+  chevron.style.transform = isOpen ? '' : 'rotate(90deg)';
+}
+
 // Charger les commits d'un fichier spécifique
 async function loadFileCommits() {
   const file = document.getElementById('checkoutFileSelect').value;
   const container = document.getElementById('fileCommitsContainer');
-  const select = document.getElementById('fileCommitsSelect');
+  const list = document.getElementById('fileCommitsList');
+  const chevron = document.getElementById('fileCommitsChevron');
 
   if (!file) {
     container.style.display = 'none';
@@ -1158,24 +1168,36 @@ async function loadFileCommits() {
   const result = await apiCall('fileLog', { file });
 
   if (result.success && result.data.length > 0) {
-    select.innerHTML = '<option value="">-- Commits pour ce fichier --</option>';
-    result.data.forEach(commit => {
-      const option = document.createElement('option');
-      option.value = commit.hash;
-      option.textContent = `${commit.hash} - ${commit.message} (${commit.date})`;
-      select.appendChild(option);
-    });
+    list.innerHTML = result.data.map(commit => `
+      <div class="commit-item">
+        <div class="commit-details">
+          <span class="commit-hash">${commit.hash}</span>
+          <div class="commit-message">${commit.message}</div>
+          <div class="commit-meta"><span><i class="fas fa-calendar"></i>${commit.date}</span></div>
+        </div>
+        <div class="commit-actions" style="gap:5px;display:flex;">
+          <button class="checkout-commit-btn" onclick="showCommitDetail('${commit.hash}')" title="Voir le détail de ce commit">
+            <i class="fas fa-search"></i>
+          </button>
+          <button class="checkout-commit-btn" onclick="doCheckout('${commit.hash}')" title="Restaurer le fichier à cette version">
+            <i class="fas fa-undo"></i>
+          </button>
+        </div>
+      </div>
+    `).join('');
+    // Liste fermée par défaut, chevron remis à zéro
+    list.style.display = 'none';
+    chevron.style.transform = '';
     container.style.display = 'block';
   } else {
     container.style.display = 'none';
   }
 }
 
-// Checkout un fichier
-async function doCheckout() {
+// Checkout un fichier — sourceOverride fourni par le bouton Récupérer d'une ligne de la liste
+async function doCheckout(sourceOverride) {
   const file = document.getElementById('checkoutFileSelect').value;
-  const fileCommit = document.getElementById('fileCommitsSelect').value;
-  const source = fileCommit || document.getElementById('checkoutSource').value;
+  const source = sourceOverride || document.getElementById('checkoutSource').value;
 
   if (!file) {
     showAlert('error', 'Veuillez sélectionner un fichier');
