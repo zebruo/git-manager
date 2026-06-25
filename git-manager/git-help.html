@@ -1070,23 +1070,53 @@
 
   <div class="help-workflow">
     <h4><i class="fas fa-code-branch"></i> Exercice — Branches simultanées (hotfix + feature en parallèle)</h4>
-    <p class="mt-5">Gérer un correctif urgent sans interrompre un travail en cours sur une autre branche.</p>
-    <p><strong>Prérequis :</strong> avoir <code>main</code> avec du contenu commité.</p>
-    <ol class="mt-8">
-      <li>Créer <code>feature/ajout</code> depuis <code>main</code> → y faire 1 ou 2 commits</li>
-      <li>Réaliser qu'il y a un bug urgent sur <code>main</code> — <strong>stasher</strong> les modifications en cours si besoin</li>
-      <li>Créer <code>hotfix/bug</code> depuis <code>main</code> (menu <strong>Depuis</strong> → sélectionner <code>main</code>)</li>
-      <li>Corriger le bug sur <code>hotfix/bug</code> → commiter</li>
-      <li>Basculer sur <code>main</code> → fusionner <code>hotfix/bug</code> → pusher</li>
+    <p class="mt-5">Cet exercice simule une situation réelle très fréquente en équipe : tu es en train de développer une feature non terminée, et on te signale un bug urgent en production.</p>
+    <p class="mt-8"><strong>Tu ne peux pas :</strong></p>
+    <ul class="mt-5">
+      <li>Attendre de finir la feature avant de corriger le bug</li>
+      <li>Commiter ton travail inachevé sur <code>main</code></li>
+      <li>Créer le hotfix depuis ta feature (sinon le correctif embarquerait du code non terminé)</li>
+    </ul>
+    <p class="mt-8"><strong>Donc tu dois :</strong></p>
+    <ul class="mt-5">
+      <li>Mettre ta feature en pause proprement (stash)</li>
+      <li>Créer un hotfix directement depuis <code>main</code> — qui est stable</li>
+      <li>Corriger, merger sur <code>main</code>, pusher en production</li>
+      <li>Revenir sur ta feature comme si de rien n'était</li>
+    </ul>
+    <p class="mt-8"><strong>Compétences entraînées :</strong></p>
+    <ul class="mt-5">
+      <li>Utiliser le stash pour interrompre un travail sans perdre de contenu</li>
+      <li>Créer une branche depuis une autre branche que celle en cours (menu <strong>Depuis</strong> → <code>main</code>)</li>
+      <li>Comprendre pourquoi <code>hotfix</code> part de <code>main</code> et pas de <code>feature</code></li>
+      <li>Merger <code>main</code> dans <code>feature</code> après le correctif pour éviter un conflit lors du merge final</li>
+    </ul>
+    <p class="mt-8"><strong>Prérequis :</strong> avoir <code>main</code> avec au moins 2 fichiers committés (ex : <code>notes.md</code> et <code>README.md</code>) et un remote configuré.</p>
+    <p class="mt-5"><strong>Partie 1 — Démarrer une feature</strong></p>
+    <ol class="mt-5">
+      <li>Sur <code>main</code> : créer <code>feature/ajout</code> (le basculement sur la nouvelle branche est automatique)</li>
+      <li>Modifier <code>notes.md</code> (présent sur <code>feature/ajout</code> puisque créé depuis <code>main</code>) → commiter (ex : <code>feat: ajout section intro</code>)</li>
+      <li>Modifier à nouveau <code>notes.md</code> sans commiter — laisser ces modifications en cours</li>
+    </ol>
+    <p class="mt-8"><strong>Partie 2 — Interruption : bug urgent sur main</strong></p>
+    <ol class="mt-5">
+      <li>Toujours sur <code>feature/ajout</code>, des modifications sont en cours (non commitées) → <strong>Mettre de côté</strong> (stash) avec le message <code>wip: feature en cours</code></li>
+      <li>Le working tree est propre — créer <code>hotfix/bug</code> en choisissant <code>main</code> dans le menu <strong>Depuis</strong> — le basculement sur <code>hotfix/bug</code> est automatique</li>
+      <li>Corriger le bug dans <code>README.md</code> (présent sur hotfix/bug puisque créé depuis <code>main</code>, indépendant de ta feature) → commiter (ex : <code>fix: correction bug critique</code>)</li>
+      <li>Basculer sur <code>main</code> → fusionner <code>hotfix/bug</code> → <strong>Pusher</strong></li>
       <li>Supprimer <code>hotfix/bug</code></li>
-      <li>Revenir sur <code>feature/ajout</code> → fusionner <code>main</code> pour récupérer le correctif</li>
-      <li>Continuer le travail sur <code>feature/ajout</code> → merger sur <code>main</code> quand terminé</li>
+    </ol>
+    <p class="mt-8"><strong>Partie 3 — Reprendre la feature</strong></p>
+    <ol class="mt-5">
+      <li>Basculer sur <code>feature/ajout</code> → <strong>Pop</strong> le stash pour retrouver les modifications en cours</li>
+      <li>Fusionner <code>main</code> dans <code>feature/ajout</code> pour récupérer le correctif du hotfix</li>
+      <li>Continuer le travail → commiter → basculer sur <code>main</code> → fusionner <code>feature/ajout</code></li>
     </ol>
     <div class="help-info-box mt-8">
-      <strong>Principe :</strong> <code>main</code> reste toujours stable — les hotfix partent de <code>main</code> et y reviennent directement. Les features partent aussi de <code>main</code> mais vivent plus longtemps. Le merge de <code>main</code> dans <code>feature</code> (étape 7) évite un conflit important lors du merge final.
+      <strong>Pourquoi créer hotfix depuis main et pas depuis feature/ajout ?</strong> Si hotfix partait de <code>feature/ajout</code>, le merge sur <code>main</code> embarquerait aussi les commits de la feature — du code non terminé et non validé arriverait sur <code>main</code>.
     </div>
-    <div class="help-warning-box mt-8">
-      <strong>Piège :</strong> créer <code>hotfix/bug</code> depuis <code>feature/ajout</code> au lieu de <code>main</code> — le hotfix embarquerait alors les commits de la feature, et le merge sur <code>main</code> introduirait du code non validé.
+    <div class="help-info-box mt-8">
+      <strong>Pourquoi fusionner main dans feature (partie 3, étape 2) ?</strong> Pour que <code>feature/ajout</code> soit au courant du correctif avant le merge final — sinon le merge de feature sur main pourrait recréer le bug si les deux branches ont modifié la même zone.
     </div>
   </div>
 
@@ -1101,7 +1131,7 @@
       <li>Observer : chaque sélection recharge complètement l'interface pour le dépôt choisi</li>
     </ol>
     <div class="help-info-box mt-8">
-      <strong>Configuration :</strong> dans <code>git-config.php</code>, définir <code>reposRoot</code> avec le chemin du dossier qui contient vos dépôts. git-manager scanne ce dossier et liste tous les sous-dossiers qui contiennent un <code>.git/</code>.<br><br>
+      <strong>Configuration :</strong> dans <code>git-config.php</code>, définir <code>reposRoot</code> avec le chemin du dossier qui contient vos dépôts. git-manager scanne ce dossier et liste tous les sous-dossiers qui contiennent un <code>.git/</code>.<br>
       <strong>Navigation :</strong> les pages secondaires (Clone, Auth…) conservent le dépôt actif via le paramètre <code>?repo=</code> dans l'URL — le bouton Retour ramène toujours sur le bon dépôt.
     </div>
   </div>

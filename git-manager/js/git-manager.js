@@ -862,8 +862,7 @@ async function revertCommit(hash, message) {
   if (result.success) {
     terminalLog(result.output, 'success');
     showAlert('success', 'Commit annulé avec succès');
-    loadStatus();
-    loadHistory();
+    refreshAll();
   } else {
     terminalLog(result.error, 'error');
     showAlert('error', 'Erreur: ' + result.error);
