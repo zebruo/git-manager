@@ -17,6 +17,7 @@
     <h1>
       <i class="fas fa-clone"></i>
       <span>Cloner un dépôt</span>
+      <span id="modeBadge" style="display:none"></span>
     </h1>
     <div class="header-actions">
       <button onclick="navigateBack()" title="Retour au gestionnaire">
@@ -32,28 +33,52 @@
   <div class="container">
     <div id="alertContainer"></div>
 
+    <div class="cards-row">
     <div class="card">
-      <div class="info-box info-box-prereq">
-        <i class="fas fa-info-circle"></i>
-        <div>
-          <p><strong>Prérequis</strong> — Le dossier /git-manager doit déjà être en place sur un projet existant. Le dépôt est toujours cloné dans le <strong>dossier parent du projet actuel</strong> : <code class="parent-path">…</code></p>
+      <div id="infoEmbedded">
+        <div class="info-box info-box-prereq">
+          <i class="fas fa-info-circle"></i>
+          <div>
+            <p><strong>Prérequis</strong> — Le dossier /git-manager doit déjà être en place sur un projet existant. Le dépôt est toujours cloné dans le <strong>dossier parent du projet actuel</strong> : <code class="parent-path">…</code></p>
+          </div>
+        </div>
+        <div class="info-box info-box-steps">
+          <i class="fas fa-list-ol"></i>
+          <div>
+            <p><strong>Mode opératoire</strong></p>
+            <ol>
+              <li>Créer un virtual host Apache pour le nouveau dépôt (avant le clonage).</li>
+              <li>Cloner le dépôt ci-dessous.</li>
+              <li>Renommer <code>git-config.example.php</code> en <code>git-config.php</code> et renseigner identité Git et chemin SSH.</li>
+              <li>Accéder à <code>http://[nom-du-projet]/git-manager/git-manager.html</code>.</li>
+              <li>Si ce dépôt est destiné à un nouveau projet : modifier ou supprimer le remote origin (il pointe encore vers le dépôt cloné).</li>
+            </ol>
+            <p class="info-note">Ouvrir le dossier via l'Explorateur Windows (file://) ne fonctionnera pas — PHP doit être exécuté par Apache.</p>
+          </div>
         </div>
       </div>
-      <div class="info-box info-box-steps">
-        <i class="fas fa-list-ol"></i>
-        <div>
-          <p><strong>Mode opératoire</strong></p>
-          <ol>
-            <li>Créer un virtual host Apache pour le nouveau dépôt (avant le clonage).</li>
-            <li>Cloner le dépôt ci-dessous.</li>
-            <li>Renommer <code>git-config.example.php</code> en <code>git-config.php</code> et renseigner identité Git et chemin SSH.</li>
-            <li>Accéder à <code>http://[nom-du-projet]/git-manager/git-manager.html</code>.</li>
-            <li>Si ce dépôt est destiné à un nouveau projet : modifier ou supprimer le remote origin (il pointe encore vers le dépôt cloné).</li>
-          </ol>
-          <p class="info-note">Ouvrir le dossier via l'Explorateur Windows (file://) ne fonctionnera pas — PHP doit être exécuté par Apache.</p>
+      <div id="infoStandalone" style="display:none">
+        <div class="info-box info-box-prereq">
+          <i class="fas fa-layer-group"></i>
+          <div>
+            <p><strong>Mode multi-dépôts</strong> — Le dépôt sera cloné dans : <code class="parent-path">…</code></p>
+            <p>Les fichiers git-manager ne sont pas copiés — cette installation est partagée entre tous les dépôts.</p>
+          </div>
+        </div>
+        <div class="info-box info-box-steps">
+          <i class="fas fa-list-ol"></i>
+          <div>
+            <p><strong>Mode opératoire</strong></p>
+            <ol>
+              <li>Cloner le dépôt ci-dessous.</li>
+              <li>Il apparaît automatiquement dans le sélecteur de dépôts.</li>
+              <li>Accéder depuis le point d'entrée git-manager via le sélecteur.</li>
+            </ol>
+          </div>
         </div>
       </div>
-      <h2><i class="fab fa-github"></i> Dépôt à cloner</h2>
+      <h2><i class="fab fa-github"></i> Cloner un dépôt existant</h2>
+      <p class="card-intro">Copie un dépôt distant (GitHub, GitLab…) en local. Requiert une URL.</p>
 
       <div class="form-group">
         <label for="repoUrl">URL du dépôt</label>
@@ -62,12 +87,11 @@
       </div>
 
       <div class="form-group">
-        <label for="folderName">Nom du dossier (optionnel)</label>
+        <label for="folderName">Nom du dossier local <span class="label-optional">(optionnel — déduit de l'URL si vide)</span></label>
         <input type="text" id="folderName" placeholder="Laissez vide pour utiliser le nom du dépôt">
-        <small>Le dépôt sera cloné dans le dossier parent de l'emplacement actuel</small>
       </div>
 
-      <div class="checkbox-group">
+      <div class="checkbox-group" id="checkboxCopyGitManager">
         <input type="checkbox" id="copyGitManager" checked>
         <div>
           <label for="copyGitManager">Copier les fichiers Git Manager</label>
@@ -90,16 +114,41 @@
         <p>Emplacement :</p>
         <div class="path" id="resultPath"></div>
         <p id="resultFiles"></p>
-        <p class="result-url">
+        <p class="result-url" id="resultUrl">
           URL git-manager (étape 4) voir Mod op en haut de la page :<br>
           <a id="openRepoBtn" href="#" target="_blank"></a>
         </p>
       </div>
     </div>
 
+    <div class="card" id="cardNewRepo" style="display:none">
+      <h2><i class="fas fa-folder-plus"></i> Créer un dépôt vierge</h2>
+      <p class="card-intro">Démarre un projet from scratch (de zéro). Crée le dossier et lance <code>git init</code> dans : <code class="parent-path">…</code></p>
+      <div class="form-group">
+        <label for="newRepoName">Nom du dépôt</label>
+        <input type="text" id="newRepoName" placeholder="mon-projet">
+        <small>Lettres, chiffres, tirets et underscores uniquement</small>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="initRepo()" id="initRepoBtn">
+          <i class="fas fa-folder-plus"></i> Créer le dépôt
+        </button>
+      </div>
+      <div class="loading" id="loadingNewRepo">
+        <i class="fas fa-spinner"></i> Création en cours...
+      </div>
+      <div class="result-box" id="resultNewRepo">
+        <h3><i class="fas fa-check-circle result-success-icon"></i> Dépôt créé !</h3>
+        <p>Emplacement :</p>
+        <div class="path" id="resultNewRepoPath"></div>
+        <p>Le dépôt est maintenant disponible dans le sélecteur.</p>
+      </div>
+    </div>
+    </div>
+
     <div class="card">
-      <h2><i class="fas fa-folder"></i> Dossiers existants</h2>
-      <p class="folders-desc">
+      <h2 id="foldersTitle"><i class="fas fa-folder"></i> Dossiers existants</h2>
+      <p class="folders-desc" id="foldersDesc">
         Dépôts et dossiers dans le répertoire parent :<br>
         <span class="parent-path"></span>
       </p>

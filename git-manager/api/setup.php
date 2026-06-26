@@ -1,11 +1,12 @@
 <?php
-/** @var string $action */
-/** @var array  $input */
-/** @var string $repoPath */
-/** @var string $safeRepoPath */
-/** @var bool   $isGitRepoCheck */
-/** @var string $gitUserName */
-/** @var string $gitUserEmail */
+/** @var string      $action */
+/** @var array       $input */
+/** @var string      $repoPath */
+/** @var string      $safeRepoPath */
+/** @var bool        $isGitRepoCheck */
+/** @var string      $gitUserName */
+/** @var string      $gitUserEmail */
+/** @var string|null $reposRoot */
 // Actions pré-dépôt : checkRepo, init, clone, listFolders, listRemoteBranches, resetRemote
 
 switch ($action) {
@@ -59,14 +60,15 @@ switch ($action) {
 
         $url = $input['url'] ?? '';
         $targetDir = $input['targetDir'] ?? '';
-        $copyGitManager = $input['copyGitManager'] ?? true;
+        $isStandaloneClone = !empty($reposRoot);
+        $copyGitManager = $isStandaloneClone ? false : ($input['copyGitManager'] ?? true);
 
         if (empty($url)) { echo json_encode(['success' => false, 'error' => 'URL du dépôt requise']); break; }
         if (!preg_match('/^(https?:\/\/|git@)/', $url)) {
             echo json_encode(['success' => false, 'error' => 'URL invalide. Utilisez une URL HTTPS ou SSH.']); break;
         }
 
-        $parentDir = dirname($repoPath);
+        $parentDir = $isStandaloneClone ? $reposRoot : dirname($repoPath);
 
         if (empty($targetDir)) {
             $cleanUrl = rtrim($url, '/');
@@ -180,34 +182,73 @@ switch ($action) {
             'success' => true,
             'output' => $message,
             'data' => [
-                'path'        => $fullTargetPath,
-                'folderName'  => $targetDir,
-                'subfolder'   => $subfolder,
-                'copiedFiles' => $copiedFiles,
-                'copyErrors'  => $copyErrors,
+                'path'         => $fullTargetPath,
+                'folderName'   => $targetDir,
+                'subfolder'    => $subfolder,
+                'copiedFiles'  => $copiedFiles,
+                'copyErrors'   => $copyErrors,
+                'isStandalone' => $isStandaloneClone,
             ]
         ]);
         break;
 
     case 'listFolders':
-        $parentDir = dirname($repoPath);
+        $isStandaloneList = !empty($reposRoot);
+        $scanDir = $isStandaloneList ? $reposRoot : dirname($repoPath);
         $folders = [];
 
-        if (is_dir($parentDir)) {
-            $items = scandir($parentDir);
+        if (is_dir($scanDir)) {
+            $items = scandir($scanDir);
             foreach ($items as $item) {
                 if ($item === '.' || $item === '..') continue;
-                $itemPath = $parentDir . DIRECTORY_SEPARATOR . $item;
+                $itemPath = $scanDir . DIRECTORY_SEPARATOR . $item;
                 if (is_dir($itemPath)) {
                     $folders[] = [
-                        'name' => $item,
+                        'name'      => $item,
                         'isGitRepo' => is_dir($itemPath . DIRECTORY_SEPARATOR . '.git')
                     ];
                 }
             }
         }
 
-        echo json_encode(['success' => true, 'data' => ['parentDir' => $parentDir, 'folders' => $folders]]);
+        echo json_encode(['success' => true, 'data' => [
+            'parentDir'    => $scanDir,
+            'folders'      => $folders,
+            'isStandalone' => $isStandaloneList,
+        ]]);
+        break;
+
+    case 'initRepo':
+        if (empty($reposRoot)) {
+            echo json_encode(['success' => false, 'error' => 'reposRoot non configuré — cette action nécessite le mode multi-dépôts']); break;
+        }
+
+        $newName = preg_replace('/[^a-zA-Z0-9_\-\.]/', '', $input['name'] ?? '');
+        if (empty($newName)) { echo json_encode(['success' => false, 'error' => 'Nom de dépôt invalide']); break; }
+
+        $newPath = $reposRoot . DIRECTORY_SEPARATOR . $newName;
+        if (file_exists($newPath)) { echo json_encode(['success' => false, 'error' => "Le dossier '{$newName}' existe déjà"]); break; }
+
+        if (!@mkdir($newPath, 0755, true)) {
+            echo json_encode(['success' => false, 'error' => "Impossible de créer le dossier '{$newName}'"]); break;
+        }
+
+        putenv("GIT_DIR");
+        putenv("GIT_WORK_TREE");
+        $safeNewPath = str_replace('\\', '/', $newPath);
+        $initOutput = [];
+        $initCode = 0;
+        exec("git -C \"{$safeNewPath}\" init -b main 2>&1", $initOutput, $initCode);
+
+        if ($initCode !== 0) {
+            echo json_encode(['success' => false, 'error' => implode("\n", $initOutput)]); break;
+        }
+
+        exec("git config --global --add safe.directory \"{$safeNewPath}\" 2>&1");
+        if (!empty($gitUserName))  exec("git -C \"{$safeNewPath}\" config user.name \"{$gitUserName}\" 2>&1");
+        if (!empty($gitUserEmail)) exec("git -C \"{$safeNewPath}\" config user.email \"{$gitUserEmail}\" 2>&1");
+
+        echo json_encode(['success' => true, 'data' => ['name' => $newName, 'path' => $newPath]]);
         break;
 
     case 'listRemoteBranches':

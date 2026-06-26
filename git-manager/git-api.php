@@ -120,7 +120,7 @@ function cleanEmptyDirs(string $dir, array $excludeDirs = ['.git', 'git-manager'
 // ── Dispatcher ────────────────────────────────────────────────────────────────
 
 // Actions pré-dépôt (pas besoin d'un dépôt Git existant)
-$preRepoActions = ['checkRepo', 'init', 'clone', 'listFolders', 'listRemoteBranches', 'resetRemote'];
+$preRepoActions = ['checkRepo', 'init', 'clone', 'listFolders', 'listRemoteBranches', 'resetRemote', 'initRepo'];
 if (in_array($action, $preRepoActions)) {
     require __DIR__ . '/api/setup.php';
     exit;

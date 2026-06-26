@@ -163,6 +163,41 @@
   margin-right: 10px;
 }
 
+#modeBadge {
+  font-size: 0.55em;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--accent-color) 15%, transparent);
+  color: var(--accent-color);
+  border: 1px solid color-mix(in srgb, var(--accent-color) 30%, transparent);
+  vertical-align: middle;
+  letter-spacing: 0.03em;
+}
+
+.cards-row {
+  display: flex;
+  gap: 20px;
+  align-items: stretch;
+}
+
+.cards-row .card {
+  flex: 1;
+  min-width: 0;
+}
+
+.card-intro {
+  color: var(--text-secondary);
+  font-size: 0.92em;
+  margin: -4px 0 20px 0;
+}
+
+.label-optional {
+  font-weight: 400;
+  font-size: 0.88em;
+  color: var(--text-secondary);
+}
+
 .info-box-prereq { margin-bottom: 12px; }
 .info-box-steps  { margin-bottom: 20px; }
 .info-box p:last-child { margin-bottom: 0; }

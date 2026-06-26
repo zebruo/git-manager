@@ -41,6 +41,12 @@
   padding: 8px;
   border-radius: 6px;
 }
+.help-muted {
+  font-weight: 400;
+  font-size: 0.88em;
+  color: var(--text-secondary);
+}
+
 .help-notice {
   padding: 8px;
   background: color-mix(in srgb, var(--warning-color) 10%, transparent);

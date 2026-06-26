@@ -500,13 +500,13 @@
   <div class="help-category">
     <h4><i class="fas fa-clone"></i> Cloner un dépôt</h4>
     <dl>
-      <dt><a href="git-clone.html" class="link-accent">Page de clonage</a></dt>
-      <dd>Permet de cloner un dépôt GitHub existant vers votre machine. Les fichiers Git Manager sont automatiquement
-        copiés dans le nouveau dépôt.</dd>
+      <dt><a href="git-clone.html" class="link-accent">Cloner un dépôt existant</a></dt>
+      <dd>Copie un dépôt distant (GitHub, GitLab…) en local à partir de son URL. Le comportement varie selon la configuration :</dd>
     </dl>
     <div class="help-info-box">
-      <div><strong>Fichiers copiés :</strong></div>
-      <div class="mt-5">git-manager.html, git-api.php, git-config.example.php, git-clone.html,
+      <div><strong>Mode embarqué</strong> <span class="help-muted">(sans reposRoot)</span></div>
+      <div class="mt-5">Le dépôt est cloné dans le dossier parent du projet actuel. Les fichiers git-manager sont copiés automatiquement dans le nouveau dépôt.</div>
+      <div class="mt-5">Fichiers copiés : git-manager.html, git-api.php, git-config.example.php, git-clone.html,
         git-reset-remote.html, git-auth.html, git-help.html, index.html, flavicon.svg</div>
       <div class="mt-5">Sous-dossiers copiés intégralement : <code>api/</code>, <code>css/</code>, <code>js/</code></div>
       <div class="help-info-box mt-8">
@@ -519,6 +519,14 @@
         <div class="help-notice mt-8">Ouvrir le dossier via l'Explorateur Windows (<code>file://</code>) ne fonctionnera pas — PHP doit être exécuté par Apache.</div>
       </div>
     </div>
+    <div class="help-info-box mt-8">
+      <div><strong>Mode multi-dépôts</strong> <span class="help-muted">(reposRoot configuré)</span></div>
+      <div class="mt-5">Le dépôt est cloné directement dans <code>reposRoot</code> — les fichiers git-manager ne sont pas copiés, une seule installation est partagée. Le dépôt apparaît automatiquement dans le sélecteur.</div>
+    </div>
+    <dl class="mt-8">
+      <dt><a href="git-clone.html" class="link-accent">Créer un dépôt vierge</a> <span class="help-muted">(mode multi-dépôts uniquement)</span></dt>
+      <dd>Démarre un projet from scratch (de zéro) : saisir un nom, un dossier est créé dans <code>reposRoot</code> et <code>git init</code> est lancé automatiquement. Le dépôt apparaît immédiatement dans le sélecteur, sans toucher la ligne de commande.</dd>
+    </dl>
   </div>
   <div class="help-category">
     <h4><i class="fas fa-eraser"></i> Réinitialiser le dépôt distant</h4>
