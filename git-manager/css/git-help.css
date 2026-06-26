@@ -30,6 +30,7 @@
   border-radius: 6px;
   line-height: 1.8;
 }
+.help-code-box .syn-comment { font-size: 0.82em; }
 .help-mono-box {
   font-family: 'Consolas', monospace;
   line-height: 1.8;

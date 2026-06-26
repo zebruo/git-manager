@@ -122,27 +122,68 @@
       </section>
 
       <section class="git-section">
+        <h2><i class="fas fa-layer-group"></i> Mode multi-dépôts</h2>
+        <h3 class="mt-15">Distinction mode embedded (embarqué) vs standalone (autonome).</h3>
+        <p>Par défaut, git-manager est installé dans chaque projet (embarqué) (<code>mon-projet/git-manager/</code>). Pour gérer plusieurs dépôts depuis une seule interface, utilisez le mode <strong>autonome</strong>.</p>
+        <h3 class="mt-15">Exemple d'installation autonome</h3>
+        <p class="mt-15">Placez git-manager dans un dossier dédié avec son propre virtual host, en dehors de vos projets :</p>
+        <div class="tree-view mt-10">C:/repos/                      &lt;- reposRoot = C:/repos/
+├── gm-host/                   &lt;- Virtual host dédié (ex : git-manager.local)
+│   └── git-manager/           &lt;- L'application git-manager (point d'entrée pas de .git/ → ignoré)
+├── project-a/                 &lt;- Affiché dans le sélecteur
+│   └── .git/                  &lt;- Dépôt Git → Créé lors du git init
+├── project-b/                 &lt;- Affiché dans le sélecteur
+│   └── .git/                  &lt;- Dépôt Git → Créé lors du git init
+└── project-c/                 &lt;- Affiché dans le sélecteur
+    └── .git/                  &lt;- Dépôt Git → Créé lors du git init</div>
+        <p class="mt-10">Dans <code>git-config.php</code>, configurez <code>reposRoot</code> avec le chemin du dossier parent :</p>
+        <pre><code><span class="code-string">'reposRoot'</span> => <span class="code-string">'C:/sites/projets'</span>,</code></pre>
+
+        <h3 class="mt-15">Comment ça fonctionne</h3>
+        <ul class="mt-10">
+          <li>Sélectionner un dépôt bascule toute l'interface sur ce dépôt (statut, branches, historique…)</li>
+          <li>Les autres projets n'ont <strong>pas besoin</strong> d'un dossier <code>git-manager/</code></li>
+          <li>Un seul virtual host suffit pour gérer tous vos dépôts git</li>
+          <li><strong>Sélecteur</strong> : menu déroulant affiché dans le header à côté du nom du dépôt courant — masqué si <code>reposRoot</code> est vide ou absent</li>
+          <li><strong>Scan</strong> : liste uniquement les sous-dossiers directs de <code>reposRoot</code> qui contiennent un <code>.git/</code></li>
+          <li><strong>Sécurité</strong> : chaque chemin est validé avec <code>realpath()</code> pour éviter toute traversée de répertoire</li>
+        </ul>
+        <p class="text-note mt-10"><i class="fas fa-info-circle"></i> Le mode multi-dépôts gère uniquement les opérations git. Pour accéder à l'application web d'un autre projet dans le navigateur, son propre virtual host reste nécessaire.</p>
+        <p class="text-note mt-10"><i class="fas fa-exclamation-triangle text-warning"></i> Seuls les sous-dossiers directs contenant un <code>.git/</code> sont listés. Si vous déplacez votre dossier de projets, pensez à mettre à jour le chemin <code>reposRoot</code> dans <code>git-config.php</code>.</p>
+      </section>
+
+      <section class="git-section">
         <h2><i class="fas fa-lightbulb"></i> Cas d'utilisation</h2>
         <div class="use-cases">
           <div class="card">
             <i class="fas fa-plus-circle fa-2x" class="text-accent"></i>
-            <h3>Nouveau Projet</h3>
+            <h3>Nouveau projet</h3>
             <p>Initialisez un nouveau dépôt ou clonez une source existante.</p>
           </div>
           <div class="card">
             <i class="fas fa-code-branch fa-2x" class="text-accent"></i>
             <h3>Branches</h3>
-            <p>Créez, basculez et fusionnez vos branches de développement.</p>
+            <p>Créez, basculez et fusionnez vos branches. Gérez les rebases avec les boutons Continuer / Abandonner.</p>
           </div>
           <div class="card">
             <i class="fas fa-history fa-2x" class="text-accent"></i>
-            <h3>Historique</h3>
-            <p>Parcourez vos commits et restaurez des versions précédentes.</p>
+            <h3>Historique & Récupération</h3>
+            <p>Parcourez vos commits, consultez l'historique par fichier et restaurez une version précise.</p>
           </div>
           <div class="card">
-            <i class="fas fa-cloud-sync fa-2x" class="text-accent"></i>
+            <i class="fas fa-tag fa-2x" class="text-accent"></i>
+            <h3>Tags & Releases</h3>
+            <p>Créez des tags annotés et publiez des releases directement sur GitHub.</p>
+          </div>
+          <div class="card">
+            <i class="fas fa-box fa-2x" class="text-accent"></i>
+            <h3>Stash</h3>
+            <p>Mettez de côté vos modifications en cours sans commiter et reprenez-les quand vous voulez.</p>
+          </div>
+          <div class="card">
+            <i class="fas fa-cloud-upload-alt fa-2x" class="text-accent"></i>
             <h3>Synchronisation</h3>
-            <p>Push et Pull pour synchroniser avec GitHub ou GitLab.</p>
+            <p>Push, pull et fetch pour synchroniser avec GitHub ou GitLab.</p>
           </div>
         </div>
       </section>

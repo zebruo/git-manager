@@ -1,0 +1,68 @@
+Git Manager — Installation rapide
+==================================
+
+PRÉREQUIS
+---------
+- PHP 7.4+ avec Apache (XAMPP, WAMP, Laragon, etc.)
+- Git installé sur le serveur (vérifier : git --version)
+- Sur Windows : Git for Windows recommandé (https://git-scm.com/download/win)
+
+
+INSTALLATION
+------------
+1. Copiez le dossier git-manager/ à la racine de votre projet
+   (si le dossier extrait porte un numéro de version ex: git-manager-1.3.0/,
+   renommez-le en git-manager/)
+
+2. Créez un virtual host Apache pointant vers votre projet
+
+3. Renommez git-manager/git-config.example.php en git-manager/git-config.php
+   et renseignez vos informations :
+
+     'userName'  => 'votre-username',
+     'userEmail' => 'votre-email@example.com',
+     'sshKeyPath' => 'C:/Users/votre-nom/.ssh/id_rsa',  // facultatif
+
+4. Ouvrez http://votre-projet.local/git-manager/ dans le navigateur
+
+
+MODE MULTI-DÉPÔTS (facultatif) avec un dossier racine ex: repos
+------------------------------
+Pour gérer plusieurs dépôts depuis une seule interface, ajoutez dans git-config.php :
+
+     'reposRoot' => 'C:/repos',
+
+Structure recommandée :
+
+  C:/repos/
+  ├── gm-host/          <- virtual host (point d'entrée)
+  │   └── git-manager/
+  ├── project-a/        <- détecté automatiquement dans le sélecteur
+  │   └── .git/
+  └── project-b/        <- détecté automatiquement dans le sélecteur
+      └── .git/
+
+Seuls les sous-dossiers directs de reposRoot contenant un .git/ sont listés.
+
+
+AUTHENTIFICATION GITHUB
+-----------------------
+Trois méthodes supportées (dans l'ordre de simplicité) :
+
+  1. Token dans l'URL du remote
+     https://TOKEN@github.com/user/repo.git
+     → aucune configuration supplémentaire
+
+  2. Credential Manager (Windows)
+     git config --global credential.helper wincred
+     → aucune configuration supplémentaire
+
+  3. Clé SSH
+     → renseigner sshKeyPath dans git-config.php
+
+
+NOTES
+-----
+- git-config.php est ignoré par .gitignore (données personnelles non versionnées)
+- Un bandeau orange s'affiche si git-config.php n'est pas configuré
+- Documentation complète : git-manager/index.html

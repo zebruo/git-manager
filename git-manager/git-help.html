@@ -481,16 +481,17 @@
     <div class="help-info-box">
       <div class="mb-8"><strong>Configuration dans <code>git-config.php</code> :</strong></div>
       <div class="help-code-box">
-        <div><span class="syn-string">'reposRoot'</span> => <span class="syn-string">'C:/Users/votre-nom/projets'</span>,</div>
+        <div><span class="syn-string">'reposRoot'</span> => <span class="syn-string">'C:/repos'</span>,</div>
       </div>
-      <div class="mt-10 mb-8"><strong>Structure attendue :</strong></div>
+      <div class="mt-10 mb-8"><strong>Exemple de structure attendue :</strong></div>
       <div class="help-code-box">
-        <div>projets/</div>
-        <div>&nbsp; ├── mon-site/        <span class="syn-comment">&lt;- affiché dans le menu</span></div>
-        <div>&nbsp; │   └── .git/</div>
-        <div>&nbsp; ├── api-projet/      <span class="syn-comment">&lt;- affiché dans le menu</span></div>
-        <div>&nbsp; │   └── .git/</div>
-        <div>&nbsp; └── dossier-sans-git/ <span class="syn-comment">&lt;- ignoré</span></div>
+        <div>C:/repos/</div>
+        <div>&nbsp; ├── gm-host/         <span class="syn-comment">&lt;- virtual host, pas de .git/ → ignoré</span></div>
+        <div>&nbsp; │   └── git-manager/  <span class="syn-comment">&lt;- l'application (point d'entrée)</span></div>
+        <div>&nbsp; ├── mon-site/         <span class="syn-comment">&lt;- affiché dans le sélecteur</span></div>
+        <div>&nbsp; │   └── .git/             <span class="syn-comment">&lt;- Dépôt Git → Créé lors du git init</span></div>
+        <div>&nbsp; └── api-projet/       <span class="syn-comment">&lt;- affiché dans le sélecteur</span></div>
+        <div>&nbsp; &nbsp; &nbsp; └── .git/ <span class="syn-comment">&lt;- Dépôt Git → Créé lors du git init</span></div>
       </div>
       <div class="mt-8">Seuls les sous-dossiers <strong>directs</strong> contenant un <code>.git/</code> sont listés.</div>
       <div class="mt-8"><i class="fas fa-info-circle"></i> Si vous déplacez votre dossier de projets, pensez à mettre à jour le chemin <code>reposRoot</code> dans <code>git-config.php</code>.</div>

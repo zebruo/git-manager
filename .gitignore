@@ -16,6 +16,7 @@ release.sh
 # ── Audits & notes locales ───────────────────────────────────────────────────
 audit-*.md
 bugs-git-manager.md
+ameliorations-git-manager.md
 
 # ── SandBox ──────────────────────────────────────────────────────────────────
 exercices/
