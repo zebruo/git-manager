@@ -28,11 +28,11 @@ return [
     //   Mac     : '/Users/votre-nom/.ssh/id_ed25519'
     'sshKeyPath' => 'C:/Users/votre-nom/.ssh/id_rsa',
 
-    // Multi-dépôts (facultatif) — chemin absolu du dossier contenant vos projets
-    //   Windows : 'C:/Users/votre-nom/projets'
-    //   Linux   : '/home/votre-nom/projets'
-    // Laisser vide pour désactiver le sélecteur de dépôt
-    'reposRoot' => 'C:/Users/votre-nom/projets',
+    // Chemin absolu du dossier contenant vos repos Git
+    // Pour un seul projet : indiquez le dossier parent du projet
+    //   Windows : 'C:/Users/votre-nom/repos'
+    //   Linux   : '/home/votre-nom/repos'
+    'reposRoot' => 'C:/Users/votre-nom/repos',
 
     // Options d'affichage (facultatif)
     'options' => [

@@ -175,23 +175,6 @@ function filterGitWarnings(array $lines): array {
     });
 }
 
-function backupGitManager(string $repoPath): ?string {
-    $gitManagerPath = $repoPath . DIRECTORY_SEPARATOR . 'git-manager';
-    if (!is_dir($gitManagerPath)) return null;
-    $backupPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'git-manager-backup-' . uniqid();
-    recurseCopy($gitManagerPath, $backupPath);
-    return $backupPath;
-}
-
-function restoreGitManager(string $repoPath, ?string $backupPath): void {
-    if ($backupPath === null) return;
-    $gitManagerPath = $repoPath . DIRECTORY_SEPARATOR . 'git-manager';
-    $gitApiFile     = $gitManagerPath . DIRECTORY_SEPARATOR . 'git-api.php';
-    if (!is_dir($gitManagerPath) || !file_exists($gitApiFile)) {
-        recurseCopy($backupPath, $gitManagerPath);
-    }
-    if (is_dir($backupPath)) recurseDelete($backupPath);
-}
 
 function validateFiles(array $files): void {
     foreach ($files as $file) {

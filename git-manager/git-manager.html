@@ -28,7 +28,7 @@
         </div>
       </div>
       <div style="display: flex; gap: 10px;">
-        <a href="git-clone.html" class="btn btn-secondary" title="Cloner un dépôt existant — ou créer un nouveau dépôt (si reposRoot est configuré)">
+        <a href="git-clone.html" class="btn btn-secondary" title="Cloner un dépôt existant ou créer un dépôt vierge">
           <i class="fas fa-clone"></i>
         </a>
         <button class="btn btn-secondary" onclick="showRemoteForm()" id="remoteBtn" title="Configurer GitHub"
@@ -67,21 +67,14 @@
 
     <!-- Section d'initialisation (quand pas de dépôt Git) -->
     <div id="initSection" class="git-section full-width" style="display: none;">
-      <h2><i class="fas fa-folder-plus"></i> Initialiser un dépôt Git</h2>
+      <h2><i class="fas fa-folder-plus"></i> Démarrer un dépôt Git</h2>
       <div class="empty-state">
         <i class="fas fa-exclamation-circle text-accent"></i>
-        <p>Ce dossier n'a pas encore de dépôt Git.</p>
-        <p class="text-muted-sm" id="initPath"></p>
+        <p class="text-muted-sm">Clonez un dépôt existant ou créez-en un nouveau depuis la page suivante.</p>
         <div class="btn-group" style="justify-content: center; margin-top: 20px;">
-          <button class="btn btn-primary" onclick="initRepo()">
-            <i class="fas fa-plus"></i> Initialiser le dépôt (git init)
-          </button>
-          <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
-            <a href="git-clone.html" class="btn btn-secondary">
-              <i class="fas fa-clone"></i> Cloner un dépôt existant
-            </a>
-            <small class="text-muted">Le clonage crée un nouveau dossier voisin<br>il ne modifie pas le dossier actuel.</small>
-          </div>
+          <a href="git-clone.html" class="btn btn-primary">
+            <i class="fas fa-clone"></i> Cloner / créer un dépôt
+          </a>
         </div>
       </div>
     </div>

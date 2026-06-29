@@ -34,8 +34,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   } else {
     document.getElementById('initSection').style.display = 'block';
     document.getElementById('mainContent').style.display = 'none';
-    document.getElementById('initPath').textContent = repoCheck.path;
-    document.getElementById('repoInfo').innerHTML = '<i class="fas fa-folder"></i> ' + repoCheck.path;
+    document.getElementById('repoInfo').innerHTML = '<i class="fas fa-clone"></i> <a href="git-clone.html" style="color:inherit">Clonez ou créez un dépôt pour commencer</a>';
   }
 });
 
@@ -51,21 +50,6 @@ async function checkServerStatus() {
   updateServerLed(result.success);
 }
 
-// Initialiser un nouveau dépôt Git
-async function initRepo() {
-  const confirmed = await showConfirm('Initialiser un nouveau dépôt Git dans ce dossier ?');
-  if (!confirmed) return;
-
-  const result = await apiCall('init');
-
-  if (result.success) {
-    showAlert('success', result.output);
-    // Recharger la page pour afficher l'interface complète
-    setTimeout(() => location.reload(), 1000);
-  } else {
-    showAlert('error', 'Erreur: ' + result.error);
-  }
-}
 
 // Charger les informations du dépôt
 async function loadRepoInfo() {
@@ -2094,13 +2078,20 @@ async function loadRepoSwitcher() {
   const switcher = document.getElementById('repoSwitcher');
   const select   = document.getElementById('repoSelect');
 
-  const currentFolder = result.currentRepo || activeRepo || window.location.hostname;
+  const currentFolder = result.currentRepo || activeRepo;
   const repos = result.data.slice();
   if (result.currentRepo && !repos.includes(result.currentRepo)) {
     repos.unshift(result.currentRepo);
   }
 
   select.innerHTML = '';
+  const placeholder = document.createElement('option');
+  placeholder.value = '';
+  placeholder.textContent = '— Choisir un dépôt —';
+  placeholder.disabled = true;
+  placeholder.selected = !activeRepo;
+  select.appendChild(placeholder);
+
   repos.forEach(repo => {
     const opt = document.createElement('option');
     opt.value = repo;
@@ -2111,6 +2102,10 @@ async function loadRepoSwitcher() {
   });
 
   switcher.style.display = 'block';
+
+  if (!activeRepo) {
+    document.getElementById('repoInfo').innerHTML = '<i class="fas fa-folder-open"></i> Sélectionnez un dépôt ci-dessous';
+  }
 }
 
 function switchRepo(repoName) {

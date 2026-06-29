@@ -28,12 +28,14 @@ switch ($action) {
 
         sort($repos);
 
-        // Identifier le dépôt courant (peut ne pas être initialisé encore)
+        // Identifier le dépôt courant uniquement si un ?repo= est explicitement dans l'URL
         $currentRepo = null;
-        $resolvedCurrent = realpath($repoPath) ?: '';
-        if ($resolvedCurrent && $resolvedCurrent !== $resolvedRoot
-            && str_starts_with($resolvedCurrent, $resolvedRoot . DIRECTORY_SEPARATOR)) {
-            $currentRepo = basename($resolvedCurrent);
+        if (!empty($repoParam)) {
+            $resolvedCurrent = realpath($repoPath) ?: '';
+            if ($resolvedCurrent && $resolvedCurrent !== $resolvedRoot
+                && str_starts_with($resolvedCurrent, $resolvedRoot . DIRECTORY_SEPARATOR)) {
+                $currentRepo = basename($resolvedCurrent);
+            }
         }
 
         echo json_encode(['success' => true, 'data' => $repos, 'root' => $resolvedRoot, 'currentRepo' => $currentRepo]);

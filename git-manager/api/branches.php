@@ -76,7 +76,6 @@ switch ($action) {
         }
 
         $forceFlag = $force ? '-f ' : '';
-        $backupPath = backupGitManager($repoPath);
 
         // Sauvegarder fichiers non suivis
         $allUntrackedFiles = [];
@@ -97,7 +96,6 @@ switch ($action) {
             foreach ($allUntrackedFiles as $file) {
                 $file = trim($file);
                 if (empty($file)) continue;
-                if (strpos($file, 'git-manager/') === 0 || strpos($file, 'git-manager\\') === 0) continue;
                 $srcFile = $repoPath . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $file);
                 $dstFile = $untrackedTempBackup . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $file);
                 if (file_exists($srcFile) && is_file($srcFile)) {
@@ -135,21 +133,12 @@ switch ($action) {
             $message = "Basculé sur la branche '{$branch}'";
         }
 
-        $gitManagerPath = $repoPath . DIRECTORY_SEPARATOR . 'git-manager';
-        $gitApiFile = $gitManagerPath . DIRECTORY_SEPARATOR . 'git-api.php';
-        $gitManagerRestored = $backupPath !== null && (!is_dir($gitManagerPath) || !file_exists($gitApiFile));
-        restoreGitManager($repoPath, $backupPath);
-        if ($gitManagerRestored) $message .= " (git-manager restauré)";
-
         if ($result['code'] === 0) {
             $trackedFiles = execGit("git ls-files");
             $trackedList = array_filter(explode("\n", trim($trackedFiles['output'])));
-            $isEmptyBranch = true;
-            foreach ($trackedList as $file) {
-                if (strpos($file, 'git-manager/') !== 0) { $isEmptyBranch = false; break; }
-            }
-            if ($isEmptyBranch && !empty($trackedList)) {
-                execGit("git clean -fd -e git-manager/ -e .git/");
+            $isEmptyBranch = empty($trackedList);
+            if ($isEmptyBranch) {
+                execGit("git clean -fd");
             }
             if ($untrackedTempCreated && is_dir($untrackedTempBackup)) {
                 recurseCopy($untrackedTempBackup, $repoPath);
@@ -197,16 +186,7 @@ switch ($action) {
             if ($result['code'] !== 0) { echo json_encode(['success' => false, 'error' => $result['output']]); break; }
 
             execGit("git rm -rf --cached . 2>&1");
-            execGit("git add -f git-manager/ 2>&1");
-
-            $statusResult = execGit("git status --porcelain");
-            $hasStaged = !empty(trim($statusResult['output']));
-
-            if ($hasStaged) {
-                $commitResult = execGit("git commit -m \"Initial commit (branche vide avec git-manager)\"");
-            } else {
-                $commitResult = execGit("git commit --allow-empty -m \"Initial commit (branche vide)\"");
-            }
+            $commitResult = execGit("git commit --allow-empty -m \"Initial commit (branche vide)\"");
 
             if ($commitResult['code'] !== 0) {
                 echo json_encode(['success' => false, 'error' => "Branche créée mais erreur lors du commit initial: " . $commitResult['output']]); break;
@@ -214,19 +194,14 @@ switch ($action) {
 
             $returnMessage = "";
             if (!empty($originalBranch) && $originalBranch !== 'HEAD') {
-                $backupPath = backupGitManager($repoPath);
                 $checkoutBack = execGit("git checkout -f " . escapeArg($originalBranch) . " 2>&1");
-                restoreGitManager($repoPath, $backupPath);
                 cleanEmptyDirs($repoPath);
                 $returnMessage = $checkoutBack['code'] === 0
                     ? "\n✓ Retour sur '{$originalBranch}'"
                     : "\n⚠️ Impossible de revenir sur '{$originalBranch}'";
             }
 
-            $msg = $hasStaged
-                ? "Branche '{$branch}' créée (vide avec git-manager/)" . $returnMessage
-                : "Branche '{$branch}' créée (vide) - git-manager/ non trouvé" . $returnMessage;
-            echo json_encode(['success' => true, 'output' => $msg]);
+            echo json_encode(['success' => true, 'output' => "Branche '{$branch}' créée (vide)" . $returnMessage]);
             break;
         }
 
@@ -250,7 +225,6 @@ switch ($action) {
                 foreach ($allUntracked as $file) {
                     $file = trim($file);
                     if (empty($file)) continue;
-                    if (strpos($file, 'git-manager/') === 0 || strpos($file, 'git-manager\\') === 0) continue;
                     $srcFile = $repoPath . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $file);
                     $dstFile = $untrackedBackupPath . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $file);
                     if (file_exists($srcFile)) {
@@ -277,9 +251,7 @@ switch ($action) {
 
             $returnMessage = "";
             if (!empty($originalBranch) && $originalBranch !== 'HEAD') {
-                $backupPath = backupGitManager($repoPath);
                 $checkoutBack = execGit("git checkout -f " . escapeArg($originalBranch) . " 2>&1");
-                restoreGitManager($repoPath, $backupPath);
                 if ($untrackedBackupCreated && is_dir($untrackedBackupPath)) {
                     recurseCopy($untrackedBackupPath, $repoPath);
                     recurseDelete($untrackedBackupPath);

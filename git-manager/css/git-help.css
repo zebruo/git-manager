@@ -198,7 +198,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  color: var(--text-secondary);
+  color: var(--text-primary);
   padding-bottom: 6px;
   border-bottom: 1px solid var(--border-color);
   margin-bottom: -10px;

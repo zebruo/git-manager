@@ -7,68 +7,37 @@
 /** @var string      $gitUserName */
 /** @var string      $gitUserEmail */
 /** @var string|null $reposRoot */
-// Actions pré-dépôt : checkRepo, init, clone, listFolders, listRemoteBranches, resetRemote
+// Actions pré-dépôt : checkRepo, clone, initRepo, listFolders, listRemoteBranches, resetRemote
 
 switch ($action) {
 
     case 'checkRepo':
+        // Si reposRoot est configuré et qu'aucun dépôt n'est sélectionné, forcer "pas de repo"
+        $isRepo = (!empty($reposRoot) && empty($repoParam)) ? false : $isGitRepoCheck;
         echo json_encode([
             'success' => true,
             'data' => [
-                'isGitRepo' => $isGitRepoCheck,
+                'isGitRepo' => $isRepo,
                 'path' => $repoPath
             ]
         ]);
-        break;
-
-    case 'init':
-        if ($isGitRepoCheck) {
-            echo json_encode(['success' => false, 'error' => 'Ce dossier est déjà un dépôt Git']);
-            break;
-        }
-
-        chdir($repoPath);
-        $safeRepoPath = str_replace('\\', '/', $repoPath);
-
-        $output = [];
-        $returnCode = 0;
-        exec("git init -b main 2>&1", $output, $returnCode);
-
-        if ($returnCode === 0) {
-            if (!empty($gitUserName)) exec("git config user.name \"{$gitUserName}\" 2>&1");
-            if (!empty($gitUserEmail)) exec("git config user.email \"{$gitUserEmail}\" 2>&1");
-            exec("git config --global --add safe.directory \"{$safeRepoPath}\" 2>&1");
-
-            $gitignorePath = $repoPath . '/.gitignore';
-            $gitignoreEntry = 'git-manager/';
-            $gitignoreContent = file_exists($gitignorePath) ? file_get_contents($gitignorePath) : '';
-            if (strpos($gitignoreContent, $gitignoreEntry) === false) {
-                $newContent = rtrim($gitignoreContent);
-                $newContent .= ($newContent ? "\n\n" : '') . "# Interface de gestion Git\n{$gitignoreEntry}\n";
-                file_put_contents($gitignorePath, $newContent);
-            }
-
-            echo json_encode(['success' => true, 'output' => 'Dépôt Git initialisé avec succès dans ' . $repoPath]);
-        } else {
-            echo json_encode(['success' => false, 'error' => implode("\n", $output)]);
-        }
         break;
 
     case 'clone':
         set_time_limit(600);
         ini_set('max_execution_time', 600);
 
+        if (empty($reposRoot)) {
+            echo json_encode(['success' => false, 'error' => 'reposRoot non configuré dans git-config.php']); break;
+        }
+
         $url = $input['url'] ?? '';
         $targetDir = $input['targetDir'] ?? '';
-        $isStandaloneClone = !empty($reposRoot);
-        $copyGitManager = $isStandaloneClone ? false : ($input['copyGitManager'] ?? true);
 
         if (empty($url)) { echo json_encode(['success' => false, 'error' => 'URL du dépôt requise']); break; }
         if (!preg_match('/^(https?:\/\/|git@)/', $url)) {
             echo json_encode(['success' => false, 'error' => 'URL invalide. Utilisez une URL HTTPS ou SSH.']); break;
         }
-
-        $parentDir = $isStandaloneClone ? $reposRoot : dirname($repoPath);
 
         if (empty($targetDir)) {
             $cleanUrl = rtrim($url, '/');
@@ -83,7 +52,7 @@ switch ($action) {
         $targetDir = preg_replace('/[^a-zA-Z0-9_\-\.]/', '', $targetDir);
         if (empty($targetDir)) { echo json_encode(['success' => false, 'error' => 'Nom de dossier invalide']); break; }
 
-        $fullTargetPath = $parentDir . DIRECTORY_SEPARATOR . $targetDir;
+        $fullTargetPath = $reposRoot . DIRECTORY_SEPARATOR . $targetDir;
         $safeTargetPath = str_replace('\\', '/', $fullTargetPath);
 
         if (file_exists($fullTargetPath)) {
@@ -105,103 +74,27 @@ switch ($action) {
         if (!empty($gitUserName)) exec("git -C \"{$safeTargetPath}\" config user.name \"{$gitUserName}\" 2>&1");
         if (!empty($gitUserEmail)) exec("git -C \"{$safeTargetPath}\" config user.email \"{$gitUserEmail}\" 2>&1");
 
-        $copiedFiles = [];
-        $copyErrors = [];
-        $subfolder = $input['subfolder'] ?? 'git-manager';
-        $copyDestination = '';
-
-        if ($copyGitManager) {
-            $subfolder = preg_replace('/[^a-zA-Z0-9_\-\.]/', '', $subfolder);
-            if (empty($subfolder)) $subfolder = 'git-manager';
-
-            $topLevelFiles = [
-                'git-manager.html', 'git-api.php', 'git-config.example.php',
-                'git-clone.html', 'git-reset-remote.html', 'git-auth.html',
-                'index.html', 'git-help.html', 'flavicon.svg'
-            ];
-            $adminDir = dirname(__DIR__);
-            $copyDestination = $fullTargetPath . DIRECTORY_SEPARATOR . $subfolder;
-
-            if (!file_exists($copyDestination)) {
-                if (!@mkdir($copyDestination, 0755, true)) {
-                    $copyErrors[] = "Impossible de créer le dossier: {$copyDestination}";
-                }
-            }
-
-            if (empty($copyErrors)) {
-                foreach ($topLevelFiles as $file) {
-                    $sourcePath = $adminDir . DIRECTORY_SEPARATOR . $file;
-                    $destPath = $copyDestination . DIRECTORY_SEPARATOR . $file;
-                    if (file_exists($sourcePath)) {
-                        if (@copy($sourcePath, $destPath)) {
-                            $copiedFiles[] = $file;
-                        } else {
-                            $copyErrors[] = "Échec copie: {$file}";
-                        }
-                    } else {
-                        $copyErrors[] = "Source introuvable: {$file}";
-                    }
-                }
-
-                // Copier les sous-dossiers api/, css/, js/
-                foreach (['api', 'css', 'js'] as $subdir) {
-                    $subdirSrc = $adminDir . DIRECTORY_SEPARATOR . $subdir;
-                    $subdirDst = $copyDestination . DIRECTORY_SEPARATOR . $subdir;
-                    if (is_dir($subdirSrc)) {
-                        if (recurseCopy($subdirSrc, $subdirDst)) {
-                            $copiedFiles[] = $subdir . '/';
-                        } else {
-                            $copyErrors[] = "Échec copie: {$subdir}/";
-                        }
-                    }
-                }
-            }
-        }
-
-        if ($copyGitManager) {
-            $gitignorePath = $fullTargetPath . '/.gitignore';
-            $gitignoreEntry = $subfolder . '/';
-            $gitignoreContent = file_exists($gitignorePath) ? file_get_contents($gitignorePath) : '';
-            if (strpos($gitignoreContent, $gitignoreEntry) === false) {
-                $newContent = rtrim($gitignoreContent);
-                $newContent .= ($newContent ? "\n\n" : '') . "# Interface de gestion Git\n{$gitignoreEntry}\n";
-                file_put_contents($gitignorePath, $newContent);
-            }
-        }
-
-        $message = "Dépôt cloné avec succès dans '{$targetDir}'";
-        if (!empty($copiedFiles)) {
-            $location = !empty($subfolder) ? $subfolder . '/' : '';
-            $message .= "\nFichiers copiés dans {$location} : " . implode(', ', $copiedFiles);
-        }
-        if (!empty($copyErrors)) {
-            $message .= "\nErreurs : " . implode(', ', $copyErrors);
-        }
-
         echo json_encode([
             'success' => true,
-            'output' => $message,
-            'data' => [
-                'path'         => $fullTargetPath,
-                'folderName'   => $targetDir,
-                'subfolder'    => $subfolder,
-                'copiedFiles'  => $copiedFiles,
-                'copyErrors'   => $copyErrors,
-                'isStandalone' => $isStandaloneClone,
+            'output'  => "Dépôt cloné avec succès dans '{$targetDir}'",
+            'data'    => [
+                'path'       => $fullTargetPath,
+                'folderName' => $targetDir,
             ]
         ]);
         break;
 
     case 'listFolders':
-        $isStandaloneList = !empty($reposRoot);
-        $scanDir = $isStandaloneList ? $reposRoot : dirname($repoPath);
-        $folders = [];
+        if (empty($reposRoot)) {
+            echo json_encode(['success' => false, 'error' => 'reposRoot non configuré dans git-config.php']); break;
+        }
 
-        if (is_dir($scanDir)) {
-            $items = scandir($scanDir);
+        $folders = [];
+        if (is_dir($reposRoot)) {
+            $items = scandir($reposRoot);
             foreach ($items as $item) {
                 if ($item === '.' || $item === '..') continue;
-                $itemPath = $scanDir . DIRECTORY_SEPARATOR . $item;
+                $itemPath = $reposRoot . DIRECTORY_SEPARATOR . $item;
                 if (is_dir($itemPath)) {
                     $folders[] = [
                         'name'      => $item,
@@ -212,9 +105,8 @@ switch ($action) {
         }
 
         echo json_encode(['success' => true, 'data' => [
-            'parentDir'    => $scanDir,
-            'folders'      => $folders,
-            'isStandalone' => $isStandaloneList,
+            'parentDir' => $reposRoot,
+            'folders'   => $folders,
         ]]);
         break;
 

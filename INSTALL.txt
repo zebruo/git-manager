@@ -10,39 +10,46 @@ PRÉREQUIS
 
 INSTALLATION
 ------------
-1. Copiez le dossier git-manager/ à la racine de votre projet
+1. Créez un dossier racine pour vos projets Git, par exemple :
+     C:/repos/
+
+2. Copiez le dossier git-manager/ dans ce dossier racine :
+     C:/repos/git-manager/
    (si le dossier extrait porte un numéro de version ex: git-manager-1.3.0/,
-   renommez-le en git-manager/)
+    renommez-le en git-manager/)
 
-2. Créez un virtual host Apache pointant vers votre projet
+3. Créez un virtual host Apache pointant vers C:/repos/
+   Exemple : http://repos.local/
 
-3. Renommez git-manager/git-config.example.php en git-manager/git-config.php
+4. Renommez git-manager/git-config.example.php en git-manager/git-config.php
    et renseignez vos informations :
 
      'userName'  => 'votre-username',
      'userEmail' => 'votre-email@example.com',
      'sshKeyPath' => 'C:/Users/votre-nom/.ssh/id_rsa',  // facultatif
-
-4. Ouvrez http://votre-projet.local/git-manager/ dans le navigateur
-
-
-MODE MULTI-DÉPÔTS (facultatif) avec un dossier racine ex: repos
-------------------------------
-Pour gérer plusieurs dépôts depuis une seule interface, ajoutez dans git-config.php :
-
      'reposRoot' => 'C:/repos',
 
-Structure recommandée :
+   reposRoot désigne le dossier racine contenant tous vos projets Git.
 
+5. Ouvrez http://repos.local/git-manager/ dans le navigateur
+
+   IMPORTANT : n'ouvrez pas les fichiers directement via l'Explorateur Windows
+   (file://) — PHP doit être exécuté par Apache.
+
+
+STRUCTURE RECOMMANDÉE
+---------------------
   C:/repos/
-  ├── gm-host/          <- virtual host (point d'entrée)
-  │   └── git-manager/
+  ├── git-manager/      <- l'application (point d'entrée)
   ├── project-a/        <- détecté automatiquement dans le sélecteur
   │   └── .git/
   └── project-b/        <- détecté automatiquement dans le sélecteur
       └── .git/
 
 Seuls les sous-dossiers directs de reposRoot contenant un .git/ sont listés.
+git-manager/ n'apparaît pas dans le sélecteur car il ne contient pas de .git/.
+Pour cloner un nouveau dépôt ou créer un dépôt vierge : utiliser l'interface
+via le bouton Clone de git-manager.
 
 
 AUTHENTIFICATION GITHUB

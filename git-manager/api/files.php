@@ -54,9 +54,7 @@ switch ($action) {
             echo json_encode(['success' => false, 'error' => 'Hash de commit invalide']); break;
         }
 
-        $backupPath = backupGitManager($repoPath);
         $result = execGit("git checkout " . escapeArg($hash) . " 2>&1");
-        restoreGitManager($repoPath, $backupPath);
 
         if ($result['code'] !== 0) {
             echo json_encode(['success' => false, 'error' => $result['output']]);
