@@ -1,3 +1,96 @@
+/* ── Grille de référence ─────────────────────────────────────────────── */
+.help-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 25px;
+  margin-bottom: 25px;
+}
+
+.help-category {
+  background: var(--bg-color);
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid var(--border-color);
+  flex: 0 0 100%;
+  box-sizing: border-box;
+}
+
+.help-category h4 {
+  margin: 0 0 15px 0;
+  color: var(--accent-color);
+  font-size: 1.1em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.help-category dl { margin: 0; }
+
+.help-category dt {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.help-category dt:first-of-type { margin-top: 0; }
+
+.help-category dd {
+  margin: 5px 0 0 0;
+  color: var(--text-secondary);
+  font-size: 0.9em;
+  line-height: 1.4;
+}
+
+/* ── Statut badges ───────────────────────────────────────────────────── */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+/* ── Cards workflow (onglet Astuces) ─────────────────────────────────── */
+.help-workflow {
+  background: var(--bg-color);
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid var(--border-color);
+}
+
+.help-workflow h4 {
+  margin: 0 0 15px 0;
+  color: var(--accent-color);
+  font-size: 1.1em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.help-workflow ol {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--text-secondary);
+}
+
+.help-workflow li {
+  margin-bottom: 8px;
+  font-size: 0.95em;
+  line-height: 1.4;
+}
+
+.help-workflow li:last-child { margin-bottom: 0; }
+
+.help-workflow strong { color: var(--text-primary); }
+
 /* ── Base ───────────────────────────────────────────────────────────── */
 #helpContent code {
   font-size: 1em;
@@ -98,6 +191,18 @@
 /* ── Listes ───────────────────────────────────────────────────────── */
 .help-ol   { margin: 8px 0 0 18px; line-height: 1.8; }
 .help-list { margin: 5px 0 0 15px; padding: 0; }
+/* ── En-têtes de chapitre ────────────────────────────────────────── */
+.help-chapter-header {
+  flex: 0 0 100%;
+  font-size: 0.72em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-secondary);
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: -10px;
+}
 /* ── Onglets ──────────────────────────────────────────────────────── */
 .help-tab-panel { display: none; }
 .help-tab-panel.active { display: block; }

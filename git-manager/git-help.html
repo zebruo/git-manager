@@ -1,5 +1,79 @@
 <div class="help-tab-panel active" id="helpTab-reference">
 <div class="help-grid">
+
+  <div class="help-chapter-header">Mise en place</div>
+
+  <div class="help-category">
+    <h4><i class="fas fa-key"></i> Authentification (SSH / Token)</h4>
+    <dl>
+      <dt><a href="git-auth.html" class="link-accent">Guide d'authentification</a></dt>
+      <dd>Configure l'accès à GitHub via SSH (clés) ou Token HTTPS. Nécessaire pour push/pull.</dd>
+    </dl>
+  </div>
+  <div class="help-category">
+    <h4><i class="fas fa-clone"></i> Cloner un dépôt</h4>
+    <dl>
+      <dt><a href="git-clone.html" class="link-accent">Cloner un dépôt existant</a></dt>
+      <dd>Copie un dépôt distant (GitHub, GitLab…) en local à partir de son URL. Le comportement varie selon la configuration :</dd>
+    </dl>
+    <div class="help-info-box">
+      <div><strong>Mode embarqué</strong> <span class="help-muted">(sans reposRoot)</span></div>
+      <div class="mt-5">Le dépôt est cloné dans le dossier parent du projet actuel. Les fichiers git-manager sont copiés automatiquement dans le nouveau dépôt.</div>
+      <div class="mt-5">Fichiers copiés : git-manager.html, git-api.php, git-config.example.php, git-clone.html,
+        git-reset-remote.html, git-auth.html, git-help.html, index.html, flavicon.svg</div>
+      <div class="mt-5">Sous-dossiers copiés intégralement : <code>api/</code>, <code>css/</code>, <code>js/</code></div>
+      <div class="help-info-box mt-8">
+        <strong>Mise en service du dépôt cloné :</strong>
+        <ol class="help-ol">
+          <li>Renommer <code>git-config.example.php</code> en <code>git-config.php</code> et renseigner identité Git et chemin SSH.</li>
+          <li>Créer un virtual host Apache pointant vers le dossier cloné.</li>
+          <li>Accéder à <code>http://[nom-du-projet]/git-manager/git-manager.html</code>.</li>
+          <li>Si ce dépôt est destiné à un nouveau projet : modifier ou supprimer le remote origin (il pointe encore vers le dépôt cloné).</li>
+        </ol>
+        <div class="help-notice mt-8">Ouvrir le dossier via l'Explorateur Windows (<code>file://</code>) ne fonctionnera pas — PHP doit être exécuté par Apache.</div>
+      </div>
+    </div>
+    <div class="help-info-box mt-8">
+      <div><strong>Mode multi-dépôts</strong> <span class="help-muted">(reposRoot configuré)</span></div>
+      <div class="mt-5">Le dépôt est cloné directement dans <code>reposRoot</code> — les fichiers git-manager ne sont pas copiés, une seule installation est partagée. Le dépôt apparaît automatiquement dans le sélecteur.</div>
+    </div>
+    <dl class="mt-8">
+      <dt><a href="git-clone.html" class="link-accent">Créer un dépôt vierge</a> <span class="help-muted">(mode multi-dépôts uniquement)</span></dt>
+      <dd>Démarre un projet from scratch (de zéro) : saisir un nom, un dossier est créé dans <code>reposRoot</code> et <code>git init</code> est lancé automatiquement. Le dépôt apparaît immédiatement dans le sélecteur, sans toucher la ligne de commande.</dd>
+    </dl>
+  </div>
+  <div class="help-category">
+    <h4><i class="fas fa-layer-group"></i> Multi-dépôts</h4>
+    <dl>
+      <dt><i class="fas fa-list"></i> Sélecteur de dépôt</dt>
+      <dd>Menu déroulant affiché dans le header à côté du nom du dépôt courant. Permet de basculer entre plusieurs
+        projets Git sans changer de virtual host.</dd>
+      <dt><i class="fas fa-folder-open"></i> Activation du sélecteur</dt>
+      <dd>Définir la clé <code>reposRoot</code> dans <code>git-config.php</code> avec le chemin absolu du dossier
+        contenant vos projets. Si la clé est absente ou vide, le sélecteur n'est pas affiché.</dd>
+    </dl>
+    <div class="help-info-box">
+      <div class="mb-8"><strong>Configuration dans <code>git-config.php</code> :</strong></div>
+      <div class="help-code-box">
+        <div><span class="syn-string">'reposRoot'</span> => <span class="syn-string">'C:/repos'</span>,</div>
+      </div>
+      <div class="mt-10 mb-8"><strong>Exemple de structure attendue :</strong></div>
+      <div class="help-code-box">
+        <div>C:/repos/</div>
+        <div>&nbsp; ├── gm-host/         <span class="syn-comment">&lt;- virtual host, pas de .git/ → ignoré</span></div>
+        <div>&nbsp; │   └── git-manager/  <span class="syn-comment">&lt;- l'application (point d'entrée)</span></div>
+        <div>&nbsp; ├── mon-site/         <span class="syn-comment">&lt;- affiché dans le sélecteur</span></div>
+        <div>&nbsp; │   └── .git/             <span class="syn-comment">&lt;- Dépôt Git → Créé lors du git init</span></div>
+        <div>&nbsp; └── api-projet/       <span class="syn-comment">&lt;- affiché dans le sélecteur</span></div>
+        <div>&nbsp; &nbsp; &nbsp; └── .git/ <span class="syn-comment">&lt;- Dépôt Git → Créé lors du git init</span></div>
+      </div>
+      <div class="mt-8">Seuls les sous-dossiers <strong>directs</strong> contenant un <code>.git/</code> sont listés.</div>
+      <div class="mt-8"><i class="fas fa-info-circle"></i> Si vous déplacez votre dossier de projets, pensez à mettre à jour le chemin <code>reposRoot</code> dans <code>git-config.php</code>.</div>
+    </div>
+  </div>
+
+  <div class="help-chapter-header">Travail quotidien</div>
+
   <div class="help-category">
     <h4><i class="fas fa-cloud"></i> Synchronisation</h4>
     <dl>
@@ -161,57 +235,6 @@
     </div>
   </div>
   <div class="help-category">
-    <h4><i class="fas fa-undo"></i> Récupération</h4>
-    <dl>
-      <dt>HEAD</dt>
-      <dd>La version actuelle (dernier commit).</dd>
-      <dt>HEAD~1</dt>
-      <dd>La version du commit précédent.</dd>
-      <dt>HEAD~2</dt>
-      <dd>La version d'il y a 2 commits.</dd>
-      <dt>origin/main</dt>
-      <dd>La version sur GitHub (serveur distant).</dd>
-    </dl>
-    <div class="help-info-box">
-      <div class="mb-8"><strong>4 façons de revenir en arrière :</strong></div>
-      <table class="help-table">
-        <tr>
-          <td><strong><i class="fas fa-undo"></i> Récupérer</strong></td>
-          <td>Restaure <strong>1 fichier</strong> à une version précise</td>
-          <td class="text-muted">Reste sur la branche</td>
-        </tr>
-        <tr>
-          <td><strong><i class="fas fa-sign-in-alt"></i> Checkout commit</strong></td>
-          <td>Explorer un ancien commit (<strong>tout le projet</strong>)</td>
-          <td class="text-warning">HEAD détaché</td>
-        </tr>
-        <tr>
-          <td><strong><i class="fas fa-undo text-danger"></i> Revert</strong></td>
-          <td>Annule un commit en créant un <strong>nouveau commit inverse</strong></td>
-          <td class="text-success">N'écrase pas l'historique</td>
-        </tr>
-        <tr>
-          <td><strong><i class="fas fa-trash"></i> Annuler tout</strong></td>
-          <td>Remet <strong>tous</strong> les fichiers modifiés au dernier commit</td>
-          <td class="text-danger">Irréversible</td>
-        </tr>
-      </table>
-      <div class="help-inner-box mt-10">
-        <strong><i class="fas fa-info-circle"></i> Revert vs Checkout :</strong>
-        <div class="help-mono-box mt-6">
-          <div>A → B → C → D &nbsp;<span class="text-muted">(main)</span></div>
-          <div class="mt-6"><span class="text-warning">git checkout B</span> → tu vois le code au moment de B, mais D existe toujours</div>
-          <div class="mt-6"><span class="text-danger">git revert D</span> → crée un commit E qui annule D :</div>
-          <div class="mt-5">A → B → C → D → <span class="text-success">E</span> &nbsp;<span class="text-muted">(main)</span></div>
-          <div class="mt-10"><span class="text-danger">git revert</span> d'un revert → annule l'annulation (équivalent Ctrl+Y) :</div>
-          <div class="mt-5">A → B → C → <span class="text-danger">Revert "C"</span> → <span class="text-success">Revert "Revert C"</span></div>
-        </div>
-      </div>
-      <div class="mt-8 text-muted"><i class="fas fa-info-circle"></i> En cas de doute,
-        utilisez le <strong>Stash</strong> pour sauvegarder vos modifications avant de revenir en arrière.</div>
-    </div>
-  </div>
-  <div class="help-category">
     <h4><i class="fas fa-arrows-alt-v"></i> Avance / Retard</h4>
     <dl>
       <dt><span class="ahead">↑</span> Commits en avance</dt>
@@ -232,60 +255,9 @@
       <div class="mt-5 text-italic">→ Pull puis Push</div>
     </div>
   </div>
-  <div class="help-category">
-    <h4><i class="fas fa-box-archive"></i> Stash (Mettre de côté)</h4>
-    <dl>
-      <dt><i class="fas fa-box-archive"></i> Mettre de côté</dt>
-      <dd>Sauvegarde temporairement vos modifications en cours sans faire de commit. Utile pour changer de branche
-        rapidement ou tester quelque chose sur un code propre.</dd>
-      <dt><i class="fas fa-redo"></i> Pop (Restaurer)</dt>
-      <dd>Réapplique les modifications sauvegardées et supprime le stash. C'est l'action la plus courante.</dd>
-      <dt><i class="fas fa-copy"></i> Appliquer</dt>
-      <dd>Réapplique les modifications sauvegardées mais conserve le stash pour une utilisation ultérieure.</dd>
-      <dt><i class="fas fa-trash"></i> Supprimer un stash</dt>
-      <dd>Supprime définitivement un stash. Les modifications sauvegardées seront <strong>perdues</strong>.</dd>
-    </dl>
-    <div class="help-info-box">
-      <div class="mb-8"><strong>Exemple :</strong></div>
-      <div>1. Vous travaillez sur une feature, code pas fini</div>
-      <div class="mt-5">2. Urgence : corriger un bug sur <em>main</em></div>
-      <div class="mt-5">3. <strong>Mettre de côté</strong> → vos modifications sont sauvegardées</div>
-      <div class="mt-5">4. Basculer sur <em>main</em>, corriger, commit, push</div>
-      <div class="mt-5">5. Revenir sur votre branche → <strong>Pop</strong></div>
-      <div class="mt-5">6. Vos modifications sont de retour !</div>
-    </div>
-  </div>
-  <div class="help-category">
-    <h4><i class="fas fa-tags"></i> Tags</h4>
-    <dl>
-      <dt><i class="fas fa-tag"></i> Tag léger</dt>
-      <dd>Simple pointeur vers un commit. Créé sans message. Utile pour un repère personnel.</dd>
-      <dt><i class="fas fa-tag"></i> Tag annoté</dt>
-      <dd>Objet Git à part entière avec un message, une date et l'auteur du tag. Recommandé pour les releases.</dd>
-      <dt><i class="fas fa-upload"></i> Push</dt>
-      <dd>Envoie le tag vers GitHub. Sans push, le tag reste local et n'est pas visible dans les releases GitHub.
-        Pousser un tag déjà publié est sans effet.</dd>
-      <dt><i class="fas fa-trash"></i> Supprimer</dt>
-      <dd>Supprime le tag localement et tente automatiquement de le supprimer sur GitHub. Si le tag n'avait jamais
-        été pushé, la suppression distante est ignorée silencieusement.</dd>
-    </dl>
-    <div class="help-info-box">
-      <div class="mb-8"><strong><i class="fas fa-code-branch"></i> Convention MAJOR.MINOR.PATCH</strong></div>
-      <div>· <code>PATCH</code> (+0.0.1) : correction de bug ou petit ajustement</div>
-      <div class="mt-5">· <code>MINOR</code> (+0.1.0) : nouvelle page ou fonctionnalité</div>
-      <div class="mt-5">· <code>MAJOR</code> (+1.0.0) : refonte architecturale ou visuelle importante</div>
-      <div class="mt-8">Créer une release pour un jalon significatif, pas pour chaque petit fix.</div>
-    </div>
-  </div>
-  <div class="help-category">
-    <h4><i class="fas fa-exclamation-triangle"></i> Actions dangereuses</h4>
-    <dl>
-      <dt><i class="fas fa-trash"></i> Annuler toutes les modifications</dt>
-      <dd>Supprime TOUTES les modifications non committées. <strong>Irréversible !</strong></dd>
-      <dt><i class="fas fa-trash-alt"></i> Supprimer (dépôt + disque)</dt>
-      <dd>Supprime le fichier du dépôt ET de votre disque. <strong>Définitif !</strong></dd>
-    </dl>
-  </div>
+
+  <div class="help-chapter-header">Gérer les commits</div>
+
   <div class="help-category">
     <h4><i class="fas fa-pen-to-square text-warning"></i> Amend (modifier le dernier commit)</h4>
     <dl>
@@ -337,28 +309,59 @@
     </div>
   </div>
   <div class="help-category">
-    <h4><i class="fas fa-code-branch"></i> Fork (contribution)</h4>
+    <h4><i class="fas fa-undo"></i> Récupération</h4>
     <dl>
-      <dt>Qu'est-ce qu'un fork ?</dt>
-      <dd>Une copie d'un dépôt GitHub vers votre propre compte. Permet de contribuer à un projet sans avoir les droits
-        d'écriture ou créer votre propre version, le fork devient votre point de départ indépendant.</dd>
+      <dt>HEAD</dt>
+      <dd>La version actuelle (dernier commit).</dd>
+      <dt>HEAD~1</dt>
+      <dd>La version du commit précédent.</dd>
+      <dt>HEAD~2</dt>
+      <dd>La version d'il y a 2 commits.</dd>
+      <dt>origin/main</dt>
+      <dd>La version sur GitHub (serveur distant).</dd>
     </dl>
-    <div class="help-info-box mono center">
-      <div class="help-flow-secondary">Dépôt original (autre utilisateur)</div>
-      <div class="help-flow-arrow">↓ <span class="help-flow-label">Fork (sur GitHub)</span></div>
-      <div class="help-flow-primary">Votre fork (votre compte GitHub)</div>
-      <div class="help-flow-arrow">↓ <span class="help-flow-label">Clone</span></div>
-      <div class="help-flow-primary">Votre PC (travail local)</div>
-      <div class="help-flow-arrow">↓ <span class="help-flow-label">Push</span></div>
-      <div class="help-flow-primary">Votre fork</div>
-      <div class="help-flow-arrow">↓ <span class="help-flow-label">Pull Request</span></div>
-      <div class="help-flow-secondary">Dépôt original (proposition)</div>
-    </div>
-    <div class="mt-10 text-note">
-      <i class="fas fa-info-circle"></i> Le fork se fait sur GitHub.com (bouton "Fork"). Utilisez ensuite <a
-        href="git-clone.html" class="link-accent">Cloner un dépôt</a> pour récupérer votre fork.
+    <div class="help-info-box">
+      <div class="mb-8"><strong>4 façons de revenir en arrière :</strong></div>
+      <table class="help-table">
+        <tr>
+          <td><strong><i class="fas fa-undo"></i> Récupérer</strong></td>
+          <td>Restaure <strong>1 fichier</strong> à une version précise</td>
+          <td class="text-muted">Reste sur la branche</td>
+        </tr>
+        <tr>
+          <td><strong><i class="fas fa-sign-in-alt"></i> Checkout commit</strong></td>
+          <td>Explorer un ancien commit (<strong>tout le projet</strong>)</td>
+          <td class="text-warning">HEAD détaché</td>
+        </tr>
+        <tr>
+          <td><strong><i class="fas fa-undo text-danger"></i> Revert</strong></td>
+          <td>Annule un commit en créant un <strong>nouveau commit inverse</strong></td>
+          <td class="text-success">N'écrase pas l'historique</td>
+        </tr>
+        <tr>
+          <td><strong><i class="fas fa-trash"></i> Annuler tout</strong></td>
+          <td>Remet <strong>tous</strong> les fichiers modifiés au dernier commit</td>
+          <td class="text-danger">Irréversible</td>
+        </tr>
+      </table>
+      <div class="help-inner-box mt-10">
+        <strong><i class="fas fa-info-circle"></i> Revert vs Checkout :</strong>
+        <div class="help-mono-box mt-6">
+          <div>A → B → C → D &nbsp;<span class="text-muted">(main)</span></div>
+          <div class="mt-6"><span class="text-warning">git checkout B</span> → tu vois le code au moment de B, mais D existe toujours</div>
+          <div class="mt-6"><span class="text-danger">git revert D</span> → crée un commit E qui annule D :</div>
+          <div class="mt-5">A → B → C → D → <span class="text-success">E</span> &nbsp;<span class="text-muted">(main)</span></div>
+          <div class="mt-10"><span class="text-danger">git revert</span> d'un revert → annule l'annulation (équivalent Ctrl+Y) :</div>
+          <div class="mt-5">A → B → C → <span class="text-danger">Revert "C"</span> → <span class="text-success">Revert "Revert C"</span></div>
+        </div>
+      </div>
+      <div class="mt-8 text-muted"><i class="fas fa-info-circle"></i> En cas de doute,
+        utilisez le <strong>Stash</strong> pour sauvegarder vos modifications avant de revenir en arrière.</div>
     </div>
   </div>
+
+  <div class="help-chapter-header">Branches</div>
+
   <div class="help-category">
     <h4><i class="fas fa-code-branch"></i> Branches & Fusion de branches</h4>
     <dl>
@@ -440,6 +443,29 @@
     </div>
   </div>
   <div class="help-category">
+    <h4><i class="fas fa-box-archive"></i> Stash (Mettre de côté)</h4>
+    <dl>
+      <dt><i class="fas fa-box-archive"></i> Mettre de côté</dt>
+      <dd>Sauvegarde temporairement vos modifications en cours sans faire de commit. Utile pour changer de branche
+        rapidement ou tester quelque chose sur un code propre.</dd>
+      <dt><i class="fas fa-redo"></i> Pop (Restaurer)</dt>
+      <dd>Réapplique les modifications sauvegardées et supprime le stash. C'est l'action la plus courante.</dd>
+      <dt><i class="fas fa-copy"></i> Appliquer</dt>
+      <dd>Réapplique les modifications sauvegardées mais conserve le stash pour une utilisation ultérieure.</dd>
+      <dt><i class="fas fa-trash"></i> Supprimer un stash</dt>
+      <dd>Supprime définitivement un stash. Les modifications sauvegardées seront <strong>perdues</strong>.</dd>
+    </dl>
+    <div class="help-info-box">
+      <div class="mb-8"><strong>Exemple :</strong></div>
+      <div>1. Vous travaillez sur une feature, code pas fini</div>
+      <div class="mt-5">2. Urgence : corriger un bug sur <em>main</em></div>
+      <div class="mt-5">3. <strong>Mettre de côté</strong> → vos modifications sont sauvegardées</div>
+      <div class="mt-5">4. Basculer sur <em>main</em>, corriger, commit, push</div>
+      <div class="mt-5">5. Revenir sur votre branche → <strong>Pop</strong></div>
+      <div class="mt-5">6. Vos modifications sont de retour !</div>
+    </div>
+  </div>
+  <div class="help-category">
     <h4><i class="fas fa-exclamation-triangle text-warning"></i> HEAD détaché</h4>
     <dl>
       <dt>Qu'est-ce que le HEAD détaché ?</dt>
@@ -469,63 +495,68 @@
     </div>
   </div>
   <div class="help-category">
-    <h4><i class="fas fa-layer-group"></i> Multi-dépôts</h4>
+    <h4><i class="fas fa-code-branch"></i> Fork (contribution)</h4>
     <dl>
-      <dt><i class="fas fa-list"></i> Sélecteur de dépôt</dt>
-      <dd>Menu déroulant affiché dans le header à côté du nom du dépôt courant. Permet de basculer entre plusieurs
-        projets Git sans changer de virtual host.</dd>
-      <dt><i class="fas fa-folder-open"></i> Activation du sélecteur</dt>
-      <dd>Définir la clé <code>reposRoot</code> dans <code>git-config.php</code> avec le chemin absolu du dossier
-        contenant vos projets. Si la clé est absente ou vide, le sélecteur n'est pas affiché.</dd>
+      <dt>Qu'est-ce qu'un fork ?</dt>
+      <dd>Une copie d'un dépôt GitHub vers votre propre compte. Permet de contribuer à un projet sans avoir les droits d'écriture, ou de créer votre propre version indépendante. GitHub conserve le lien entre votre fork et l'original.</dd>
+      <dt class="mt-10">Fork vs Clone</dt>
+      <dd>Le <strong>clone</strong> copie un dépôt sur votre machine — vous ne pouvez pousser que si vous avez les droits sur ce dépôt. Le <strong>fork</strong> crée d'abord une copie sur votre compte GitHub, puis vous clonez ce fork. Le lien fork/original permet d'ouvrir une Pull Request vers l'original, ce qu'un simple clone ne permet pas. Il est possible de cloner un dépôt puis de changer le remote origin vers un nouveau dépôt GitHub, mais cela coupe le lien officiel entre les deux dépôts — les PR vers l'original ne sont plus possibles.</dd>
+      <dt class="mt-10">Ouvrir une Pull Request</dt>
+      <dd>Depuis votre fork sur GitHub.com : onglet <strong>Pull requests</strong> → <strong>New pull request</strong> → GitHub compare automatiquement votre fork avec l'original → <strong>Create pull request</strong>, ajoutez un titre et une description → <strong>Submit</strong>. Le mainteneur reçoit une notification et peut commenter, demander des modifications ou merger.</dd>
+      <dt class="mt-10">Récupérer les mises à jour de l'original</dt>
+      <dd>Ajouter un remote <code>upstream</code> pointant vers le dépôt original, puis puller depuis ce remote :<br>
+        <code>git remote add upstream https://github.com/original/repo.git</code><br>
+        <code>git pull upstream main</code>
+      </dd>
+    </dl>
+    <div class="help-info-box mono center mt-10">
+      <div class="help-flow-secondary">Dépôt original (autre utilisateur)</div>
+      <div class="help-flow-arrow">↓ <span class="help-flow-label">Fork (sur GitHub.com)</span></div>
+      <div class="help-flow-primary">Votre fork (votre compte GitHub)</div>
+      <div class="help-flow-arrow">↓ <span class="help-flow-label">Clone</span></div>
+      <div class="help-flow-primary">Votre PC (travail local)</div>
+      <div class="help-flow-arrow">↓ <span class="help-flow-label">Push vers votre fork</span></div>
+      <div class="help-flow-primary">Votre fork</div>
+      <div class="help-flow-arrow">↓ <span class="help-flow-label">Pull Request</span></div>
+      <div class="help-flow-secondary">Dépôt original (proposition au mainteneur)</div>
+    </div>
+    <div class="mt-10 text-note">
+      <i class="fas fa-info-circle"></i> Le fork se fait sur GitHub.com (bouton "Fork"). Utilisez ensuite <a
+        href="git-clone.html" class="link-accent">Cloner un dépôt</a> pour récupérer votre fork en local.
+    </div>
+  </div>
+
+  <div class="help-chapter-header">Versioning &amp; maintenance</div>
+
+  <div class="help-category">
+    <h4><i class="fas fa-tags"></i> Tags</h4>
+    <dl>
+      <dt><i class="fas fa-tag"></i> Tag léger</dt>
+      <dd>Simple pointeur vers un commit. Créé sans message. Utile pour un repère personnel.</dd>
+      <dt><i class="fas fa-tag"></i> Tag annoté</dt>
+      <dd>Objet Git à part entière avec un message, une date et l'auteur du tag. Recommandé pour les releases.</dd>
+      <dt><i class="fas fa-upload"></i> Push</dt>
+      <dd>Envoie le tag vers GitHub. Sans push, le tag reste local et n'est pas visible dans les releases GitHub.
+        Pousser un tag déjà publié est sans effet.</dd>
+      <dt><i class="fas fa-trash"></i> Supprimer</dt>
+      <dd>Supprime le tag localement et tente automatiquement de le supprimer sur GitHub. Si le tag n'avait jamais
+        été pushé, la suppression distante est ignorée silencieusement.</dd>
     </dl>
     <div class="help-info-box">
-      <div class="mb-8"><strong>Configuration dans <code>git-config.php</code> :</strong></div>
-      <div class="help-code-box">
-        <div><span class="syn-string">'reposRoot'</span> => <span class="syn-string">'C:/repos'</span>,</div>
-      </div>
-      <div class="mt-10 mb-8"><strong>Exemple de structure attendue :</strong></div>
-      <div class="help-code-box">
-        <div>C:/repos/</div>
-        <div>&nbsp; ├── gm-host/         <span class="syn-comment">&lt;- virtual host, pas de .git/ → ignoré</span></div>
-        <div>&nbsp; │   └── git-manager/  <span class="syn-comment">&lt;- l'application (point d'entrée)</span></div>
-        <div>&nbsp; ├── mon-site/         <span class="syn-comment">&lt;- affiché dans le sélecteur</span></div>
-        <div>&nbsp; │   └── .git/             <span class="syn-comment">&lt;- Dépôt Git → Créé lors du git init</span></div>
-        <div>&nbsp; └── api-projet/       <span class="syn-comment">&lt;- affiché dans le sélecteur</span></div>
-        <div>&nbsp; &nbsp; &nbsp; └── .git/ <span class="syn-comment">&lt;- Dépôt Git → Créé lors du git init</span></div>
-      </div>
-      <div class="mt-8">Seuls les sous-dossiers <strong>directs</strong> contenant un <code>.git/</code> sont listés.</div>
-      <div class="mt-8"><i class="fas fa-info-circle"></i> Si vous déplacez votre dossier de projets, pensez à mettre à jour le chemin <code>reposRoot</code> dans <code>git-config.php</code>.</div>
+      <div class="mb-8"><strong><i class="fas fa-code-branch"></i> Convention MAJOR.MINOR.PATCH</strong></div>
+      <div>· <code>PATCH</code> (+0.0.1) : correction de bug ou petit ajustement</div>
+      <div class="mt-5">· <code>MINOR</code> (+0.1.0) : nouvelle page ou fonctionnalité</div>
+      <div class="mt-5">· <code>MAJOR</code> (+1.0.0) : refonte architecturale ou visuelle importante</div>
+      <div class="mt-8">Créer une release pour un jalon significatif, pas pour chaque petit fix.</div>
     </div>
   </div>
   <div class="help-category">
-    <h4><i class="fas fa-clone"></i> Cloner un dépôt</h4>
+    <h4><i class="fas fa-exclamation-triangle"></i> Actions dangereuses</h4>
     <dl>
-      <dt><a href="git-clone.html" class="link-accent">Cloner un dépôt existant</a></dt>
-      <dd>Copie un dépôt distant (GitHub, GitLab…) en local à partir de son URL. Le comportement varie selon la configuration :</dd>
-    </dl>
-    <div class="help-info-box">
-      <div><strong>Mode embarqué</strong> <span class="help-muted">(sans reposRoot)</span></div>
-      <div class="mt-5">Le dépôt est cloné dans le dossier parent du projet actuel. Les fichiers git-manager sont copiés automatiquement dans le nouveau dépôt.</div>
-      <div class="mt-5">Fichiers copiés : git-manager.html, git-api.php, git-config.example.php, git-clone.html,
-        git-reset-remote.html, git-auth.html, git-help.html, index.html, flavicon.svg</div>
-      <div class="mt-5">Sous-dossiers copiés intégralement : <code>api/</code>, <code>css/</code>, <code>js/</code></div>
-      <div class="help-info-box mt-8">
-        <strong>Mise en service du dépôt cloné :</strong>
-        <ol class="help-ol">
-          <li>Renommer <code>git-config.example.php</code> en <code>git-config.php</code> et renseigner identité Git et chemin SSH.</li>
-          <li>Créer un virtual host Apache pointant vers le dossier cloné.</li>
-          <li>Accéder à <code>http://[nom-du-projet]/git-manager/git-manager.html</code>.</li>
-        </ol>
-        <div class="help-notice mt-8">Ouvrir le dossier via l'Explorateur Windows (<code>file://</code>) ne fonctionnera pas — PHP doit être exécuté par Apache.</div>
-      </div>
-    </div>
-    <div class="help-info-box mt-8">
-      <div><strong>Mode multi-dépôts</strong> <span class="help-muted">(reposRoot configuré)</span></div>
-      <div class="mt-5">Le dépôt est cloné directement dans <code>reposRoot</code> — les fichiers git-manager ne sont pas copiés, une seule installation est partagée. Le dépôt apparaît automatiquement dans le sélecteur.</div>
-    </div>
-    <dl class="mt-8">
-      <dt><a href="git-clone.html" class="link-accent">Créer un dépôt vierge</a> <span class="help-muted">(mode multi-dépôts uniquement)</span></dt>
-      <dd>Démarre un projet from scratch (de zéro) : saisir un nom, un dossier est créé dans <code>reposRoot</code> et <code>git init</code> est lancé automatiquement. Le dépôt apparaît immédiatement dans le sélecteur, sans toucher la ligne de commande.</dd>
+      <dt><i class="fas fa-trash"></i> Annuler toutes les modifications</dt>
+      <dd>Supprime TOUTES les modifications non committées. <strong>Irréversible !</strong></dd>
+      <dt><i class="fas fa-trash-alt"></i> Supprimer (dépôt + disque)</dt>
+      <dd>Supprime le fichier du dépôt ET de votre disque. <strong>Définitif !</strong></dd>
     </dl>
   </div>
   <div class="help-category">
@@ -534,12 +565,6 @@
       <dt><a href="git-reset-remote.html" class="link-accent">Page de réinitialisation</a></dt>
       <dd>Crée une nouvelle branche vide (sans historique) et supprime les branches sélectionnées sur GitHub.
         <strong>Irréversible !</strong></dd>
-    </dl>
-
-    <h4><i class="fas fa-key"></i> Authentification (SSH / Token)</h4>
-    <dl>
-      <dt><a href="git-auth.html" class="link-accent">Guide d'authentification</a></dt>
-      <dd>Configure l'accès à GitHub via SSH (clés) ou Token HTTPS. Nécessaire pour push/pull.</dd>
     </dl>
     <div class="help-info-box">
       <div><strong>Cas d'usage :</strong></div>
