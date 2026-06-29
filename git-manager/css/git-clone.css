@@ -35,27 +35,6 @@
   font-size: 0.85em;
 }
 
-.checkbox-group {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 15px;
-  padding: 15px;
-  background: var(--bg-secondary);
-  border-radius: 8px;
-}
-
-.checkbox-group label {
-  color: var(--text-primary);
-  cursor: pointer;
-}
-
-.checkbox-group small {
-  display: block;
-  color: var(--text-secondary);
-  font-size: 0.85em;
-  margin-top: 3px;
-}
 
 .btn {
   padding: 12px 24px;
@@ -91,14 +70,6 @@
   transform: translateY(-2px);
 }
 
-.btn-success {
-  background: var(--success-color);
-  color: white;
-}
-
-.btn-success:hover {
-  background: color-mix(in srgb, var(--success-color) 75%, black);
-}
 
 .btn:disabled {
   opacity: 0.5;
@@ -139,6 +110,12 @@
 
 .result-box .btn-group {
   margin-top: 12px;
+}
+
+#reposCount {
+  font-size: 0.75em;
+  font-weight: 400;
+  color: var(--text-secondary);
 }
 
 .result-box .path {
@@ -193,24 +170,11 @@
 }
 
 .info-box-prereq { margin-bottom: 12px; }
-.info-box-steps  { margin-bottom: 20px; }
 .info-box p:last-child { margin-bottom: 0; }
 
 .folders-desc {
   color: var(--text-secondary);
   margin-bottom: 15px;
-}
-
-.info-box ol {
-  margin: 8px 0 0 18px;
-  line-height: 1.8;
-}
-
-.info-box .info-note {
-  margin-top: 8px;
-  margin-bottom: 0;
-  font-size: 0.9em;
-  color: var(--text-secondary);
 }
 
 .folder-item small {
@@ -219,12 +183,6 @@
 
 .result-box .result-success-icon {
   color: var(--success-color);
-}
-
-.result-box .result-url {
-  margin-top: 12px;
-  font-size: 0.9em;
-  color: var(--text-secondary);
 }
 
 .parent-path {

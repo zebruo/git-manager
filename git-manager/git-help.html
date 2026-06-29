@@ -25,22 +25,27 @@
       <dt><i class="fas fa-list"></i> Sélecteur de dépôt</dt>
       <dd>Menu déroulant affiché dans le header. Permet de basculer entre tous les projets Git de <code>reposRoot</code> sans changer de virtual host.</dd>
       <dt><i class="fas fa-folder-open"></i> Détection automatique</dt>
-      <dd>Seuls les sous-dossiers <strong>directs</strong> de <code>reposRoot</code> contenant un <code>.git/</code> sont listés.</dd>
+      <dd>Seuls les sous-dossiers <strong>directs</strong> du dossier <i class="fas fa-folder-open"></i> mes-projets <code>(reposRoot)</code> contenant un <code>.git/</code> sont listés.</dd>
     </dl>
     <div class="help-info-box">
       <div class="mb-8"><strong>Configuration dans <code>git-config.php</code> :</strong></div>
       <div class="help-code-box">
-        <div><span class="syn-string">'reposRoot'</span> => <span class="syn-string">'C:/repos'</span>,</div>
+        <div><span class="syn-string">'reposRoot'</span> => <span class="syn-string">'C:/Users/votre-nom/mes-projets'</span>,</div>
       </div>
-      <div class="mt-10 mb-8"><strong>Structure recommandée :</strong></div>
+      <div class="mt-10 mb-8"><strong>Structure :</strong></div>
       <div class="help-code-box">
-        <div>C:/repos/                  <span class="syn-comment">&lt;- reposRoot + document root Apache</span></div>
-        <div>&nbsp; ├── git-manager/   <span class="syn-comment">&lt;- l'application (pas de .git/ → ignoré)</span></div>
-        <div>&nbsp; ├── mon-site/      <span class="syn-comment">&lt;- affiché dans le sélecteur</span></div>
+        <div>(htdocs/, www/, etc.)/          <span class="syn-comment">&lt;- dossier public du serveur</span></div>
+        <div>&nbsp; ├── git-manager/         <span class="syn-comment">&lt;- l'application (pas de .git/ → ignoré)</span></div>
+        <div>&nbsp; └── ...</div>
+        <div>&nbsp;</div>
+        <div>&nbsp; mes-projets/             <span class="syn-comment">&lt;- reposRoot (n'importe où sur le disque)</span></div>
+        <div>&nbsp; ├── mon-site/            <span class="syn-comment">&lt;- détecté automatiquement dans le sélecteur</span></div>
         <div>&nbsp; │   └── .git/</div>
-        <div>&nbsp; └── api-projet/    <span class="syn-comment">&lt;- affiché dans le sélecteur</span></div>
+        <div>&nbsp; └── api-projet/          <span class="syn-comment">&lt;- détecté automatiquement dans le sélecteur</span></div>
         <div>&nbsp; &nbsp; &nbsp; └── .git/</div>
       </div>
+      <div class="mt-8"><i class="fas fa-info-circle"></i> git-manager trouve les dépôts via <code>reposRoot</code></div>
+      <div class="mt-8"><i class="fas fa-info-circle"></i> Si git-manager est placé en dehors du dossier public du serveur, créez un virtual host Apache pointant vers ce dossier.</div>
       <div class="mt-8"><i class="fas fa-info-circle"></i> Si vous déplacez votre dossier de projets, mettez à jour <code>reposRoot</code> dans <code>git-config.php</code>.</div>
     </div>
   </div>

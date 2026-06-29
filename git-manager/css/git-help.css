@@ -134,17 +134,6 @@
   padding: 8px;
   border-radius: 6px;
 }
-.help-muted {
-  font-weight: 400;
-  font-size: 0.88em;
-  color: var(--text-secondary);
-}
-
-.help-notice {
-  padding: 8px;
-  background: color-mix(in srgb, var(--warning-color) 10%, transparent);
-  border-radius: 4px;
-}
 .help-warning-box {
   margin-top: 10px;
   font-size: 0.85em;
@@ -189,7 +178,6 @@
 .diff-line-del { font-family: monospace; color: #f48a83; }
 .diff-line-add { font-family: monospace; color: #81c784; }
 /* ── Listes ───────────────────────────────────────────────────────── */
-.help-ol   { margin: 8px 0 0 18px; line-height: 1.8; }
 .help-list { margin: 5px 0 0 15px; padding: 0; }
 /* ── En-têtes de chapitre ────────────────────────────────────────── */
 .help-chapter-header {

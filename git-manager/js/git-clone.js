@@ -26,6 +26,8 @@ async function loadFolders() {
     document.querySelectorAll('.parent-path').forEach(el => el.textContent = result.data.parentDir);
 
     const folders = result.data.folders;
+    const gitCount = folders.filter(f => f.isGitRepo).length;
+    document.getElementById('reposCount').textContent = '(' + gitCount + ')';
     if (folders.length === 0) {
       list.innerHTML = '<div style="padding: 15px; color: var(--text-secondary);">Aucun dossier trouvé</div>';
     } else {

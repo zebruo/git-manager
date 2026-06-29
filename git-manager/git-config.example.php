@@ -30,9 +30,9 @@ return [
 
     // Chemin absolu du dossier contenant vos repos Git
     // Pour un seul projet : indiquez le dossier parent du projet
-    //   Windows : 'C:/Users/votre-nom/repos'
-    //   Linux   : '/home/votre-nom/repos'
-    'reposRoot' => 'C:/Users/votre-nom/repos',
+    //   Windows : 'C:/Users/votre-nom/mes-projets'
+    //   Linux   : '/home/votre-nom/mes-projets'
+    'reposRoot' => 'C:/Users/votre-nom/mes-projets',
 
     // Options d'affichage (facultatif)
     'options' => [

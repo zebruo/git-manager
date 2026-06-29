@@ -10,46 +10,47 @@ PRÉREQUIS
 
 INSTALLATION
 ------------
-1. Créez un dossier racine pour vos projets Git, par exemple :
-     C:/repos/
-
-2. Copiez le dossier git-manager/ dans ce dossier racine :
-     C:/repos/git-manager/
+1. Copiez le dossier git-manager/ dans le dossier public de votre serveur
+   (htdocs/, www/, public_html/…)
    (si le dossier extrait porte un numéro de version ex: git-manager-1.3.0/,
     renommez-le en git-manager/)
 
-3. Créez un virtual host Apache pointant vers C:/repos/
-   Exemple : http://repos.local/
-
-4. Renommez git-manager/git-config.example.php en git-manager/git-config.php
+2. Renommez git-manager/git-config.example.php en git-manager/git-config.php
    et renseignez vos informations :
 
      'userName'  => 'votre-username',
      'userEmail' => 'votre-email@example.com',
      'sshKeyPath' => 'C:/Users/votre-nom/.ssh/id_rsa',  // facultatif
-     'reposRoot' => 'C:/repos',
+     'reposRoot' => 'C:/Users/votre-nom/mes-projets',
 
-   reposRoot désigne le dossier racine contenant tous vos projets Git.
+   reposRoot désigne le dossier contenant vos dépôts Git. Il peut être
+   n'importe où sur le disque, indépendamment de l'emplacement de git-manager.
 
-5. Ouvrez http://repos.local/git-manager/ dans le navigateur
+3. Ouvrez http://localhost/git-manager/ dans le navigateur
 
    IMPORTANT : n'ouvrez pas les fichiers directement via l'Explorateur Windows
    (file://) — PHP doit être exécuté par Apache.
 
+   NOTE : si git-manager est placé en dehors du dossier public du serveur,
+   créez un virtual host Apache pointant vers ce dossier.
 
-STRUCTURE RECOMMANDÉE
----------------------
-  C:/repos/
-  ├── git-manager/      <- l'application (point d'entrée)
-  ├── project-a/        <- détecté automatiquement dans le sélecteur
+
+STRUCTURE
+---------
+  (htdocs/, www/, etc.)/                <- dossier public du serveur
+  ├── git-manager/               <- l'application (pas de .git/ → ignoré)
+  └── ...
+
+  mes-projets/                   <- reposRoot (n'importe où sur le disque)
+  ├── project-a/                 <- détecté automatiquement dans le sélecteur
   │   └── .git/
-  └── project-b/        <- détecté automatiquement dans le sélecteur
+  └── project-b/                 <- détecté automatiquement dans le sélecteur
       └── .git/
 
+git-manager trouve les dépôts via reposRoot.
 Seuls les sous-dossiers directs de reposRoot contenant un .git/ sont listés.
-git-manager/ n'apparaît pas dans le sélecteur car il ne contient pas de .git/.
-Pour cloner un nouveau dépôt ou créer un dépôt vierge : utiliser l'interface
-via le bouton Clone de git-manager.
+Pour cloner un nouveau dépôt ou créer un dépôt vierge : bouton Clone
+dans git-manager.
 
 
 AUTHENTIFICATION GITHUB

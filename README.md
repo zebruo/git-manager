@@ -32,7 +32,7 @@ Interface web pour gérer un dépôt Git sans ligne de commande.
 | `api/commits.php` | log, fileLog, stageFiles, unstageFiles, commit, commitAndPush, revertCommit, amendLastCommit, showCommit, diff |
 | `api/files.php` | checkout, discardAll, checkoutCommit, removeFromRepo, untrackFile, fileDiff |
 | `api/gitignore.php` | getGitignore, addToGitignore, removeFromGitignore |
-| `api/setup.php` | checkRepo, init, clone, listFolders, listRemoteBranches, resetRemote |
+| `api/setup.php` | checkRepo, clone, initRepo, listFolders, listRemoteBranches, resetRemote |
 | `api/stash.php` | stashList, stashSave, stashApply, stashDrop |
 | `api/status.php` | status, repoInfo, addRemote, removeRemote |
 | `api/sync.php` | push, pull, fetch |
@@ -66,7 +66,7 @@ Interface web pour gérer un dépôt Git sans ligne de commande.
 
 ### Initialisation et configuration
 
-- **Initialiser un dépôt** : Créer un nouveau dépôt Git (`git init -b main`)
+- **Cloner / créer un dépôt** : Cloner un dépôt existant (HTTPS/SSH) ou créer un dépôt vierge dans `reposRoot` via `git-clone.html`
 - **Lier à GitHub** : Configurer le remote origin vers un dépôt GitHub
 - **Modifier/Supprimer le remote** : Changer ou retirer la liaison GitHub
 - **Authentification SSH** : Générer et configurer une clé SSH pour GitHub
@@ -115,7 +115,7 @@ Interface web pour gérer un dépôt Git sans ligne de commande.
 | Action | Description |
 |--------|-------------|
 | Créer | Nouvelle branche à partir de la branche en cours, d'une autre branche locale, d'une branche distante ou d'un hash/ref précis |
-| Branche orpheline | Branche vide sans fichiers et sans historique (conserve git-manager/) |
+| Branche orpheline | Branche vide sans fichiers et sans historique |
 | Nouveau départ | Branche avec les fichiers actuels mais sans historique |
 | Renommer | Changer le nom d'une branche (local et distant si publiée). La branche par défaut (main/master) ne peut pas être renommée |
 | Basculer | Changer de branche active (préserve les fichiers non suivis) |
@@ -161,11 +161,10 @@ Interface web pour gérer un dépôt Git sans ligne de commande.
 
 Permet de basculer entre plusieurs dépôts Git depuis le même navigateur, sans changer de virtual host.
 
-- **Activation** : définir `reposRoot` dans `git-config.php` (chemin absolu du dossier contenant vos projets)
-- **Sélecteur** : menu déroulant affiché dans le header à côté du nom du dépôt courant
+- **Sélecteur** : menu déroulant affiché dans le header, alimenté par `reposRoot`
 - **Scan** : liste uniquement les sous-dossiers directs de `reposRoot` qui contiennent un `.git/`
+- **Navigation** : le paramètre `?repo=<nom>` dans l'URL identifie le dépôt actif et est propagé aux pages secondaires
 - **Sécurité** : chaque chemin est validé avec `realpath()` pour éviter toute traversée de répertoire
-- Si `reposRoot` est vide ou absent, le sélecteur n'est pas affiché
 
 ### Interface
 
@@ -189,31 +188,21 @@ Guide de configuration pour accéder à GitHub (push, pull, fetch). Deux méthod
 - Création d'un Personal Access Token (PAT) sur GitHub
 - Utilisation du token dans l'URL ou via le Credential Manager
 
-### git-clone.html - Clonage de dépôt
+### git-clone.html - Clonage et création de dépôt
 
-Clone un dépôt distant dans le dossier courant :
-- Supporte les URLs HTTPS et SSH
-- Copie automatiquement les fichiers git-manager/ (`api/`, `css/`, `js/` inclus)
-- Préserve les fichiers existants non conflictuels
+Deux actions disponibles, les deux créent le dépôt dans `reposRoot` :
+- **Cloner** : copie un dépôt distant (HTTPS ou SSH) en local — le dépôt apparaît immédiatement dans le sélecteur
+- **Créer un dépôt vierge** : saisir un nom, un dossier est créé et `git init -b main` est lancé automatiquement
 
 ### git-help.html - Documentation d'aide
 
-Contenu HTML de l'aide intégrée, chargé dynamiquement dans la modale de `git-manager.html`. Couvre :
-- Synchronisation (remote, push, pull, fetch, option `--rebase`)
-- Statuts des fichiers (M, A, D, U)
-- Diff visuel (lecture du tableau, en-tête @@, deux onglets stagé/non stagé)
-- Tags (tag léger/annoté, push, suppression, convention MAJOR.MINOR.PATCH)
-- Récupération de fichiers et retour en arrière
-- Commits en avance / en retard
-- Stash (mettre de côté)
-- Actions dangereuses
-- Fusion (merge) et résolution de conflits
-- Fork et contribution
-- Gestion des branches
-- HEAD détaché
-- Clonage, réinitialisation du remote, authentification
-- Multi-dépôts (sélecteur de dépôt)
-- Workflow typique
+Contenu HTML de l'aide intégrée, organisé en 5 chapitres :
+
+- **Mise en place** : authentification SSH/Token, clonage, création de dépôt, multi-dépôts
+- **Travail quotidien** : synchronisation (remote, push, pull, fetch), statuts des fichiers, diff visuel, stash
+- **Gérer les commits** : commit, amend, revert, HEAD détaché, récupération de fichiers, actions dangereuses
+- **Branches** : créer, basculer, fusionner, rebaser, fork et contribution
+- **Versioning & maintenance** : tags, gitignore, workflow typique, exercices pratiques
 
 ### git-reset-remote.html - Réinitialisation du remote
 
@@ -231,9 +220,8 @@ return [
     'userEmail' => 'votre-email@example.com',
     'sshKeyPath' => 'C:/Users/votre-nom/.ssh/id_rsa',  // ou id_ed25519
 
-    // Multi-dépôts (facultatif) — chemin absolu du dossier contenant vos projets
-    // Laisser vide pour désactiver le sélecteur de dépôt
-    'reposRoot' => 'C:/Users/votre-nom/projets',
+    // Dossier contenant vos dépôts Git (n'importe où sur le disque)
+    'reposRoot' => 'C:/Users/votre-nom/mes-projets',
 
     'options' => [
         'maxHistoryItems' => 20,    // Nombre de commits dans l'historique
@@ -246,61 +234,27 @@ return [
 
 ## Installation
 
-1. Copier le dossier `git-manager/` dans votre projet
-2. Renommez `git-config.example.php` en `git-config.php` et renseigner vos informations
-3. Accéder à `http://votre-site/git-manager/git-manager.html`
+1. Copiez le dossier `git-manager/` dans le dossier public de votre serveur (`htdocs/`, `www/`, `public_html/`…)
+2. Renommez `git-config.example.php` en `git-config.php` et renseignez vos informations
+3. Accédez à `http://localhost/git-manager/`
 
-**Important** : Les fichiers doivent être dans un **sous-dossier** du projet à gérer. L'API gère automatiquement le dossier parent comme dépôt Git.
+> Si git-manager est placé en dehors du dossier public du serveur, créez un virtual host Apache pointant vers ce dossier.
 
-**Mise à jour** : Pour passer à une nouvelle version, supprimez l'ancien dossier `git-manager/` et remplacez-le par le nouveau. Votre fichier `git-config.php` étant ignoré par Git, il n'est pas inclus dans les releases — recopiez-le manuellement après la mise à jour.
+**Mise à jour** : Remplacez le dossier `git-manager/` par la nouvelle version. Votre `git-config.php` n'est pas inclus dans les releases — recopiez-le manuellement.
 
 ```
-mon-projet/                    <- Dépôt Git géré
-├── .git/                      <- Dossier Git (créé automatiquement par git init)
-├── git-manager/               <- Sous-dossier de l'interface (non versionné)
-│   ├── api/                   <- Modules PHP backend
-│   │   ├── branches.php
-│   │   ├── commits.php
-│   │   ├── files.php
-│   │   ├── gitignore.php
-│   │   ├── setup.php
-│   │   ├── stash.php
-│   │   ├── status.php
-│   │   ├── sync.php
-│   │   ├── tags.php
-│   │   └── repos.php
-│   ├── css/                   <- Feuilles de style
-│   │   ├── common.css
-│   │   ├── pages-shared.css
-│   │   ├── git-auth.css
-│   │   ├── git-clone.css
-│   │   ├── git-help.css
-│   │   ├── git-manager.css
-│   │   ├── git-reset-remote.css
-│   │   └── index.css
-│   ├── js/                    <- Scripts frontend
-│   │   ├── common.js
-│   │   ├── git-auth.js
-│   │   ├── git-clone.js
-│   │   ├── git-manager.js
-│   │   └── git-reset-remote.js
-│   ├── git-api.php
-│   ├── git-auth.html
-│   ├── git-clone.html
-│   ├── git-config.example.php
-│   ├── git-config.php
-│   ├── git-help.html
-│   ├── git-manager.html
-│   ├── git-reset-remote.html
-│   ├── flavicon.svg
-│   └── index.html
-├── index.html                 (M) modifié
-├── style.css                  (A) stagé
-├── script.js                  (U) non suivi
-└── .gitignore
+(htdocs/, www/, etc.)/         <- dossier public du serveur
+├── git-manager/               <- l'application (pas de .git/ → ignoré)
+└── ...
+
+mes-projets/                   <- reposRoot (n'importe où sur le disque)
+├── project-a/                 <- détecté automatiquement dans le sélecteur
+│   └── .git/
+└── project-b/                 <- détecté automatiquement dans le sélecteur
+    └── .git/
 ```
 
-**Note** : Le dossier `git-manager/` est automatiquement ajouté au `.gitignore` pour ne pas être versionné.
+git-manager trouve les dépôts via `reposRoot`.
 
 ## Prérequis
 

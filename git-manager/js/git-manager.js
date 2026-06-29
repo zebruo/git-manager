@@ -661,17 +661,21 @@ function updateFileList(modified, untracked, staged, stagedDeleted, conflicted) 
     ...filteredStaged.map(f => ({ name: f, status: 'A', type: 'added' }))
   ];
 
+  const selectAllContainer = document.getElementById('selectAllContainer');
+
   if (allFiles.length === 0) {
+    selectAllContainer.innerHTML = '';
     fileList.innerHTML = '<div class="empty-state"><i class="fas fa-check-circle"></i><p>Aucun fichier modifié</p></div>';
     return;
   }
 
-  fileList.innerHTML = `
+  selectAllContainer.innerHTML = `
     <div class="select-all-row">
       <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
       <label for="selectAll">Tout sélectionner</label>
-    </div>
-    ${allFiles.map(f => {
+    </div>`;
+
+  fileList.innerHTML = allFiles.map(f => {
       const diffable = f.type !== 'untracked';
       const nameSpan = diffable
         ? `<span class="file-name diff-link" onclick="showFileDiff('${f.name.replace(/'/g, "\\'")}','${f.type}')" title="Voir le diff">${f.name}</span>`
@@ -682,8 +686,7 @@ function updateFileList(modified, untracked, staged, stagedDeleted, conflicted) 
         <span class="file-status ${f.type}">${f.status}</span>
         ${nameSpan}
       </div>`;
-    }).join('')}
-  `;
+    }).join('');
 }
 
 // Mettre à jour le select checkout
