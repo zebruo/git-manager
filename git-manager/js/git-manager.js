@@ -337,9 +337,11 @@ async function loadStatus() {
       const untracked = data.untracked || [];
       const staged = data.staged || [];
       const stagedDeleted = data.stagedDeleted || [];
+      const deletedUnstaged = data.deletedUnstaged || [];
       const conflicted = data.conflicted || [];
       const allFiles = data.allFiles || [];
       const totalStaged = staged.length + stagedDeleted.length;
+      const totalDeleted = stagedDeleted.length + deletedUnstaged.length;
       const totalTracked = allFiles.length;
       currentAhead = data.ahead || 0;
       const branchDisplay = data.isRebasing
@@ -372,7 +374,7 @@ async function loadStatus() {
           </div>
           <div class="status-row">
             <span class="status-label"><span class="status-badge deleted">D</span> Supprimés</span>
-            <span class="status-value">${stagedDeleted.length}</span>
+            <span class="status-value">${totalDeleted}</span>
           </div>
           <div class="status-row">
             <span class="status-label"><span class="status-badge untracked">U</span> Non suivis</span>
@@ -394,7 +396,7 @@ async function loadStatus() {
       `;
 
       // Mettre à jour la liste des fichiers
-      updateFileList(modified, untracked, staged, stagedDeleted, conflicted);
+      updateFileList(modified, untracked, staged, stagedDeleted, conflicted, deletedUnstaged);
 
       // Mettre à jour le select pour checkout
       updateCheckoutSelect(modified, allFiles);
@@ -641,7 +643,7 @@ async function doStashDrop(stashId) {
 }
 
 // Mettre à jour la liste des fichiers
-function updateFileList(modified, untracked, staged, stagedDeleted, conflicted) {
+function updateFileList(modified, untracked, staged, stagedDeleted, conflicted, deletedUnstaged) {
   const fileList = document.getElementById('fileList');
   const deletedSet = new Set(stagedDeleted || []);
   const conflictedSet = new Set(conflicted || []);
@@ -656,6 +658,7 @@ function updateFileList(modified, untracked, staged, stagedDeleted, conflicted) 
   const allFiles = [
     ...(conflicted || []).map(f => ({ name: f, status: 'C', type: 'conflicted' })),
     ...(stagedDeleted || []).map(f => ({ name: f, status: 'D', type: 'deleted' })),
+    ...(deletedUnstaged || []).map(f => ({ name: f, status: 'D', type: 'deletedUnstaged' })),
     ...filteredModified.map(f => ({ name: f, status: 'M', type: 'modified' })),
     ...filteredUntracked.map(f => ({ name: f, status: 'U', type: 'untracked' })),
     ...filteredStaged.map(f => ({ name: f, status: 'A', type: 'added' }))

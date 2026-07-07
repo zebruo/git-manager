@@ -1,5 +1,8 @@
 <?php
-/** @var array $config */
+/** @var string $action */
+/** @var array  $config */
+/** @var string $repoParam */
+/** @var string $repoPath */
 
 switch ($action) {
 

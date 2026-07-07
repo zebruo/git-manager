@@ -20,6 +20,7 @@ switch ($action) {
         $modified = [];
         $staged = [];
         $stagedDeleted = [];
+        $deletedUnstaged = [];
         $untracked = [];
         $conflicted = [];
 
@@ -42,8 +43,16 @@ switch ($action) {
                 $xy   = $parts[1];
                 $file = end($parts);
                 if ($xy[1] === 'M') $modified[] = $file;
+                if ($xy[1] === 'D') $deletedUnstaged[] = $file;
                 if (in_array($xy[0], ['M', 'A'])) $staged[] = $file;
                 if ($xy[0] === 'D') $stagedDeleted[] = $file;
+            } elseif ($line[0] === '2') {
+                // Renommage/copie stagé : "2 XY <sub> <mH> <mI> <mW> <hH> <hI> <score> <path>\t<origPath>"
+                $parts = explode(' ', $line);
+                $xy   = $parts[1];
+                $file = explode("\t", end($parts), 2)[0];
+                if ($xy[1] === 'M') $modified[] = $file;
+                if (in_array($xy[0], ['R', 'C'])) $staged[] = $file;
             } elseif ($line[0] === 'u') {
                 // Fichier en conflit : "u XY <sub> <m1> <m2> <m3> <mW> <h1> <h2> <h3> <path>"
                 $parts = explode(' ', $line);
@@ -73,6 +82,7 @@ switch ($action) {
                 'modified'      => $modified,
                 'staged'        => $staged,
                 'stagedDeleted' => $stagedDeleted,
+                'deletedUnstaged' => $deletedUnstaged,
                 'conflicted'    => $conflicted,
                 'untracked'     => $untracked,
                 'ahead'         => $ahead,

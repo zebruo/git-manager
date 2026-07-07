@@ -351,7 +351,8 @@ body {
   color: white;
 }
 
-.file-status.deleted, .status-badge.deleted {
+.file-status.deleted, .status-badge.deleted,
+.file-status.deletedUnstaged {
   background: var(--danger-color);
   color: white;
 }
