@@ -3,7 +3,7 @@ Git Manager — Installation rapide
 
 PRÉREQUIS
 ---------
-- PHP 7.4+ avec Apache (XAMPP, WAMP, Laragon, etc.)
+- PHP 8.x avec Apache (XAMPP, WAMP, Laragon, etc.)
 - Git installé sur le serveur (vérifier : git --version)
 - Sur Windows : Git for Windows recommandé (https://git-scm.com/download/win)
 
