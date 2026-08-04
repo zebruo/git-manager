@@ -24,9 +24,15 @@ switch ($action) {
         foreach (scandir($resolvedRoot) as $item) {
             if ($item === '.' || $item === '..') continue;
             $path = $resolvedRoot . DIRECTORY_SEPARATOR . $item;
-            if (is_dir($path) && is_dir($path . DIRECTORY_SEPARATOR . '.git')) {
-                $repos[] = $item;
-            }
+            if (!is_dir($path) || !is_dir($path . DIRECTORY_SEPARATOR . '.git')) continue;
+
+            // Ignorer les liens symboliques dont la cible réelle sort de reposRoot :
+            // git-api.php refuserait de toute façon de les ouvrir (confinement via realpath),
+            // autant ne pas les lister pour éviter un dépôt visible mais inutilisable.
+            $resolvedItem = realpath($path);
+            if (!$resolvedItem || !str_starts_with($resolvedItem, $resolvedRoot . DIRECTORY_SEPARATOR)) continue;
+
+            $repos[] = $item;
         }
 
         sort($repos);

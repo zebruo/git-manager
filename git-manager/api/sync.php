@@ -66,8 +66,8 @@ switch ($action) {
         $corrupted = (is_dir($rebaseMergeDir) && !file_exists($rebaseMergeDir . '/head-name'))
                   || (is_dir($rebaseApplyDir) && !file_exists($rebaseApplyDir . '/head-name'));
         if ($corrupted) {
-            if (is_dir($rebaseMergeDir)) shell_exec('rmdir /s /q "' . str_replace('/', DIRECTORY_SEPARATOR, $rebaseMergeDir) . '"');
-            if (is_dir($rebaseApplyDir)) shell_exec('rmdir /s /q "' . str_replace('/', DIRECTORY_SEPARATOR, $rebaseApplyDir) . '"');
+            if (is_dir($rebaseMergeDir)) removeDirRecursive($rebaseMergeDir);
+            if (is_dir($rebaseApplyDir)) removeDirRecursive($rebaseApplyDir);
             $currentBranch = trim(execGit('git branch --show-current')['output']);
             if (empty($currentBranch)) execGit('git checkout -');
             echo json_encode(['success' => true]);
@@ -88,7 +88,7 @@ switch ($action) {
         $result = execGit('git rebase --continue');
 
         // Sur Windows, git peut échouer à supprimer rebase-merge → nettoyage manuel
-        if (is_dir($rebaseMergeDir)) shell_exec('rmdir /s /q "' . str_replace('/', DIRECTORY_SEPARATOR, $rebaseMergeDir) . '"');
+        if (is_dir($rebaseMergeDir)) removeDirRecursive($rebaseMergeDir);
 
         $rebased = strpos($result['output'], 'Successfully rebased') !== false;
         if ($result['code'] === 0 || $rebased) {

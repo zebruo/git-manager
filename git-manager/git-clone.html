@@ -79,11 +79,11 @@
 
       <div class="card">
         <h2><i class="fas fa-folder-plus"></i> Créer un dépôt vierge</h2>
-        <p class="card-intro">Démarre un projet from scratch (de zéro). Crée le dossier et lance <code>git init</code>.</p>
+        <p class="card-intro">Démarre un nouveau projet, ou adopte un dossier existant sous <code>reposRoot</code> en tapant son nom exact ci-dessous : dossier absent → créé puis initialisé (<code>git init</code>) ; dossier existant sans dépôt Git → initialisé sur place sans toucher au contenu ; dossier déjà un dépôt Git → erreur, rien n'est modifié.</p>
         <div class="form-group">
           <label for="newRepoName">Nom du dépôt</label>
           <input type="text" id="newRepoName" placeholder="mon-projet">
-          <small>Lettres, chiffres, tirets et underscores uniquement</small>
+          <small>Lettres, chiffres, tirets et underscores uniquement — doit correspondre au nom du dossier existant pour l'adopter</small>
         </div>
         <div class="btn-group">
           <button class="btn btn-primary" onclick="initRepo()" id="initRepoBtn">

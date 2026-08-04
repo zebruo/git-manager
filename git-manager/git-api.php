@@ -34,7 +34,9 @@ $reposRoot = !empty($config['reposRoot']) ? realpath($config['reposRoot']) : nul
 if (!empty($repoParam) && $reposRoot) {
     $candidate = realpath($reposRoot . DIRECTORY_SEPARATOR . $repoParam);
     // Valider uniquement que le dossier est dans reposRoot — le check .git est délégué à chaque action
-    if ($candidate && str_starts_with($candidate, $reposRoot) && is_dir($candidate)) {
+    // Comparaison avec séparateur pour éviter qu'un dossier voisin partageant le même préfixe
+    // (ex. "sites web2" à côté de "sites web") ne passe le test.
+    if ($candidate && ($candidate === $reposRoot || str_starts_with($candidate, $reposRoot . DIRECTORY_SEPARATOR)) && is_dir($candidate)) {
         $repoPath = $candidate;
     } else {
         $repoPath = $defaultRepoPath;
@@ -150,6 +152,14 @@ function execGit(string $command): array {
     $returnCode = 0;
     exec($fullCommand . ' 2>&1', $output, $returnCode);
     return ['output' => implode("\n", $output), 'code' => $returnCode];
+}
+
+function removeDirRecursive(string $dir): void {
+    if (PHP_OS_FAMILY === 'Windows') {
+        shell_exec('rmdir /s /q "' . str_replace('/', DIRECTORY_SEPARATOR, $dir) . '"');
+    } else {
+        shell_exec('rm -rf ' . escapeshellarg($dir));
+    }
 }
 
 function isValidFile(string $file): bool {

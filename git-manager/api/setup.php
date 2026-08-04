@@ -96,9 +96,13 @@ switch ($action) {
                 if ($item === '.' || $item === '..') continue;
                 $itemPath = $reposRoot . DIRECTORY_SEPARATOR . $item;
                 if (is_dir($itemPath)) {
+                    // Un lien symbolique dont la cible réelle sort de reposRoot ne pourra pas être
+                    // ouvert par git-api.php (confinement via realpath) : ne pas l'annoncer comme dépôt Git.
+                    $resolvedItem = realpath($itemPath);
+                    $isConfined = $resolvedItem && str_starts_with($resolvedItem, $reposRoot . DIRECTORY_SEPARATOR);
                     $folders[] = [
                         'name'      => $item,
-                        'isGitRepo' => is_dir($itemPath . DIRECTORY_SEPARATOR . '.git')
+                        'isGitRepo' => $isConfined && is_dir($itemPath . DIRECTORY_SEPARATOR . '.git')
                     ];
                 }
             }
@@ -119,9 +123,17 @@ switch ($action) {
         if (empty($newName)) { echo json_encode(['success' => false, 'error' => 'Nom de dépôt invalide']); break; }
 
         $newPath = $reposRoot . DIRECTORY_SEPARATOR . $newName;
-        if (file_exists($newPath)) { echo json_encode(['success' => false, 'error' => "Le dossier '{$newName}' existe déjà"]); break; }
+        $alreadyExists = file_exists($newPath);
 
-        if (!@mkdir($newPath, 0755, true)) {
+        if ($alreadyExists && is_dir($newPath . DIRECTORY_SEPARATOR . '.git')) {
+            echo json_encode(['success' => false, 'error' => "'{$newName}' est déjà un dépôt Git"]); break;
+        }
+        if ($alreadyExists && !is_dir($newPath)) {
+            echo json_encode(['success' => false, 'error' => "'{$newName}' existe déjà mais n'est pas un dossier"]); break;
+        }
+
+        // Dossier déjà existant (projet sans .git) : on l'adopte tel quel, on ne crée rien.
+        if (!$alreadyExists && !@mkdir($newPath, 0755, true)) {
             echo json_encode(['success' => false, 'error' => "Impossible de créer le dossier '{$newName}'"]); break;
         }
 
