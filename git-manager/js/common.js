@@ -24,6 +24,21 @@ function navigateBack() {
   window.location.href = repo ? 'git-manager.html?repo=' + encodeURIComponent(repo) : 'git-manager.html';
 }
 
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// Libellés courts des racines de dépôts (nom du dernier dossier),
+// chemins complets si deux racines portent le même nom
+function rootLabels(paths) {
+  const names = paths.map(p => p.split(/[\\/]/).filter(Boolean).pop() || p);
+  return new Set(names).size === names.length ? names : paths.slice();
+}
+
 function showAlert(type, message) {
   const container = document.getElementById('alertContainer');
   const toast = document.createElement('div');

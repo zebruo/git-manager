@@ -25,6 +25,8 @@ INSTALLATION
 
    reposRoot désigne le dossier contenant vos dépôts Git. Il peut être
    n'importe où sur le disque, indépendamment de l'emplacement de git-manager.
+   Pour plusieurs dossiers, remplacez-le par un tableau :
+     'reposRoots' => ['C:/Users/votre-nom/mes-projets', 'D:/autres-projets'],
 
 3. Ouvrez http://localhost/git-manager/ dans le navigateur
 
@@ -45,6 +47,10 @@ STRUCTURE
   ├── project-a/                 <- détecté automatiquement dans le sélecteur
   │   └── .git/
   └── project-b/                 <- détecté automatiquement dans le sélecteur
+      └── .git/
+
+  autres-projets/                <- 2e dossier (facultatif, via reposRoots)
+  └── project-c/                 <- détecté, regroupé à part dans le sélecteur
       └── .git/
 
 git-manager trouve les dépôts via reposRoot.

@@ -19,29 +19,61 @@ async function apiCall(action, params = {}) {
 }
 
 async function loadFolders() {
-  const list = document.getElementById('foldersList');
+  const container = document.getElementById('foldersContainer');
   const result = await apiCall('listFolders');
 
-  if (result.success) {
-    document.querySelectorAll('.parent-path').forEach(el => el.textContent = result.data.parentDir);
-
-    const folders = result.data.folders;
-    const gitCount = folders.filter(f => f.isGitRepo).length;
-    document.getElementById('reposCount').textContent = '(' + gitCount + ')';
-    if (folders.length === 0) {
-      list.innerHTML = '<div style="padding: 15px; color: var(--text-secondary);">Aucun dossier trouvé</div>';
-    } else {
-      list.innerHTML = folders.map(folder => `
-        <div class="folder-item">
-          <i class="fas ${folder.isGitRepo ? 'fa-git-alt' : 'fa-folder'}"></i>
-          <span>${folder.name}</span>
-          ${folder.isGitRepo ? '<small>(dépôt Git)</small>' : ''}
-        </div>
-      `).join('');
-    }
-  } else {
-    list.innerHTML = `<div style="padding: 15px; color: var(--text-secondary);">${result.error ?? 'Erreur de chargement'}</div>`;
+  if (!result.success) {
+    container.innerHTML = `<div class="folders-empty">${escapeHtml(result.error ?? 'Erreur de chargement')}</div>`;
+    return;
   }
+
+  const roots   = result.data.roots;
+  const multi   = roots.length > 1;
+  const labels  = rootLabels(roots.map(r => r.path));
+  const usable  = roots.filter(r => !r.error);
+  const gitCount = r => r.folders.filter(f => f.isGitRepo).length;
+
+  // Bandeau : un seul chemin, ou la liste des emplacements possibles
+  document.getElementById('rootsInfo').innerHTML = multi
+    ? `<p>Les dépôts seront placés dans l'emplacement choisi :</p>
+       <ul class="roots-list">${roots.map(r => `<li><code class="parent-path">${escapeHtml(r.path)}</code></li>`).join('')}</ul>`
+    : `<p>Les dépôts seront placés dans : <code class="parent-path">${escapeHtml(roots[0].path)}</code></p>`;
+
+  // Listes "Emplacement" : affichées seulement s'il y a un choix à faire
+  document.querySelectorAll('.root-select').forEach(select => {
+    const previous = select.value;
+    select.innerHTML = usable.map(r =>
+      `<option value="${r.index}" title="${escapeHtml(r.path)}">${escapeHtml(labels[roots.indexOf(r)])}</option>`
+    ).join('');
+    if (usable.some(r => String(r.index) === previous)) select.value = previous;
+    select.closest('.root-choice').hidden = usable.length < 2;
+  });
+
+  document.getElementById('reposCount').textContent = '(' + roots.reduce((n, r) => n + gitCount(r), 0) + ')';
+
+  container.innerHTML = roots.map(r => `
+    <p class="folders-desc">
+      Dépôts dans : <span class="parent-path">${escapeHtml(r.path)}</span>
+      ${multi && !r.error ? `<span class="root-count">(${gitCount(r)})</span>` : ''}
+    </p>
+    <div class="folders-list">
+      ${r.error
+        ? `<div class="folders-empty">${escapeHtml(r.error)}</div>`
+        : r.folders.length === 0
+          ? '<div class="folders-empty">Aucun dossier trouvé</div>'
+          : r.folders.map(folder => `
+            <div class="folder-item">
+              <i class="fas ${folder.isGitRepo ? 'fa-git-alt' : 'fa-folder'}"></i>
+              <span>${escapeHtml(folder.name)}</span>
+              ${folder.isGitRepo ? '<small>(dépôt Git)</small>' : ''}
+            </div>
+          `).join('')}
+    </div>
+  `).join('');
+}
+
+function selectedRoot(selectId) {
+  return parseInt(document.getElementById(selectId).value, 10) || 0;
 }
 
 async function cloneRepo() {
@@ -61,7 +93,7 @@ async function cloneRepo() {
   loading.classList.add('visible');
   resultBox.classList.remove('visible');
 
-  const result = await apiCall('clone', { url, targetDir });
+  const result = await apiCall('clone', { url, targetDir, root: selectedRoot('cloneRoot') });
 
   btn.disabled = false;
   loading.classList.remove('visible');
@@ -69,7 +101,7 @@ async function cloneRepo() {
   if (result.success) {
     showAlert('success', 'Dépôt cloné avec succès !');
     document.getElementById('resultPath').textContent = result.data.path;
-    document.getElementById('openCloneBtn').href = 'git-manager.html?repo=' + encodeURIComponent(result.data.folderName);
+    document.getElementById('openCloneBtn').href = 'git-manager.html?repo=' + encodeURIComponent(result.data.id);
     resultBox.classList.add('visible');
     loadFolders();
   } else {
@@ -92,7 +124,7 @@ async function initRepo() {
   loading.classList.add('visible');
   resultBox.classList.remove('visible');
 
-  const result = await apiCall('initRepo', { name });
+  const result = await apiCall('initRepo', { name, root: selectedRoot('initRoot') });
 
   btn.disabled = false;
   loading.classList.remove('visible');
@@ -100,7 +132,7 @@ async function initRepo() {
   if (result.success) {
     showAlert('success', `Dépôt "${result.data.name}" créé avec succès !`);
     document.getElementById('resultNewRepoPath').textContent = result.data.path;
-    document.getElementById('openNewRepoBtn').href = 'git-manager.html?repo=' + encodeURIComponent(result.data.name);
+    document.getElementById('openNewRepoBtn').href = 'git-manager.html?repo=' + encodeURIComponent(result.data.id);
     resultBox.classList.add('visible');
     document.getElementById('newRepoName').value = '';
     loadFolders();

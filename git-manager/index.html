@@ -14,7 +14,7 @@
 <body>
   <div class="git-container">
     <header class="git-header">
-      <h1><i class="fab fa-git-alt"></i> Git Manager <span class="version-badge">v1.4.0</span></h1>
+      <h1><i class="fab fa-git-alt"></i> Git Manager <span class="version-badge">v1.5.0</span></h1>
       <p>Interface web intuitive pour la gestion de vos dépôts Git locaux.</p>
     </header>
 
@@ -53,6 +53,7 @@
 
     <span class="code-comment">// Dossier contenant vos dépôts Git (n'importe où sur le disque)</span>
     <span class="code-string">'reposRoot'</span>  => <span class="code-string">'C:/Users/votre-nom/mes-projets'</span>,
+    <span class="code-comment">// ou plusieurs dossiers : 'reposRoots' => ['C:/...', 'D:/...'],</span>
 
     <span class="code-comment">// Options d'affichage (facultatif)</span>
     <span class="code-string">'options'</span> => [
@@ -75,10 +76,15 @@
   ├── project-a/                 &lt;- détecté automatiquement dans le sélecteur
   │   └── .git/
   └── project-b/                 &lt;- détecté automatiquement dans le sélecteur
+      └── .git/
+
+  autres-projets/                &lt;- 2e dossier (facultatif, via reposRoots)
+  └── project-c/                 &lt;- détecté, regroupé à part dans le sélecteur
       └── .git/</div>
         <ul class="mt-15">
           <li>git-manager trouve les dépôts via <code>reposRoot</code></li>
           <li>Seuls les sous-dossiers directs de <code>reposRoot</code> contenant un <code>.git/</code> sont listés dans le sélecteur.</li>
+          <li>Avec <code>reposRoots</code> (plusieurs dossiers), le sélecteur regroupe les dépôts par dossier.</li>
           <li>Pour cloner ou créer un dépôt : bouton <strong>Clone</strong> dans git-manager.</li>
           <li><strong>Sécurité</strong> : chaque chemin est validé avec <code>realpath()</code> pour éviter toute traversée de répertoire.</li>
         </ul>

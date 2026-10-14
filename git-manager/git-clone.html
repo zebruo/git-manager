@@ -35,7 +35,7 @@
     <div class="info-box info-box-prereq">
       <i class="fas fa-layer-group"></i>
       <div>
-        <p>Les dépôts seront placés dans : <code class="parent-path">…</code></p>
+        <div id="rootsInfo"><p>Les dépôts seront placés dans : <code class="parent-path">…</code></p></div>
         <p>Ils apparaîtront automatiquement dans le sélecteur de dépôts.</p>
       </div>
     </div>
@@ -44,6 +44,11 @@
       <div class="card">
         <h2><i class="fab fa-github"></i> Cloner un dépôt existant</h2>
         <p class="card-intro">Copie un dépôt distant (GitHub, GitLab…) en local. Requiert une URL.</p>
+
+        <div class="form-group root-choice" hidden>
+          <label for="cloneRoot">Emplacement</label>
+          <select id="cloneRoot" class="root-select"></select>
+        </div>
 
         <div class="form-group">
           <label for="repoUrl">URL du dépôt</label>
@@ -79,11 +84,23 @@
 
       <div class="card">
         <h2><i class="fas fa-folder-plus"></i> Créer un dépôt vierge</h2>
-        <p class="card-intro">Démarre un nouveau projet, ou adopte un dossier existant sous <code>reposRoot</code> en tapant son nom exact ci-dessous : dossier absent → créé puis initialisé (<code>git init</code>) ; dossier existant sans dépôt Git → initialisé sur place sans toucher au contenu ; dossier déjà un dépôt Git → erreur, rien n'est modifié.</p>
+        <div class="card-intro">
+          <p>Démarre un nouveau projet ou met sous Git un dossier existant. Tape le nom du dossier ci-dessous :</p>
+          <ul>
+            <li><strong>le dossier n'existe pas</strong> : il est créé, puis initialisé (<code>git init</code>) ;</li>
+            <li><strong>le dossier existe sans dépôt Git</strong> : il est initialisé sur place, ses fichiers ne sont pas touchés ;</li>
+            <li><strong>le dossier est déjà un dépôt Git</strong> : rien n'est modifié, un message d'erreur s'affiche.</li>
+          </ul>
+        </div>
+        <div class="form-group root-choice" hidden>
+          <label for="initRoot">Emplacement</label>
+          <select id="initRoot" class="root-select"></select>
+        </div>
         <div class="form-group">
           <label for="newRepoName">Nom du dépôt</label>
           <input type="text" id="newRepoName" placeholder="mon-projet">
-          <small>Lettres, chiffres, tirets et underscores uniquement — doit correspondre au nom du dossier existant pour l'adopter</small>
+          <small>Nouveau dossier : lettres, chiffres, points, tirets (-) et underscores (_) uniquement.<br>
+          Dossier existant : tape son nom exact (mêmes caractères autorisés).</small>
         </div>
         <div class="btn-group">
           <button class="btn btn-primary" onclick="initRepo()" id="initRepoBtn">
@@ -107,10 +124,7 @@
 
     <div class="card">
       <h2><i class="fas fa-folder"></i> Vos dépôts <span id="reposCount"></span></h2>
-      <p class="folders-desc" id="foldersDesc">
-        Dépôts dans : <span class="parent-path"></span>
-      </p>
-      <div class="folders-list" id="foldersList">
+      <div id="foldersContainer">
         <div class="loading visible">
           <i class="fas fa-spinner"></i> Chargement...
         </div>

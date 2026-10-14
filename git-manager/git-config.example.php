@@ -34,6 +34,14 @@ return [
     //   Linux   : '/home/votre-nom/mes-projets'
     'reposRoot' => 'C:/Users/votre-nom/mes-projets',
 
+    // Plusieurs emplacements (facultatif) : remplacez 'reposRoot' par 'reposRoots'.
+    // Le sélecteur liste les dépôts de chaque dossier, et les pages Cloner / Créer
+    // proposent un choix "Emplacement". Le premier dossier est l'emplacement par défaut.
+    // 'reposRoots' => [
+    //     'C:/Users/votre-nom/mes-projets',
+    //     'D:/autres-projets',
+    // ],
+
     // Options d'affichage (facultatif)
     'options' => [
         'maxHistoryItems' => 20,      // Nombre de commits dans l'historique

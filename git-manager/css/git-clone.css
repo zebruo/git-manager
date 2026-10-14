@@ -19,9 +19,21 @@
   font-size: 1em;
 }
 
-.form-group input[type="text"]:focus {
+.form-group input[type="text"]:focus,
+.form-group select:focus {
   outline: none;
   border-color: var(--accent-color);
+}
+
+.form-group select {
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--bg-color);
+  color: var(--text-primary);
+  font-size: 1em;
+  cursor: pointer;
 }
 
 .form-group input[type="text"]::placeholder {
@@ -163,6 +175,19 @@
   margin: -4px 0 20px 0;
 }
 
+.card-intro p {
+  margin: 0 0 6px 0;
+}
+
+.card-intro ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.card-intro li {
+  margin: 3px 0;
+}
+
 .label-optional {
   font-weight: 400;
   font-size: 0.88em;
@@ -175,6 +200,24 @@
 .folders-desc {
   color: var(--text-secondary);
   margin-bottom: 15px;
+}
+
+.folders-list + .folders-desc {
+  margin-top: 25px;
+}
+
+.root-count {
+  font-size: 0.9em;
+}
+
+.folders-empty {
+  padding: 15px;
+  color: var(--text-secondary);
+}
+
+.roots-list {
+  margin: 6px 0 8px 20px;
+  padding: 0;
 }
 
 .folder-item small {

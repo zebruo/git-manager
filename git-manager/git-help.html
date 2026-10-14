@@ -14,9 +14,9 @@
     <h4><i class="fas fa-clone"></i> Cloner un dépôt</h4>
     <dl>
       <dt><a href="git-clone.html" class="link-accent">Cloner un dépôt existant</a></dt>
-      <dd>Copie un dépôt distant (GitHub, GitLab…) en local à partir de son URL. Le dépôt est cloné dans <code>reposRoot</code> et apparaît automatiquement dans le sélecteur.</dd>
+      <dd>Copie un dépôt distant (GitHub, GitLab…) en local à partir de son URL. Le dépôt est cloné dans le dossier des dépôts (<code>reposRoot</code>), ou dans celui choisi dans la liste <strong>Emplacement</strong> si plusieurs sont déclarés dans <code>reposRoots</code>. Il apparaît automatiquement dans le sélecteur.</dd>
       <dt class="mt-10"><a href="git-clone.html" class="link-accent">Créer un dépôt vierge</a></dt>
-      <dd>Démarre un projet from scratch (de zéro) : saisir un nom, un dossier est créé dans <code>reposRoot</code> et <code>git init</code> est lancé automatiquement. Le dépôt apparaît immédiatement dans le sélecteur, sans toucher la ligne de commande.</dd>
+      <dd>Démarre un projet de zéro : saisir un nom, un dossier est créé dans le dossier des dépôts (<code>reposRoot</code>), ou dans celui choisi dans la liste <strong>Emplacement</strong> si plusieurs sont déclarés dans <code>reposRoots</code>, puis <code>git init</code> est lancé automatiquement. Si le dossier existe déjà sans dépôt Git, il est initialisé sur place. Le dépôt apparaît immédiatement dans le sélecteur, sans passer par la ligne de commande.</dd>
     </dl>
   </div>
   <div class="help-category">
@@ -47,6 +47,14 @@
       <div class="mt-8"><i class="fas fa-info-circle"></i> git-manager trouve les dépôts via <code>reposRoot</code></div>
       <div class="mt-8"><i class="fas fa-info-circle"></i> Si git-manager est placé en dehors du dossier public du serveur, créez un virtual host Apache pointant vers ce dossier.</div>
       <div class="mt-8"><i class="fas fa-info-circle"></i> Si vous déplacez votre dossier de projets, mettez à jour <code>reposRoot</code> dans <code>git-config.php</code>.</div>
+      <div class="mt-10 mb-8"><strong>Plusieurs emplacements :</strong></div>
+      <div class="help-code-box">
+        <div><span class="syn-string">'reposRoots'</span> => [</div>
+        <div>&nbsp; &nbsp; <span class="syn-string">'C:/Users/votre-nom/mes-projets'</span>,</div>
+        <div>&nbsp; &nbsp; <span class="syn-string">'D:/autres-projets'</span>,</div>
+        <div>],</div>
+      </div>
+      <div class="mt-8"><i class="fas fa-info-circle"></i> Remplace <code>reposRoot</code>. Le sélecteur regroupe les dépôts par dossier, et la page Cloner propose un choix <strong>Emplacement</strong> (le premier dossier est celui par défaut).</div>
     </div>
   </div>
 
@@ -1143,7 +1151,7 @@
       <li>Observer : chaque sélection recharge complètement l'interface pour le dépôt choisi</li>
     </ol>
     <div class="help-info-box mt-8">
-      <strong>Configuration :</strong> dans <code>git-config.php</code>, définir <code>reposRoot</code> avec le chemin du dossier qui contient vos dépôts. git-manager scanne ce dossier et liste tous les sous-dossiers qui contiennent un <code>.git/</code>.<br>
+      <strong>Configuration :</strong> dans <code>git-config.php</code>, définir <code>reposRoot</code> avec le chemin du dossier qui contient vos dépôts. git-manager scanne ce dossier et liste tous les sous-dossiers qui contiennent un <code>.git/</code>. Pour plusieurs dossiers, utiliser <code>reposRoots</code> (tableau).<br>
       <strong>Navigation :</strong> les pages secondaires (Clone, Auth…) conservent le dépôt actif via le paramètre <code>?repo=</code> dans l'URL — le bouton Retour ramène toujours sur le bon dépôt.
     </div>
   </div>

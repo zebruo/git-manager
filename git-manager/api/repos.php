@@ -3,51 +3,62 @@
 /** @var array  $config */
 /** @var string $repoParam */
 /** @var string $repoPath */
+/** @var array  $reposRoots */
+/** @var array  $reposRootsRaw */
+/** @var bool   $hasReposRoots */
 
 switch ($action) {
 
     case 'listRepos':
-        $reposRoot = isset($config['reposRoot']) ? trim($config['reposRoot']) : '';
-
-        if (empty($reposRoot)) {
-            echo json_encode(['success' => true, 'data' => []]);
+        if (empty($reposRootsRaw)) {
+            echo json_encode(['success' => true, 'data' => [], 'roots' => []]);
             break;
         }
 
-        $resolvedRoot = realpath($reposRoot);
-        if (!$resolvedRoot || !is_dir($resolvedRoot)) {
-            echo json_encode(['success' => false, 'error' => "reposRoot introuvable : {$reposRoot}"]);
+        if (!$hasReposRoots) {
+            echo json_encode(['success' => false, 'error' => 'reposRoot introuvable : ' . implode(', ', $reposRootsRaw)]);
             break;
         }
 
         $repos = [];
-        foreach (scandir($resolvedRoot) as $item) {
-            if ($item === '.' || $item === '..') continue;
-            $path = $resolvedRoot . DIRECTORY_SEPARATOR . $item;
-            if (!is_dir($path) || !is_dir($path . DIRECTORY_SEPARATOR . '.git')) continue;
+        foreach ($reposRoots as $rootIndex => $root) {
+            if (!$root) continue;
+            $rootRepos = [];
+            foreach (scandir($root) as $item) {
+                if ($item === '.' || $item === '..') continue;
+                $path = $root . DIRECTORY_SEPARATOR . $item;
+                if (!is_dir($path) || !is_dir($path . DIRECTORY_SEPARATOR . '.git')) continue;
 
-            // Ignorer les liens symboliques dont la cible réelle sort de reposRoot :
-            // git-api.php refuserait de toute façon de les ouvrir (confinement via realpath),
-            // autant ne pas les lister pour éviter un dépôt visible mais inutilisable.
-            $resolvedItem = realpath($path);
-            if (!$resolvedItem || !str_starts_with($resolvedItem, $resolvedRoot . DIRECTORY_SEPARATOR)) continue;
+                // Ignorer les liens symboliques dont la cible réelle sort de la racine :
+                // git-api.php refuserait de toute façon de les ouvrir (confinement via realpath),
+                // autant ne pas les lister pour éviter un dépôt visible mais inutilisable.
+                $resolvedItem = realpath($path);
+                if (!$resolvedItem || $resolvedItem === $root || !isInsideRoot($resolvedItem, $root)) continue;
 
-            $repos[] = $item;
+                $rootRepos[] = ['id' => makeRepoId($rootIndex, $item), 'name' => $item, 'root' => $rootIndex];
+            }
+            usort($rootRepos, fn($a, $b) => strcmp($a['name'], $b['name']));
+            $repos = array_merge($repos, $rootRepos);
         }
-
-        sort($repos);
 
         // Identifier le dépôt courant uniquement si un ?repo= est explicitement dans l'URL
         $currentRepo = null;
         if (!empty($repoParam)) {
+            [$rootIndex] = parseRepoId($repoParam);
+            $root = $reposRoots[$rootIndex] ?? null;
             $resolvedCurrent = realpath($repoPath) ?: '';
-            if ($resolvedCurrent && $resolvedCurrent !== $resolvedRoot
-                && str_starts_with($resolvedCurrent, $resolvedRoot . DIRECTORY_SEPARATOR)) {
-                $currentRepo = basename($resolvedCurrent);
+            if ($root && $resolvedCurrent && $resolvedCurrent !== $root && isInsideRoot($resolvedCurrent, $root)) {
+                $name = basename($resolvedCurrent);
+                $currentRepo = ['id' => makeRepoId($rootIndex, $name), 'name' => $name, 'root' => $rootIndex];
             }
         }
 
-        echo json_encode(['success' => true, 'data' => $repos, 'root' => $resolvedRoot, 'currentRepo' => $currentRepo]);
+        echo json_encode([
+            'success'     => true,
+            'data'        => $repos,
+            'roots'       => array_map(fn($root, $raw) => $root ?? $raw, $reposRoots, $reposRootsRaw),
+            'currentRepo' => $currentRepo,
+        ]);
         break;
 
     default:

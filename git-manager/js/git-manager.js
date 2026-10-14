@@ -2067,14 +2067,6 @@ function renderDiff(hunks) {
   return html + '</table>';
 }
 
-function escapeHtml(str) {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
-
 // ── Multi-dépôts ─────────────────────────────────────────────────────────────
 
 async function loadRepoSwitcher() {
@@ -2084,11 +2076,11 @@ async function loadRepoSwitcher() {
   const switcher = document.getElementById('repoSwitcher');
   const select   = document.getElementById('repoSelect');
 
-  const currentFolder = result.currentRepo || activeRepo;
+  const current   = result.currentRepo;
+  const currentId = current ? current.id : activeRepo;
   const repos = result.data.slice();
-  if (result.currentRepo && !repos.includes(result.currentRepo)) {
-    repos.unshift(result.currentRepo);
-  }
+  const isUninit = current && !repos.some(r => r.id === current.id);
+  if (isUninit) repos.unshift(current);
 
   select.innerHTML = '';
   const placeholder = document.createElement('option');
@@ -2098,14 +2090,25 @@ async function loadRepoSwitcher() {
   placeholder.selected = !activeRepo;
   select.appendChild(placeholder);
 
+  // Plusieurs racines : un groupe par racine ; une seule : liste à plat comme avant
+  const roots  = result.roots || [];
+  const labels = rootLabels(roots);
+  const groups = roots.length > 1
+    ? roots.map((path, i) => {
+        const group = document.createElement('optgroup');
+        group.label = labels[i];
+        return group;
+      })
+    : [];
+
   repos.forEach(repo => {
     const opt = document.createElement('option');
-    opt.value = repo;
-    const isUninit = repo === result.currentRepo && !result.data.includes(repo);
-    opt.textContent = isUninit ? repo + ' (non initialisé)' : repo;
-    if (repo === currentFolder) opt.selected = true;
-    select.appendChild(opt);
+    opt.value = repo.id;
+    opt.textContent = (isUninit && repo.id === current.id) ? repo.name + ' (non initialisé)' : repo.name;
+    if (repo.id === currentId) opt.selected = true;
+    (groups[repo.root] || select).appendChild(opt);
   });
+  groups.forEach(group => { if (group.children.length) select.appendChild(group); });
 
   switcher.style.display = 'block';
 

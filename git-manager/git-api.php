@@ -26,23 +26,60 @@ if (file_exists($configFile)) {
 $input  = json_decode(file_get_contents('php://input'), true) ?? [];
 $action = $input['action'] ?? '';
 
-// Détermination du dépôt actif
+// ── Racines des dépôts ────────────────────────────────────────────────────────
+// 'reposRoots' (tableau) ou, à défaut, l'ancien 'reposRoot' (chaîne unique).
+// Les index restent stables même si une racine est introuvable (valeur null) :
+// ils servent d'identifiant dans ?repo=N:nom et dans le paramètre 'root'.
+
+$reposRootsRaw = array_values(array_filter(
+    array_map('trim', (array)($config['reposRoots'] ?? $config['reposRoot'] ?? [])),
+    'strlen'
+));
+$reposRoots = array_map(function (string $root) {
+    $resolved = realpath($root);
+    return ($resolved && is_dir($resolved)) ? $resolved : null;
+}, $reposRootsRaw);
+$hasReposRoots = !empty(array_filter($reposRoots));
+
+// Comparaison avec séparateur pour éviter qu'un dossier voisin partageant le même préfixe
+// (ex. "sites web2" à côté de "sites web") ne passe le test.
+function isInsideRoot(string $path, string $root): bool {
+    return $path === $root || str_starts_with($path, $root . DIRECTORY_SEPARATOR);
+}
+
+// Identifiant de dépôt : "nom" pour la 1re racine (compatibilité avec les anciens liens),
+// "N:nom" pour les suivantes.
+function parseRepoId(string $id): array {
+    if (preg_match('/^(\d+):(.+)$/', $id, $m)) return [(int)$m[1], $m[2]];
+    return [0, $id];
+}
+
+function makeRepoId(int $rootIndex, string $name): string {
+    // Préfixe forcé si le nom lui-même ressemble à "N:..." (possible hors Windows)
+    return ($rootIndex === 0 && !preg_match('/^\d+:/', $name)) ? $name : "{$rootIndex}:{$name}";
+}
+
+// Racine cible d'une création (clone, initRepo) : index transmis par le client, jamais un chemin.
+function getTargetRoot(array $input, array $reposRoots): ?array {
+    $index = filter_var($input['root'] ?? 0, FILTER_VALIDATE_INT);
+    if ($index === false || empty($reposRoots[$index])) return null;
+    return [$index, $reposRoots[$index]];
+}
+
+// ── Détermination du dépôt actif ─────────────────────────────────────────────
+
 $defaultRepoPath = dirname(__DIR__);
 $repoParam = $input['repo'] ?? '';
-$reposRoot = !empty($config['reposRoot']) ? realpath($config['reposRoot']) : null;
+$repoPath  = $defaultRepoPath;
 
-if (!empty($repoParam) && $reposRoot) {
-    $candidate = realpath($reposRoot . DIRECTORY_SEPARATOR . $repoParam);
-    // Valider uniquement que le dossier est dans reposRoot — le check .git est délégué à chaque action
-    // Comparaison avec séparateur pour éviter qu'un dossier voisin partageant le même préfixe
-    // (ex. "sites web2" à côté de "sites web") ne passe le test.
-    if ($candidate && ($candidate === $reposRoot || str_starts_with($candidate, $reposRoot . DIRECTORY_SEPARATOR)) && is_dir($candidate)) {
+if (!empty($repoParam) && $hasReposRoots) {
+    [$repoRootIndex, $repoName] = parseRepoId($repoParam);
+    $repoRoot  = $reposRoots[$repoRootIndex] ?? null;
+    $candidate = $repoRoot ? realpath($repoRoot . DIRECTORY_SEPARATOR . $repoName) : false;
+    // Valider uniquement que le dossier est dans sa racine — le check .git est délégué à chaque action
+    if ($candidate && isInsideRoot($candidate, $repoRoot) && is_dir($candidate)) {
         $repoPath = $candidate;
-    } else {
-        $repoPath = $defaultRepoPath;
     }
-} else {
-    $repoPath = $defaultRepoPath;
 }
 
 $isGitRepoCheck = is_dir($repoPath . '/.git');

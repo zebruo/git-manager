@@ -6,14 +6,16 @@
 /** @var bool        $isGitRepoCheck */
 /** @var string      $gitUserName */
 /** @var string      $gitUserEmail */
-/** @var string|null $reposRoot */
+/** @var array       $reposRoots */
+/** @var array       $reposRootsRaw */
+/** @var bool        $hasReposRoots */
 // Actions pré-dépôt : checkRepo, clone, initRepo, listFolders, listRemoteBranches, resetRemote
 
 switch ($action) {
 
     case 'checkRepo':
         // Si reposRoot est configuré et qu'aucun dépôt n'est sélectionné, forcer "pas de repo"
-        $isRepo = (!empty($reposRoot) && empty($repoParam)) ? false : $isGitRepoCheck;
+        $isRepo = ($hasReposRoots && empty($repoParam)) ? false : $isGitRepoCheck;
         echo json_encode([
             'success' => true,
             'data' => [
@@ -27,9 +29,13 @@ switch ($action) {
         set_time_limit(600);
         ini_set('max_execution_time', 600);
 
-        if (empty($reposRoot)) {
+        if (!$hasReposRoots) {
             echo json_encode(['success' => false, 'error' => 'reposRoot non configuré dans git-config.php']); break;
         }
+
+        $targetRoot = getTargetRoot($input, $reposRoots);
+        if (!$targetRoot) { echo json_encode(['success' => false, 'error' => 'Emplacement invalide']); break; }
+        [$rootIndex, $rootPath] = $targetRoot;
 
         $url = $input['url'] ?? '';
         $targetDir = $input['targetDir'] ?? '';
@@ -40,19 +46,22 @@ switch ($action) {
         }
 
         if (empty($targetDir)) {
+            // Nom déduit de l'URL : nettoyé silencieusement, l'utilisateur ne l'a pas saisi
             $cleanUrl = rtrim($url, '/');
             $cleanUrl = preg_replace('/\.git$/i', '', $cleanUrl);
             if (preg_match('/\/([^\/]+)$/', $cleanUrl, $matches)) {
-                $targetDir = $matches[1];
+                $targetDir = preg_replace('/[^a-zA-Z0-9_\-\.]/', '', $matches[1]);
             } else {
                 $targetDir = 'cloned-repo';
             }
+        } elseif (!preg_match('/^[a-zA-Z0-9_\-\.]+$/', $targetDir)) {
+            // Nom saisi : refusé plutôt que modifié, pour ne pas cloner sous un autre nom que celui tapé
+            echo json_encode(['success' => false, 'error' => 'Nom de dossier invalide : lettres, chiffres, points, tirets (-) et underscores (_) uniquement']); break;
         }
 
-        $targetDir = preg_replace('/[^a-zA-Z0-9_\-\.]/', '', $targetDir);
-        if (empty($targetDir)) { echo json_encode(['success' => false, 'error' => 'Nom de dossier invalide']); break; }
+        if (trim($targetDir, '.') === '') { echo json_encode(['success' => false, 'error' => 'Nom de dossier invalide']); break; }
 
-        $fullTargetPath = $reposRoot . DIRECTORY_SEPARATOR . $targetDir;
+        $fullTargetPath = $rootPath . DIRECTORY_SEPARATOR . $targetDir;
         $safeTargetPath = str_replace('\\', '/', $fullTargetPath);
 
         if (file_exists($fullTargetPath)) {
@@ -80,49 +89,63 @@ switch ($action) {
             'data'    => [
                 'path'       => $fullTargetPath,
                 'folderName' => $targetDir,
+                'id'         => makeRepoId($rootIndex, $targetDir),
             ]
         ]);
         break;
 
     case 'listFolders':
-        if (empty($reposRoot)) {
+        if (!$hasReposRoots) {
             echo json_encode(['success' => false, 'error' => 'reposRoot non configuré dans git-config.php']); break;
         }
 
-        $folders = [];
-        if (is_dir($reposRoot)) {
-            $items = scandir($reposRoot);
-            foreach ($items as $item) {
+        $roots = [];
+        foreach ($reposRoots as $rootIndex => $root) {
+            if (!$root) {
+                $roots[] = ['index' => $rootIndex, 'path' => $reposRootsRaw[$rootIndex], 'error' => 'Dossier introuvable', 'folders' => []];
+                continue;
+            }
+
+            $folders = [];
+            foreach (scandir($root) as $item) {
                 if ($item === '.' || $item === '..') continue;
-                $itemPath = $reposRoot . DIRECTORY_SEPARATOR . $item;
+                $itemPath = $root . DIRECTORY_SEPARATOR . $item;
                 if (is_dir($itemPath)) {
-                    // Un lien symbolique dont la cible réelle sort de reposRoot ne pourra pas être
+                    // Un lien symbolique dont la cible réelle sort de la racine ne pourra pas être
                     // ouvert par git-api.php (confinement via realpath) : ne pas l'annoncer comme dépôt Git.
                     $resolvedItem = realpath($itemPath);
-                    $isConfined = $resolvedItem && str_starts_with($resolvedItem, $reposRoot . DIRECTORY_SEPARATOR);
+                    $isConfined = $resolvedItem && $resolvedItem !== $root && isInsideRoot($resolvedItem, $root);
                     $folders[] = [
                         'name'      => $item,
                         'isGitRepo' => $isConfined && is_dir($itemPath . DIRECTORY_SEPARATOR . '.git')
                     ];
                 }
             }
+            $roots[] = ['index' => $rootIndex, 'path' => $root, 'folders' => $folders];
         }
 
-        echo json_encode(['success' => true, 'data' => [
-            'parentDir' => $reposRoot,
-            'folders'   => $folders,
-        ]]);
+        echo json_encode(['success' => true, 'data' => ['roots' => $roots]]);
         break;
 
     case 'initRepo':
-        if (empty($reposRoot)) {
+        if (!$hasReposRoots) {
             echo json_encode(['success' => false, 'error' => 'reposRoot non configuré — cette action nécessite le mode multi-dépôts']); break;
         }
 
-        $newName = preg_replace('/[^a-zA-Z0-9_\-\.]/', '', $input['name'] ?? '');
-        if (empty($newName)) { echo json_encode(['success' => false, 'error' => 'Nom de dépôt invalide']); break; }
+        $targetRoot = getTargetRoot($input, $reposRoots);
+        if (!$targetRoot) { echo json_encode(['success' => false, 'error' => 'Emplacement invalide']); break; }
+        [$rootIndex, $rootPath] = $targetRoot;
 
-        $newPath = $reposRoot . DIRECTORY_SEPARATOR . $newName;
+        // Refusé plutôt que nettoyé : un nom modifié en silence ne correspondrait plus au dossier
+        // existant visé, et un dossier vide serait créé à côté au lieu d'adopter le bon.
+        $newName = $input['name'] ?? '';
+        if (!preg_match('/^[a-zA-Z0-9_\-\.]+$/', $newName)) {
+            echo json_encode(['success' => false, 'error' => 'Nom de dépôt invalide : lettres, chiffres, points, tirets (-) et underscores (_) uniquement']); break;
+        }
+        // "." ou ".." désigneraient la racine elle-même ou son parent, qui seraient alors "adoptés"
+        if (trim($newName, '.') === '') { echo json_encode(['success' => false, 'error' => 'Nom de dépôt invalide']); break; }
+
+        $newPath = $rootPath . DIRECTORY_SEPARATOR . $newName;
         $alreadyExists = file_exists($newPath);
 
         if ($alreadyExists && is_dir($newPath . DIRECTORY_SEPARATOR . '.git')) {
@@ -152,7 +175,7 @@ switch ($action) {
         if (!empty($gitUserName))  exec("git -C \"{$safeNewPath}\" config user.name \"{$gitUserName}\" 2>&1");
         if (!empty($gitUserEmail)) exec("git -C \"{$safeNewPath}\" config user.email \"{$gitUserEmail}\" 2>&1");
 
-        echo json_encode(['success' => true, 'data' => ['name' => $newName, 'path' => $newPath]]);
+        echo json_encode(['success' => true, 'data' => ['name' => $newName, 'path' => $newPath, 'id' => makeRepoId($rootIndex, $newName)]]);
         break;
 
     case 'listRemoteBranches':

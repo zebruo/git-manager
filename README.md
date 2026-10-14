@@ -162,8 +162,9 @@ Interface web pour gérer un dépôt Git sans ligne de commande.
 Permet de basculer entre plusieurs dépôts Git depuis le même navigateur, sans changer de virtual host.
 
 - **Sélecteur** : menu déroulant affiché dans le header, alimenté par `reposRoot`
+- **Plusieurs emplacements** : `reposRoots` (tableau) remplace `reposRoot` pour déclarer plusieurs dossiers ; le sélecteur regroupe alors les dépôts par dossier
 - **Scan** : liste uniquement les sous-dossiers directs de `reposRoot` qui contiennent un `.git/`
-- **Navigation** : le paramètre `?repo=<nom>` dans l'URL identifie le dépôt actif et est propagé aux pages secondaires
+- **Navigation** : le paramètre `?repo=<nom>` dans l'URL identifie le dépôt actif et est propagé aux pages secondaires (`?repo=N:<nom>` pour un dépôt du N-ième dossier de `reposRoots`, en comptant à partir de 0)
 - **Sécurité** : chaque chemin est validé avec `realpath()` pour éviter toute traversée de répertoire
 
 ### Interface
@@ -190,9 +191,9 @@ Guide de configuration pour accéder à GitHub (push, pull, fetch). Deux méthod
 
 ### git-clone.html - Clonage et création de dépôt
 
-Deux actions disponibles, les deux créent le dépôt dans `reposRoot` :
+Deux actions disponibles, les deux créent le dépôt dans `reposRoot` (ou dans le dossier choisi dans la liste **Emplacement** si plusieurs sont déclarés dans `reposRoots`) :
 - **Cloner** : copie un dépôt distant (HTTPS ou SSH) en local — le dépôt apparaît immédiatement dans le sélecteur
-- **Créer un dépôt vierge** : saisir un nom, un dossier est créé et `git init -b main` est lancé automatiquement
+- **Créer un dépôt vierge** : saisir un nom, un dossier est créé et `git init -b main` est lancé automatiquement ; un dossier existant sans dépôt Git est initialisé sur place
 
 ### git-help.html - Documentation d'aide
 
@@ -222,6 +223,7 @@ return [
 
     // Dossier contenant vos dépôts Git (n'importe où sur le disque)
     'reposRoot' => 'C:/Users/votre-nom/mes-projets',
+    // ou plusieurs dossiers : 'reposRoots' => ['C:/...', 'D:/...'],
 
     'options' => [
         'maxHistoryItems' => 20,    // Nombre de commits dans l'historique
@@ -252,6 +254,10 @@ mes-projets/                   <- reposRoot (n'importe où sur le disque)
 │   └── .git/
 └── project-b/                 <- détecté automatiquement dans le sélecteur
     └── .git/
+
+autres-projets/                <- 2e dossier (facultatif, via reposRoots)
+└── project-c/                 <- détecté, regroupé à part dans le sélecteur
+    └── .git/
 ```
 
 git-manager trouve les dépôts via `reposRoot`.
@@ -281,4 +287,4 @@ Git Manager est une interface web pour gérer un dépôt Git sans ligne de comma
 
 **Il est recommandé de faire un premier essai sur un dépôt test avant de l'utiliser sur un projet existant.**
 
-*Version : v1.4.0 — Juin 2026*
+*Version : v1.5.0 — Octobre 2026*
