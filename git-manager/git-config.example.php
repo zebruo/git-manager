@@ -45,6 +45,10 @@ return [
     //     'D:/autres-projets',
     // ],
 
+    // Noms d'hôte autorisés en plus de localhost / 127.0.0.1 (facultatif)
+    // Utile uniquement si git-manager est ouvert via un virtual host, ex. http://git-manager.local
+    // 'allowedHosts' => ['git-manager.local'],
+
     // Options d'affichage (facultatif)
     'options' => [
         'maxHistoryItems' => 20,      // Nombre de commits dans l'historique

@@ -166,6 +166,7 @@ Permet de basculer entre plusieurs dépôts Git depuis le même navigateur, sans
 - **Scan** : liste uniquement les sous-dossiers directs de `reposRoot` qui contiennent un `.git/`
 - **Navigation** : le paramètre `?repo=<nom>` dans l'URL identifie le dépôt actif et est propagé aux pages secondaires (`?repo=N:<nom>` pour un dépôt du N-ième dossier de `reposRoots`, en comptant à partir de 0)
 - **Sécurité** : chaque chemin est validé avec `realpath()` pour éviter toute traversée de répertoire
+- **API protégée** : `git-api.php` n'accepte que les requêtes de ses propres pages (hôte local, même origine, JSON) — un autre site ouvert dans le navigateur ne peut pas la piloter ; pour un virtual host, déclarer son nom dans `allowedHosts`
 
 ### Interface
 
@@ -287,4 +288,4 @@ Git Manager est une interface web pour gérer un dépôt Git sans ligne de comma
 
 **Il est recommandé de faire un premier essai sur un dépôt test avant de l'utiliser sur un projet existant.**
 
-*Version : v1.5.0 — Octobre 2026*
+*Version : v1.5.1 — Octobre 2026*

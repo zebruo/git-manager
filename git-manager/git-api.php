@@ -5,9 +5,6 @@
  */
 
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST');
-header('Access-Control-Allow-Headers: Content-Type');
 
 // ── Configuration ─────────────────────────────────────────────────────────────
 
@@ -20,6 +17,45 @@ if (file_exists($configFile)) {
     $config = [];
     $gitUserName  = '';
     $gitUserEmail = '';
+}
+
+// ── Protection contre les appels venant d'autres sites ────────────────────────
+// L'API n'est appelée que par les pages de git-manager (même origine). Sans ces
+// contrôles, n'importe quelle page ouverte dans le navigateur pourrait la piloter
+// (push, discardAll, resetRemote…) tant que le serveur local tourne.
+
+function rejectRequest(string $reason): void {
+    http_response_code(403);
+    echo json_encode(['success' => false, 'error' => "Requête refusée : {$reason}"]);
+    exit;
+}
+
+// Host : seulement les noms locaux (+ ceux déclarés dans 'allowedHosts'), contre le DNS rebinding
+$requestHost = strtolower($_SERVER['HTTP_HOST'] ?? '');
+$hostName    = preg_replace('/:\d+$/', '', $requestHost);
+$allowedHosts = array_map('strtolower', array_merge(['localhost', '127.0.0.1', '[::1]'], (array)($config['allowedHosts'] ?? [])));
+if (!in_array($hostName, $allowedHosts, true)) {
+    rejectRequest("hôte non autorisé ({$hostName}) — ajoutez-le à 'allowedHosts' dans git-config.php");
+}
+
+if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
+    http_response_code(405);
+    echo json_encode(['success' => false, 'error' => 'Méthode non autorisée']);
+    exit;
+}
+
+// Origin : envoyé par les navigateurs sur tout POST ; doit correspondre au serveur lui-même
+if (isset($_SERVER['HTTP_ORIGIN'])) {
+    $origin = parse_url($_SERVER['HTTP_ORIGIN']);
+    $originHost = strtolower(($origin['host'] ?? '') . (isset($origin['port']) ? ':' . $origin['port'] : ''));
+    if ($originHost === '' || $originHost !== $requestHost) {
+        rejectRequest('origine non autorisée');
+    }
+}
+
+// JSON obligatoire : un autre site ne peut pas l'envoyer sans autorisation CORS préalable
+if (!str_starts_with(strtolower($_SERVER['CONTENT_TYPE'] ?? ''), 'application/json')) {
+    rejectRequest('Content-Type application/json attendu');
 }
 
 // Lecture anticipée de l'input pour déterminer le repo
