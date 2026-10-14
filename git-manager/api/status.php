@@ -17,6 +17,7 @@ switch ($action) {
         $detachedAt = '';
         $ahead = 0;
         $behind = 0;
+        $hasUpstream = false; // sans branche suivie, Git ne fournit pas ahead/behind
         $modified = [];
         $staged = [];
         $stagedDeleted = [];
@@ -32,6 +33,8 @@ switch ($action) {
                 if (!$isDetached) $branch = $head;
             } elseif (str_starts_with($line, '# branch.oid ')) {
                 $detachedAt = substr($line, 13, 7); // toujours capturé, utilisé seulement si isDetached
+            } elseif (str_starts_with($line, '# branch.upstream ')) {
+                $hasUpstream = true;
             } elseif (str_starts_with($line, '# branch.ab ')) {
                 if (preg_match('/\+(\d+) -(\d+)/', $line, $m)) {
                     $ahead  = intval($m[1]);
@@ -87,6 +90,7 @@ switch ($action) {
                 'untracked'     => $untracked,
                 'ahead'         => $ahead,
                 'behind'        => $behind,
+                'hasUpstream'   => $hasUpstream,
                 'allFiles'      => array_values($allFiles),
                 'stashCount'    => $stashCount
             ]

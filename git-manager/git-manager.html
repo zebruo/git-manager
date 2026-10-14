@@ -189,17 +189,17 @@
             </div>
           </div>
           <div class="btn-group" style="margin-bottom: 10px;">
-            <button class="btn btn-secondary" onclick="doFetch()" title="Vérifier les nouveautés sans modifier les fichiers locaux">
+            <button class="btn btn-secondary" onclick="doFetch()" id="fetchBtn" title="Vérifier les nouveautés sans modifier les fichiers locaux">
               <i class="fas fa-sync"></i> Fetch
             </button>
-            <button class="btn btn-success" onclick="doPush()" title="Envoyer vos commits vers GitHub">
+            <button class="btn btn-success" onclick="doPush()" id="pushBtn" title="Envoyer vos commits vers GitHub">
               <i class="fas fa-upload"></i> Push
             </button>
             <div class="pull-container">
-              <button class="btn btn-primary" onclick="doPull()" title="Récupérer et fusionner les modifications depuis GitHub">
+              <button class="btn btn-primary" onclick="doPull()" id="pullBtn" title="Récupérer et fusionner les modifications depuis GitHub">
                 <i class="fas fa-download"></i> Pull
               </button>
-              <label class="pull-rebase-label"
+              <label class="pull-rebase-label" id="pullRebaseLabel"
                 title="Rebase : replace vos commits locaux après les commits distants (historique linéaire, pas de merge commit)">
                 <input type="checkbox" id="pullRebaseCheck" checked>
                 --rebase

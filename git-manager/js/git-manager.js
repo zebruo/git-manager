@@ -1,7 +1,9 @@
 const API_URL = 'git-api.php';
 let modalResolve = null;
 let currentAhead = 0;
-let currentHasRemote = false;
+let currentHasRemote = null;       // null tant que repoInfo n'a pas répondu
+let currentBranchPublished = null; // la branche actuelle a-t-elle une branche distante suivie ?
+let currentBranchName = '';
 let activeRepo = new URLSearchParams(window.location.search).get('repo') || '';
 
 // Initialisation
@@ -100,6 +102,55 @@ async function loadRepoInfo() {
     repoInfo.innerHTML = `<i class="fas fa-folder repo-icon"></i> Dépôt local`;
     remoteBtn.style.display = 'none';
     resetRemoteBtn.style.display = 'none';
+  }
+  updatePushButtons();
+}
+
+// Désactive un élément avec une infobulle explicative, ou lui rend son infobulle d'origine
+function setSyncControl(el, disabledReason) {
+  if (!el) return;
+  if (el.dataset.defaultTitle === undefined) el.dataset.defaultTitle = el.title;
+  el.title = disabledReason || el.dataset.defaultTitle;
+  el.classList.toggle('is-disabled', !!disabledReason);
+  const control = el.matches('button, input') ? el : el.querySelector('input');
+  if (control) control.disabled = !!disabledReason;
+}
+
+// Adapte les boutons de synchronisation à l'état du dépôt :
+// - sans remote : Fetch, Push, Pull, --rebase et Commit & Push désactivés ;
+// - branche pas encore publiée : "Publier" au lieu de "Push", Pull désactivé.
+// Appelée après repoInfo, loadStatus et loadBranches, ces informations arrivant par des appels séparés.
+function updatePushButtons() {
+  const pushBtn       = document.getElementById('pushBtn');
+  const commitPushBtn = document.getElementById('commitPushBtn');
+  if (!pushBtn || !commitPushBtn) return;
+
+  const noRemote     = currentHasRemote === false;
+  const firstPublish = !noRemote && currentBranchPublished === false;
+
+  const noRemoteReason = "Configurez d'abord le dépôt distant (remote)";
+  const pullReason = noRemote ? noRemoteReason
+    : firstPublish ? "Rien à récupérer : la branche n'est pas encore publiée sur GitHub — utilisez Publier"
+    : '';
+  setSyncControl(document.getElementById('fetchBtn'), noRemote ? noRemoteReason : '');
+  setSyncControl(document.getElementById('pullBtn'), pullReason);
+  setSyncControl(document.getElementById('pullRebaseLabel'), pullReason);
+
+  pushBtn.disabled       = noRemote;
+  commitPushBtn.disabled = noRemote;
+
+  pushBtn.innerHTML       = '<i class="fas fa-upload"></i> ' + (firstPublish ? 'Publier' : 'Push');
+  commitPushBtn.innerHTML = '<i class="fas fa-upload"></i> ' + (firstPublish ? 'Commit &amp; Publier' : 'Commit &amp; Push');
+
+  if (noRemote) {
+    pushBtn.title       = "Configurez d'abord le dépôt distant (remote)";
+    commitPushBtn.title = "Configurez d'abord le dépôt distant (remote)";
+  } else if (firstPublish) {
+    pushBtn.title       = `Première publication : crée la branche ${currentBranchName} sur GitHub`;
+    commitPushBtn.title = 'Commit puis envoi vers GitHub en une seule action';
+  } else {
+    pushBtn.title       = 'Envoyer vos commits vers GitHub';
+    commitPushBtn.title = 'Commit puis envoi vers GitHub en une seule action';
   }
 }
 
@@ -344,6 +395,14 @@ async function loadStatus() {
       const totalDeleted = stagedDeleted.length + deletedUnstaged.length;
       const totalTracked = allFiles.length;
       currentAhead = data.ahead || 0;
+      currentBranchPublished = data.isDetached ? null : !!data.hasUpstream;
+      currentBranchName      = data.isDetached ? '' : (data.branch || '');
+      updatePushButtons();
+      // Sans branche suivie, ahead/behind n'ont pas de sens : "—" plutôt qu'un 0 trompeur
+      const unpublished = currentBranchPublished === false;
+      const trackingValue = n => unpublished
+        ? '<span title="Branche pas encore publiée sur GitHub — utilisez Publier">—</span>'
+        : (n || 0);
       const branchDisplay = data.isRebasing
         ? `<span style="color: var(--info-color); font-size: 0.7em;"><i class="fas fa-sync"></i> Rebase en cours</span>`
         : data.isDetached
@@ -382,11 +441,11 @@ async function loadStatus() {
           </div>
           <div class="status-row">
             <span class="status-label"><span class="ahead">↑</span> En avance</span>
-            <span class="status-value">${data.ahead || 0}</span>
+            <span class="status-value">${trackingValue(data.ahead)}</span>
           </div>
           <div class="status-row">
             <span class="status-label"><span class="behind">↓</span> En retard</span>
-            <span class="status-value">${data.behind || 0}</span>
+            <span class="status-value">${trackingValue(data.behind)}</span>
           </div>
           <div class="status-row">
             <span class="status-label"><i class="fas fa-archive" style="color: var(--info-color);"></i> Stash</span>
@@ -1020,7 +1079,8 @@ async function doAmendLastCommit() {
     return;
   }
 
-  if (currentHasRemote && currentAhead === 0) {
+  // Branche jamais publiée : rien n'a pu être pushé, pas d'avertissement
+  if (currentHasRemote && currentBranchPublished !== false && currentAhead === 0) {
     const ok = await showConfirm('Ce commit a déjà été pushé sur le remote. Un git push --force sera nécessaire pour l\'écraser. Continuer quand même ?');
     if (!ok) return;
   }
@@ -1430,6 +1490,11 @@ async function loadBranches() {
     const { current, local, remote, isDetached, detachedAt, isRebasing } = result.data;
     let html = '';
 
+    const currentLocal = local.find(b => b.current && !b.name.includes('(HEAD'));
+    currentBranchName      = currentLocal ? currentLocal.name : '';
+    currentBranchPublished = currentLocal ? !!(currentLocal.upstream && currentLocal.upstream.length > 0) : null;
+    updatePushButtons();
+
     // Avertissement si rebase en cours (priorité sur HEAD détaché générique)
     if (isRebasing) {
       html += `
@@ -1477,9 +1542,10 @@ async function loadBranches() {
         const isCurrent = branch.current;
         const hasUpstream = branch.upstream && branch.upstream.length > 0;
 
-        // Boutons spécifiques selon upstream
+        // Boutons spécifiques selon upstream ; pour la branche actuelle, la publication
+        // passe par le bouton Push (libellé "Publier"), pas besoin d'un second bouton
         let renameHtml = '';
-        if (!hasUpstream) {
+        if (!hasUpstream && !isCurrent) {
           renameHtml += '<button class="publish-btn" onclick="pushBranch(\'' + branch.name + '\')" title="Publier sur GitHub"><i class="fas fa-cloud-upload-alt"></i></button>';
         }
         renameHtml += '<button class="rename-btn" onclick="renameBranch(\'' + branch.name + '\')" title="Renommer"><i class="fas fa-pen"></i></button>';
@@ -1489,7 +1555,7 @@ async function loadBranches() {
             <div class="branch-info">
               <span class="branch-name ${isCurrent ? 'current' : ''}">${branch.name}</span>
               <span class="branch-badge ${isCurrent ? '' : 'hidden'}">${isCurrent ? 'actuelle' : ''}</span>
-              ${hasUpstream ? '<span class="branch-badge tracked"><i class="fas fa-cloud"></i> suivie</span>' : '<span class="branch-badge local-only">locale</span>'}
+              ${hasUpstream ? '<span class="branch-badge tracked"><i class="fas fa-cloud"></i> suivie</span>' : '<span class="branch-badge local-only" title="Pas encore sur GitHub — utilisez Publier">locale</span>'}
               <span class="branch-tracking">
                 ${branch.ahead > 0 ? `<span class="ahead">↑${branch.ahead}</span>` : ''}
                 ${branch.behind > 0 ? `<span class="behind">↓${branch.behind}</span>` : ''}
