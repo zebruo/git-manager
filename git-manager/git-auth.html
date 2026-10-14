@@ -141,8 +141,12 @@
             </div>
             <p class="mt-15">
               Appuyez sur <strong>Entrée</strong> pour accepter l'emplacement par défaut.<br>
-              Vous pouvez définir une passphrase ou laisser vide.
+              Vous pouvez définir une passphrase ou laisser vide :
             </p>
+            <ul class="text-muted text-sm">
+              <li><strong>sans passphrase</strong> : renseignez <code>sshKeyPath</code> dans <code>git-config.php</code> (étape 9), rien d'autre à faire ;</li>
+              <li><strong>avec passphrase</strong> : Git Manager ne peut pas la saisir à votre place. Laissez <code>sshKeyPath</code> vide et chargez la clé dans l'agent SSH de Windows (étape 9).</li>
+            </ul>
           </div>
         </div>
 
@@ -255,6 +259,54 @@
             <p class="mt-10">
               <i class="fas fa-lightbulb icon-warning"></i>
               Vous pouvez trouver cette URL sur la page de votre dépôt GitHub → bouton <strong>Code</strong> → onglet <strong>SSH</strong>
+            </p>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step-number">9</div>
+          <div class="step-content">
+            <h4>Configurer Git Manager</h4>
+            <p><strong>Clé sans passphrase</strong> : indiquez son chemin dans <code>git-config.php</code> :</p>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i></button>
+              'sshKeyPath' => 'C:/Users/votre-nom/.ssh/id_ed25519',
+            </div>
+            <p class="mt-15">
+              <strong>Clé avec passphrase (Windows)</strong> : l'agent SSH de Windows garde la clé déverrouillée,
+              même après un redémarrage, et Git Manager l'utilise via Git.
+            </p>
+            <ol class="text-muted text-sm pl-20">
+              <li>Dans PowerShell <strong>en administrateur</strong>, activer l'agent :</li>
+            </ol>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i></button>
+              Get-Service ssh-agent | Set-Service -StartupType Automatic; Start-Service ssh-agent
+            </div>
+            <ol class="text-muted text-sm pl-20" start="2">
+              <li>Dans PowerShell (normal), ajouter la clé (la passphrase est demandée une seule fois) :</li>
+            </ol>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i></button>
+              ssh-add $env:USERPROFILE\.ssh\id_ed25519
+            </div>
+            <ol class="text-muted text-sm pl-20" start="3">
+              <li>Dire à Git d'utiliser le SSH de Windows :</li>
+            </ol>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i></button>
+              git config --global core.sshCommand C:/Windows/System32/OpenSSH/ssh.exe
+            </div>
+            <ol class="text-muted text-sm pl-20" start="4">
+              <li>Dans <code>git-config.php</code> :</li>
+            </ol>
+            <div class="code-block">
+              <button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i></button>
+              'sshKeyPath' => '',
+            </div>
+            <p class="mt-15">
+              <i class="fas fa-exclamation-triangle icon-warning"></i>
+              L'agent démarré à l'étape 3 (<code>eval "$(ssh-agent -s)"</code>) ne sert qu'au terminal Git Bash : Git Manager ne le voit pas.
             </p>
           </div>
         </div>
@@ -380,6 +432,7 @@
         <li>Vérifiez que votre clé est ajoutée à l'agent : <code>ssh-add -l</code></li>
         <li>Vérifiez que la clé publique est bien ajoutée sur GitHub</li>
         <li>Testez avec : <code>ssh -vT git@github.com</code> pour voir les détails</li>
+        <li><strong>Ça marche dans le terminal mais pas dans Git Manager</strong> : la clé a probablement une passphrase alors que <code>sshKeyPath</code> est renseigné. Videz <code>sshKeyPath</code> et chargez la clé dans l'agent Windows (étape 9).</li>
       </ul>
 
       <h3 class="mt-20">HTTPS : "Authentication failed"</h3>

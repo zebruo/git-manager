@@ -72,7 +72,9 @@ Trois méthodes supportées (dans l'ordre de simplicité) :
      → aucune configuration supplémentaire
 
   3. Clé SSH
-     → renseigner sshKeyPath dans git-config.php
+     → sans passphrase : renseigner sshKeyPath dans git-config.php
+     → avec passphrase : laisser sshKeyPath vide et charger la clé dans
+       l'agent SSH de Windows (voir git-auth.html, étape 9)
 
 
 NOTES

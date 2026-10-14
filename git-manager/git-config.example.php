@@ -26,6 +26,9 @@ return [
     //   Windows : 'C:/Users/votre-nom/.ssh/id_ed25519'
     //   Linux   : '/home/votre-nom/.ssh/id_ed25519'
     //   Mac     : '/Users/votre-nom/.ssh/id_ed25519'
+    //
+    // Clé protégée par une passphrase : laissez vide et chargez la clé
+    // dans l'agent SSH de Windows (voir git-auth.html, étape 9).
     'sshKeyPath' => 'C:/Users/votre-nom/.ssh/id_rsa',
 
     // Chemin absolu du dossier contenant vos repos Git
