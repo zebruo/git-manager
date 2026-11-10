@@ -17,7 +17,7 @@ switch ($action) {
 
         $allowedSources = ['HEAD', 'origin/main', 'origin/master'];
         $isValidSource = in_array($source, $allowedSources)
-            || preg_match('/^HEAD~[0-9]+$/', $source)
+            || preg_match('/^HEAD~\d+$/', $source)
             || preg_match('/^[a-f0-9]{7,40}$/', $source);
 
         if (!$isValidSource) $source = 'HEAD';
@@ -29,10 +29,14 @@ switch ($action) {
         } else {
             $diffCheck = execGit('git diff --staged -- ' . escapeArg($file));
             $noChange  = empty(trim($diffCheck['output']));
+            $output    = $result['output'] ?: 'Fichier récupéré';
+            if ($noChange) {
+                $output = 'Aucune modification — le fichier à ce commit est identique à la version actuelle';
+            }
             echo json_encode([
                 'success'  => true,
                 'noChange' => $noChange,
-                'output'   => $noChange ? 'Aucune modification — le fichier à ce commit est identique à la version actuelle' : ($result['output'] ?: 'Fichier récupéré'),
+                'output'   => $output,
             ]);
         }
         break;

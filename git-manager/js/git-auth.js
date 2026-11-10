@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const email = this.value || 'votre-email@example.com';
     document.getElementById('sshGenCommand').innerHTML =
       `<button class="copy-btn" onclick="copyCode(this)"><i class="fas fa-copy"></i></button>
-       ssh-keygen -t ed25519 -C "${email}"`;
+       ssh-keygen -t ed25519 -C "${escapeHtml(email)}"`;
   });
 });
 

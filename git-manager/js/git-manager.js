@@ -9,6 +9,7 @@ let activeRepo = new URLSearchParams(window.location.search).get('repo') || '';
 // Initialisation
 document.addEventListener('DOMContentLoaded', async function () {
   initDarkMode();
+  initDiffModalClose();
 
   // Propager ?repo= sur les liens vers les pages secondaires
   if (activeRepo) {
@@ -70,7 +71,9 @@ async function loadRepoInfo() {
     currentHasRemote = result.data.hasRemote || false;
 
     if (result.data.hasRemote && result.data.name && result.data.url) {
-      const githubUrl = result.data.url.replace(/\.git$/, '').replace('git@github.com:', 'https://github.com/');
+      const webUrl = result.data.url.replace(/\.git$/, '').replace('git@github.com:', 'https://github.com/');
+      // Lien seulement vers une adresse web (jamais javascript: ou autre schéma)
+      const githubUrl = /^https?:\/\//i.test(webUrl) ? webUrl : '#';
       const isSSH = result.data.url.startsWith('git@');
       const authBadge = isSSH
         ? '<span style="background: color-mix(in srgb, var(--success-color) 15%, transparent); color: var(--success-color); padding: 2px 8px; border-radius: 10px; font-size: 0.75em; margin-left: 8px;" title="Connexion SSH"><i class="fas fa-key"></i> SSH</span>'
@@ -78,7 +81,7 @@ async function loadRepoInfo() {
       repoInfo.innerHTML = `
         <span style="color: var(--text-secondary); font-size: 0.85em; margin-right: 4px;">origin</span>
         <i class="fab fa-github repo-icon"></i>
-        <a href="${githubUrl}" target="_blank" title="Ouvrir sur GitHub">${result.data.name}</a>
+        <a href="${escapeHtml(githubUrl)}" target="_blank" rel="noopener" title="Ouvrir sur GitHub">${escapeHtml(result.data.name)}</a>
         ${authBadge}
       `;
       // Icône d'édition quand remote existe
@@ -90,7 +93,7 @@ async function loadRepoInfo() {
       // Pas de remote configuré
       repoInfo.innerHTML = `
         <i class="fas fa-folder repo-icon"></i>
-        <span id="repoPath">${result.data.path || 'Dépôt local'}</span>
+        <span id="repoPath">${escapeHtml(result.data.path || 'Dépôt local')}</span>
       `;
       // Icône de lien quand pas de remote
       remoteBtn.innerHTML = '<i class="fas fa-link"></i>';
@@ -129,9 +132,12 @@ function updatePushButtons() {
   const firstPublish = !noRemote && currentBranchPublished === false;
 
   const noRemoteReason = "Configurez d'abord le dépôt distant (remote)";
-  const pullReason = noRemote ? noRemoteReason
-    : firstPublish ? "Rien à récupérer : la branche n'est pas encore publiée sur GitHub — utilisez Publier"
-    : '';
+  let pullReason = '';
+  if (noRemote) {
+    pullReason = noRemoteReason;
+  } else if (firstPublish) {
+    pullReason = "Rien à récupérer : la branche n'est pas encore publiée sur GitHub — utilisez Publier";
+  }
   setSyncControl(document.getElementById('fetchBtn'), noRemote ? noRemoteReason : '');
   setSyncControl(document.getElementById('pullBtn'), pullReason);
   setSyncControl(document.getElementById('pullRebaseLabel'), pullReason);
@@ -269,7 +275,7 @@ async function showHelpModal() {
         document.getElementById('helpContent').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Impossible de charger l\'aide (git-help.html)</p></div>';
       }
     } catch (e) {
-      document.getElementById('helpContent').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Erreur : ' + e.message + '</p></div>';
+      document.getElementById('helpContent').innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Erreur : ' + escapeHtml(e.message) + '</p></div>';
     }
   }
 }
@@ -403,11 +409,12 @@ async function loadStatus() {
       const trackingValue = n => unpublished
         ? '<span title="Branche pas encore publiée sur GitHub — utilisez Publier">—</span>'
         : (n || 0);
-      const branchDisplay = data.isRebasing
-        ? `<span style="color: var(--info-color); font-size: 0.7em;"><i class="fas fa-sync"></i> Rebase en cours</span>`
-        : data.isDetached
-          ? `<span style="color: var(--warning-color); font-size: 0.7em;"><i class="fas fa-exclamation-triangle"></i> HEAD détaché</span> <code style="font-size: 0.7em;">${data.detachedAt || '?'}</code>`
-          : (data.branch || '—');
+      let branchDisplay = escapeHtml(data.branch || '—');
+      if (data.isRebasing) {
+        branchDisplay = `<span style="color: var(--info-color); font-size: 0.7em;"><i class="fas fa-sync"></i> Rebase en cours</span>`;
+      } else if (data.isDetached) {
+        branchDisplay = `<span style="color: var(--warning-color); font-size: 0.7em;"><i class="fas fa-exclamation-triangle"></i> HEAD détaché</span> <code style="font-size: 0.7em;">${escapeHtml(data.detachedAt || '?')}</code>`;
+      }
       statusContent.innerHTML = `
         <div class="status-info">
           <div class="status-row">
@@ -460,7 +467,7 @@ async function loadStatus() {
       // Mettre à jour le select pour checkout
       updateCheckoutSelect(modified, allFiles);
     } else {
-      statusContent.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>${result.error}</p></div>`;
+      statusContent.innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>${escapeHtml(result.error)}</p></div>`;
     }
   } catch (e) {
     console.error('loadStatus error:', e);
@@ -484,18 +491,18 @@ async function loadStashList() {
       ${stashes.map(s => `
         <div class="stash-item">
           <div class="stash-item-info">
-            <span class="stash-item-id">${s.id}</span>
-            <span class="stash-item-message">${s.message}</span>
-            <div class="stash-item-date">${s.date}</div>
+            <span class="stash-item-id">${escapeHtml(s.id)}</span>
+            <span class="stash-item-message">${escapeHtml(s.message)}</span>
+            <div class="stash-item-date">${escapeHtml(s.date)}</div>
           </div>
           <div class="stash-item-actions">
-            <button class="stash-btn-pop" onclick="doStashApply('${s.id}', true)" title="Restaurer et supprimer">
+            <button class="stash-btn-pop" onclick="doStashApply(${jsArg(s.id)}, true)" title="Restaurer et supprimer">
               <i class="fas fa-redo"></i> Pop
             </button>
-            <button class="stash-btn-apply" onclick="doStashApply('${s.id}', false)" title="Restaurer sans supprimer">
+            <button class="stash-btn-apply" onclick="doStashApply(${jsArg(s.id)}, false)" title="Restaurer sans supprimer">
               <i class="fas fa-copy"></i> Appliquer
             </button>
-            <button class="stash-btn-drop" onclick="doStashDrop('${s.id}')" title="Supprimer ce stash">
+            <button class="stash-btn-drop" onclick="doStashDrop(${jsArg(s.id)})" title="Supprimer ce stash">
               <i class="fas fa-trash"></i>
             </button>
           </div>
@@ -584,13 +591,13 @@ async function loadTagList() {
         <div class="stash-item">
           <div class="stash-item-info">
             <span class="stash-item-id">${escapeHtml(t.name)}</span>
-            <span class="stash-item-message">${t.type}</span>
+            <span class="stash-item-message">${escapeHtml(t.type)}</span>
           </div>
           <div class="stash-item-actions">
-            <button class="stash-btn-apply" onclick="doPushTag('${escapeHtml(t.name)}')" title="Pousser vers origin">
+            <button class="stash-btn-apply" onclick="doPushTag(${jsArg(t.name)})" title="Pousser vers origin">
               <i class="fas fa-upload"></i> Push
             </button>
-            <button class="stash-btn-drop" onclick="doDeleteTag('${escapeHtml(t.name)}')" title="Supprimer le tag">
+            <button class="stash-btn-drop" onclick="doDeleteTag(${jsArg(t.name)})" title="Supprimer le tag">
               <i class="fas fa-trash"></i>
             </button>
           </div>
@@ -740,11 +747,11 @@ function updateFileList(modified, untracked, staged, stagedDeleted, conflicted, 
   fileList.innerHTML = allFiles.map(f => {
       const diffable = f.type !== 'untracked';
       const nameSpan = diffable
-        ? `<span class="file-name diff-link" onclick="showFileDiff('${f.name.replace(/'/g, "\\'")}','${f.type}')" title="Voir le diff">${f.name}</span>`
-        : `<span class="file-name">${f.name}</span>`;
+        ? `<span class="file-name diff-link" onclick="showFileDiff(${jsArg(f.name)}, ${jsArg(f.type)})" title="Voir le diff">${escapeHtml(f.name)}</span>`
+        : `<span class="file-name">${escapeHtml(f.name)}</span>`;
       return `
       <div class="file-item">
-        <input type="checkbox" class="file-checkbox" value="${f.name}" data-status="${f.type}">
+        <input type="checkbox" class="file-checkbox" value="${escapeHtml(f.name)}" data-status="${f.type}">
         <span class="file-status ${f.type}">${f.status}</span>
         ${nameSpan}
       </div>`;
@@ -776,7 +783,7 @@ function updateCheckoutSelect(modified, allFiles) {
     sepDirs.textContent = '── Dossiers ──';
     deleteSelect.appendChild(sepDirs);
 
-    Array.from(dirs).sort().forEach(dir => {
+    Array.from(dirs).sort((a, b) => a.localeCompare(b)).forEach(dir => {
       const opt = document.createElement('option');
       opt.value = dir;
       opt.dataset.isDir = 'true';
@@ -831,22 +838,22 @@ async function loadHistory() {
     historyList.innerHTML = result.data.map((commit, index) => `
       <div class="commit-item">
         <div class="commit-details">
-          <span class="commit-hash">${commit.hash}</span>
-          <div class="commit-message">${commit.message}</div>
+          <span class="commit-hash">${escapeHtml(commit.hash)}</span>
+          <div class="commit-message">${escapeHtml(commit.message)}</div>
           <div class="commit-meta">
-            <span><i class="fas fa-user"></i>${commit.author}</span>
-            <span><i class="fas fa-calendar"></i>${commit.date}</span>
+            <span><i class="fas fa-user"></i>${escapeHtml(commit.author)}</span>
+            <span><i class="fas fa-calendar"></i>${escapeHtml(commit.date)}</span>
           </div>
         </div>
         <div class="commit-actions" style="gap: 5px; display: flex;">
-          ${index === 0 ? `<button class="checkout-commit-btn" onclick="loadCommitMessageToField('${commit.hash}')" title="Charger le message complet dans le champ pour l'amender (amend)"><i class="fas fa-pencil-alt"></i></button>` : ''}
-          <button class="checkout-commit-btn" onclick="showCommitDetail('${commit.hash}')" title="Voir le détail de ce commit (git show --stat)">
+          ${index === 0 ? `<button class="checkout-commit-btn" onclick="loadCommitMessageToField(${jsArg(commit.hash)})" title="Charger le message complet dans le champ pour l'amender (amend)"><i class="fas fa-pencil-alt"></i></button>` : ''}
+          <button class="checkout-commit-btn" onclick="showCommitDetail(${jsArg(commit.hash)})" title="Voir le détail de ce commit (git show --stat)">
             <i class="fas fa-search"></i>
           </button>
-          <button class="checkout-commit-btn" onclick="checkoutCommit('${commit.hash}')" title="Se placer sur ce commit (HEAD détaché) — plutôt pour explorer ou récupérer un fichier précis">
+          <button class="checkout-commit-btn" onclick="checkoutCommit(${jsArg(commit.hash)})" title="Se placer sur ce commit (HEAD détaché) — plutôt pour explorer ou récupérer un fichier précis">
             <i class="fas fa-sign-in-alt"></i>
           </button>
-          <button class="revert-commit-btn" data-hash="${commit.hash}" data-msg="${escapeHtml(commit.message)}" onclick="revertCommit(this.dataset.hash, this.dataset.msg)" title="Revert — Annuler ce commit (crée un nouveau commit inverse) — solution la plus propre pour annuler des commits déjà pushés">
+          <button class="revert-commit-btn" data-hash="${escapeHtml(commit.hash)}" data-msg="${escapeHtml(commit.message)}" onclick="revertCommit(this.dataset.hash, this.dataset.msg)" title="Revert — Annuler ce commit (crée un nouveau commit inverse) — solution la plus propre pour annuler des commits déjà pushés">
             <i class="fas fa-undo"></i>
           </button>
         </div>
@@ -1231,15 +1238,15 @@ async function loadFileCommits() {
     list.innerHTML = result.data.map(commit => `
       <div class="commit-item">
         <div class="commit-details">
-          <span class="commit-hash">${commit.hash}</span>
-          <div class="commit-message">${commit.message}</div>
-          <div class="commit-meta"><span><i class="fas fa-calendar"></i>${commit.date}</span></div>
+          <span class="commit-hash">${escapeHtml(commit.hash)}</span>
+          <div class="commit-message">${escapeHtml(commit.message)}</div>
+          <div class="commit-meta"><span><i class="fas fa-calendar"></i>${escapeHtml(commit.date)}</span></div>
         </div>
         <div class="commit-actions" style="gap:5px;display:flex;">
-          <button class="checkout-commit-btn" onclick="showCommitDetail('${commit.hash}')" title="Voir le détail de ce commit">
+          <button class="checkout-commit-btn" onclick="showCommitDetail(${jsArg(commit.hash)})" title="Voir le détail de ce commit">
             <i class="fas fa-search"></i>
           </button>
-          <button class="checkout-commit-btn" onclick="doCheckout('${commit.hash}')" title="Restaurer le fichier à cette version">
+          <button class="checkout-commit-btn" onclick="doCheckout(${jsArg(commit.hash)})" title="Restaurer le fichier à cette version">
             <i class="fas fa-undo"></i>
           </button>
         </div>
@@ -1384,8 +1391,8 @@ async function loadGitignore() {
     } else {
       list.innerHTML = patterns.map(pattern => `
         <div class="gitignore-item">
-          <span class="pattern">${pattern}</span>
-          <button class="remove-btn" onclick="removeFromGitignore('${pattern.replace(/'/g, "\\'")}')" title="Retirer">
+          <span class="pattern">${escapeHtml(pattern)}</span>
+          <button class="remove-btn" onclick="removeFromGitignore(${jsArg(pattern)})" title="Retirer">
             <i class="fas fa-times"></i>
           </button>
         </div>
@@ -1488,44 +1495,12 @@ async function loadBranches() {
 
   if (result.success) {
     const { current, local, remote, isDetached, detachedAt, isRebasing } = result.data;
-    let html = '';
+    let html = renderHeadBanner(isRebasing, isDetached, detachedAt);
 
     const currentLocal = local.find(b => b.current && !b.name.includes('(HEAD'));
     currentBranchName      = currentLocal ? currentLocal.name : '';
-    currentBranchPublished = currentLocal ? !!(currentLocal.upstream && currentLocal.upstream.length > 0) : null;
+    currentBranchPublished = currentLocal ? !!(currentLocal.upstream?.length) : null;
     updatePushButtons();
-
-    // Avertissement si rebase en cours (priorité sur HEAD détaché générique)
-    if (isRebasing) {
-      html += `
-        <div class="detached-banner" style="border-color: var(--info-color);">
-          <i class="fas fa-sync" style="color: var(--info-color);"></i>
-          <span class="detached-info">
-            <strong>Rebase en cours</strong>
-            <span style="color: var(--text-secondary);"> — HEAD temporairement détaché</span>
-          </span>
-          <button class="btn btn-primary detached-btn" onclick="doRebaseContinue()">
-            <i class="fas fa-play"></i> Continuer
-          </button>
-          <button class="btn btn-danger detached-btn" onclick="doRebaseAbort()">
-            <i class="fas fa-times"></i> Abandonner
-          </button>
-        </div>
-      `;
-    } else if (isDetached) {
-      html += `
-        <div class="detached-banner">
-          <i class="fas fa-exclamation-triangle" style="color: var(--warning-color);"></i>
-          <span class="detached-info">
-            <strong>HEAD détaché</strong> · <code>${detachedAt}</code>
-            <span style="color: var(--text-secondary);"> — aucune branche active</span>
-          </span>
-          <button class="btn btn-primary detached-btn" onclick="createBranchFromDetached()">
-            <i class="fas fa-code-branch"></i> Créer une branche
-          </button>
-        </div>
-      `;
-    }
 
     // Branches locales (filtrer le HEAD détaché, triées avec l'actuelle en premier)
     const filteredLocal = local.filter(b => !b.name.includes('(HEAD'));
@@ -1537,75 +1512,13 @@ async function loadBranches() {
       });
 
       html += '<div class="branch-section-title"><i class="fas fa-laptop"></i> Branches locales</div>';
-      html += '<div class="branch-list">';
-      sortedLocal.forEach(branch => {
-        const isCurrent = branch.current;
-        const hasUpstream = branch.upstream && branch.upstream.length > 0;
-
-        // Boutons spécifiques selon upstream ; pour la branche actuelle, la publication
-        // passe par le bouton Push (libellé "Publier"), pas besoin d'un second bouton
-        let renameHtml = '';
-        if (!hasUpstream && !isCurrent) {
-          renameHtml += '<button class="publish-btn" onclick="pushBranch(\'' + branch.name + '\')" title="Publier sur GitHub"><i class="fas fa-cloud-upload-alt"></i></button>';
-        }
-        renameHtml += '<button class="rename-btn" onclick="renameBranch(\'' + branch.name + '\')" title="Renommer"><i class="fas fa-pen"></i></button>';
-
-        html += `
-          <div class="branch-item ${isCurrent ? 'current' : ''}">
-            <div class="branch-info">
-              <span class="branch-name ${isCurrent ? 'current' : ''}">${branch.name}</span>
-              <span class="branch-badge ${isCurrent ? '' : 'hidden'}">${isCurrent ? 'actuelle' : ''}</span>
-              ${hasUpstream ? '<span class="branch-badge tracked"><i class="fas fa-cloud"></i> suivie</span>' : '<span class="branch-badge local-only" title="Pas encore sur GitHub — utilisez Publier">locale</span>'}
-              <span class="branch-tracking">
-                ${branch.ahead > 0 ? `<span class="ahead">↑${branch.ahead}</span>` : ''}
-                ${branch.behind > 0 ? `<span class="behind">↓${branch.behind}</span>` : ''}
-              </span>
-            </div>
-            <div class="branch-actions">
-              ${renameHtml}
-              ${!isCurrent ? `
-                <button class="switch-btn" onclick="switchBranch('${branch.name}')" title="Basculer">
-                  <i class="fas fa-exchange-alt"></i>
-                </button>
-                <button class="merge-btn" onclick="mergeBranch('${branch.name}')" title="Fusionner dans ${current}">
-                  <i class="fas fa-code-branch"></i>
-                </button>
-                <button class="delete-btn" onclick="deleteBranch('${branch.name}', ${hasUpstream})" title="Supprimer">
-                  <i class="fas fa-times"></i>
-                </button>
-              ` : ''}
-            </div>
-          </div>
-        `;
-      });
-      html += '</div>';
+      html += '<div class="branch-list">' + sortedLocal.map(branch => renderLocalBranch(branch, current)).join('') + '</div>';
     }
 
     // Branches distantes non trackées
     if (remote.length > 0) {
       html += '<div class="branch-section-title"><i class="fas fa-cloud"></i> Branches distantes</div>';
-      html += '<div class="branch-list">';
-      remote.forEach(branch => {
-        // Extraire le nom de branche sans le préfixe origin/
-        const branchName = branch.replace(/^origin\//, '');
-        html += `
-          <div class="branch-item">
-            <div class="branch-info">
-              <span class="branch-name">${branch}</span>
-              <span class="branch-badge remote-only">distante</span>
-            </div>
-            <div class="branch-actions">
-              <button class="switch-btn" onclick="switchBranch('${branch}')" title="Récupérer et basculer">
-                <i class="fas fa-download"></i>
-              </button>
-              <button class="delete-btn" onclick="deleteRemoteBranchDirect('${branchName}')" title="Supprimer sur origin">
-                <i class="fas fa-times"></i>
-              </button>
-            </div>
-          </div>
-        `;
-      });
-      html += '</div>';
+      html += '<div class="branch-list">' + remote.map(renderRemoteBranch).join('') + '</div>';
     }
 
     if (filteredLocal.length === 0 && remote.length === 0) {
@@ -1620,29 +1533,121 @@ async function loadBranches() {
       createForm.style.display = (isDetached || isRebasing) ? 'none' : '';
     }
 
-    // Remplir le sélecteur de branche source
-    if (!isDetached) {
-      const sourceSelect = document.getElementById('sourceBranchSelect');
-      if (sourceSelect) {
-        let options = `<option value="">Depuis: ${current || 'branche en cours'}</option>`;
-        options += '<option value="__orphan__">🆕 Branche vide (sans fichiers, sans historique)</option>';
-        options += '<option value="__freshstart__">🔄 Nouveau départ (fichiers actuels, sans historique)</option>';
-        // Ajouter les branches locales (sauf la branche courante)
-        filteredLocal.forEach(branch => {
-          if (!branch.current) {
-            options += `<option value="${branch.name}">${branch.name}</option>`;
-          }
-        });
-        // Ajouter les branches distantes
-        remote.forEach(branch => {
-          options += `<option value="${branch}">${branch}</option>`;
-        });
-        sourceSelect.innerHTML = options;
-      }
-    }
+    if (!isDetached) fillSourceBranchSelect(current, filteredLocal, remote);
   } else {
-    content.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>' + result.error + '</p></div>';
+    content.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>' + escapeHtml(result.error) + '</p></div>';
   }
+}
+
+// Bandeau au-dessus des branches : rebase en cours (prioritaire) ou HEAD détaché
+function renderHeadBanner(isRebasing, isDetached, detachedAt) {
+  if (isRebasing) {
+    return `
+      <div class="detached-banner" style="border-color: var(--info-color);">
+        <i class="fas fa-sync" style="color: var(--info-color);"></i>
+        <span class="detached-info">
+          <strong>Rebase en cours</strong>
+          <span style="color: var(--text-secondary);"> — HEAD temporairement détaché</span>
+        </span>
+        <button class="btn btn-primary detached-btn" onclick="doRebaseContinue()">
+          <i class="fas fa-play"></i> Continuer
+        </button>
+        <button class="btn btn-danger detached-btn" onclick="doRebaseAbort()">
+          <i class="fas fa-times"></i> Abandonner
+        </button>
+      </div>`;
+  }
+  if (isDetached) {
+    return `
+      <div class="detached-banner">
+        <i class="fas fa-exclamation-triangle" style="color: var(--warning-color);"></i>
+        <span class="detached-info">
+          <strong>HEAD détaché</strong> · <code>${escapeHtml(detachedAt)}</code>
+          <span style="color: var(--text-secondary);"> — aucune branche active</span>
+        </span>
+        <button class="btn btn-primary detached-btn" onclick="createBranchFromDetached()">
+          <i class="fas fa-code-branch"></i> Créer une branche
+        </button>
+      </div>`;
+  }
+  return '';
+}
+
+// Une ligne "branche locale" (noms échappés : un nom de branche peut contenir ' ou des balises)
+function renderLocalBranch(branch, current) {
+  const isCurrent   = branch.current;
+  const hasUpstream = branch.upstream && branch.upstream.length > 0;
+  const name        = jsArg(branch.name);
+
+  // Pour la branche actuelle, la publication passe par le bouton Push (libellé "Publier")
+  let actions = '';
+  if (!hasUpstream && !isCurrent) {
+    actions += `<button class="publish-btn" onclick="pushBranch(${name})" title="Publier sur GitHub"><i class="fas fa-cloud-upload-alt"></i></button>`;
+  }
+  actions += `<button class="rename-btn" onclick="renameBranch(${name})" title="Renommer"><i class="fas fa-pen"></i></button>`;
+  if (!isCurrent) {
+    actions += `
+      <button class="switch-btn" onclick="switchBranch(${name})" title="Basculer">
+        <i class="fas fa-exchange-alt"></i>
+      </button>
+      <button class="merge-btn" onclick="mergeBranch(${name})" title="Fusionner dans ${escapeHtml(current)}">
+        <i class="fas fa-code-branch"></i>
+      </button>
+      <button class="delete-btn" onclick="deleteBranch(${name}, ${hasUpstream})" title="Supprimer">
+        <i class="fas fa-times"></i>
+      </button>`;
+  }
+
+  const trackingBadge = hasUpstream
+    ? '<span class="branch-badge tracked"><i class="fas fa-cloud"></i> suivie</span>'
+    : '<span class="branch-badge local-only" title="Pas encore sur GitHub — utilisez Publier">locale</span>';
+
+  return `
+    <div class="branch-item ${isCurrent ? 'current' : ''}">
+      <div class="branch-info">
+        <span class="branch-name ${isCurrent ? 'current' : ''}">${escapeHtml(branch.name)}</span>
+        <span class="branch-badge ${isCurrent ? '' : 'hidden'}">${isCurrent ? 'actuelle' : ''}</span>
+        ${trackingBadge}
+        <span class="branch-tracking">
+          ${branch.ahead > 0 ? `<span class="ahead">↑${branch.ahead}</span>` : ''}
+          ${branch.behind > 0 ? `<span class="behind">↓${branch.behind}</span>` : ''}
+        </span>
+      </div>
+      <div class="branch-actions">${actions}</div>
+    </div>`;
+}
+
+// Une ligne "branche distante" (origin/xxx non suivie localement)
+function renderRemoteBranch(branch) {
+  const branchName = branch.replace(/^origin\//, '');
+  return `
+    <div class="branch-item">
+      <div class="branch-info">
+        <span class="branch-name">${escapeHtml(branch)}</span>
+        <span class="branch-badge remote-only">distante</span>
+      </div>
+      <div class="branch-actions">
+        <button class="switch-btn" onclick="switchBranch(${jsArg(branch)})" title="Récupérer et basculer">
+          <i class="fas fa-download"></i>
+        </button>
+        <button class="delete-btn" onclick="deleteRemoteBranchDirect(${jsArg(branchName)})" title="Supprimer sur origin">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+    </div>`;
+}
+
+// Liste "Créer depuis…" : branche en cours, options spéciales, autres branches locales et distantes
+function fillSourceBranchSelect(current, localBranches, remoteBranches) {
+  const sourceSelect = document.getElementById('sourceBranchSelect');
+  if (!sourceSelect) return;
+  const option = name => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`;
+  sourceSelect.innerHTML =
+    `<option value="">Depuis: ${escapeHtml(current || 'branche en cours')}</option>` +
+    '<option value="__orphan__">🆕 Branche vide (sans fichiers, sans historique)</option>' +
+    '<option value="__freshstart__">🔄 Nouveau départ (fichiers actuels, sans historique)</option>' +
+    localBranches.filter(b => !b.current).map(b => option(b.name)).join('') +
+    remoteBranches.map(option).join('');
 }
 
 // Créer une branche depuis un HEAD détaché
@@ -1793,14 +1798,14 @@ async function renameBranch(oldName) {
   modalContent.innerHTML = `
     <h3><i class="fas fa-pen"></i> Renommer la branche</h3>
     <p style="color: var(--text-secondary); margin-bottom: 15px;">
-      Renommer la branche <strong>${oldName}</strong> :
+      Renommer la branche <strong>${escapeHtml(oldName)}</strong> :
     </p>
     <input type="text" id="newBranchNameInput" class="file-select"
-      value="${oldName}"
+      value="${escapeHtml(oldName)}"
       style="width: 100%; margin-bottom: 20px;">
     <div class="modal-buttons">
       <button class="btn btn-secondary" onclick="closeRemoteForm()">Annuler</button>
-      <button class="btn btn-primary" onclick="confirmRenameBranch('${oldName}')">
+      <button class="btn btn-primary" onclick="confirmRenameBranch(${jsArg(oldName)})">
         <i class="fas fa-check"></i> Renommer
       </button>
     </div>
@@ -1857,48 +1862,34 @@ async function deleteBranch(branch, hasUpstream = false) {
   const result = await apiCall('deleteBranch', { branch });
 
   if (result.success) {
-    terminalLog(result.output, 'success');
-    showAlert('success', result.output);
-
-    // Proposer de supprimer aussi sur le dépôt distant si la branche était publiée
-    if (hasUpstream) {
-      const deleteRemote = await showConfirm(`Supprimer aussi la branche "${branch}" sur GitHub ?`, true, 'Oui', 'Non');
-      if (deleteRemote) {
-        await deleteRemoteBranch(branch);
-      }
-    }
-
-    loadBranches();
-  } else {
-    // Si la branche n'est pas fusionnée, proposer la suppression forcée
-    if (result.error.includes('not fully merged')) {
-      const forceDelete = await showConfirm(`La branche "${branch}" n'est pas fusionnée. Forcer la suppression ?`, true);
-      if (forceDelete) {
-        terminalLog(`$ git branch -D ${branch}`, 'info');
-        const forceResult = await apiCall('deleteBranch', { branch, force: true });
-        if (forceResult.success) {
-          terminalLog(forceResult.output, 'success');
-          showAlert('success', forceResult.output);
-
-          // Proposer de supprimer aussi sur le dépôt distant
-          if (hasUpstream) {
-            const deleteRemote = await showConfirm(`Supprimer aussi la branche "${branch}" sur GitHub ?`, true, 'Oui', 'Non');
-            if (deleteRemote) {
-              await deleteRemoteBranch(branch);
-            }
-          }
-
-          loadBranches();
-        } else {
-          terminalLog(forceResult.error, 'error');
-          showAlert('error', 'Erreur: ' + forceResult.error);
-        }
-      }
+    await afterBranchDeleted(branch, hasUpstream, result.output);
+  } else if (result.error.includes('not fully merged')) {
+    // Branche non fusionnée : proposer la suppression forcée
+    const forceDelete = await showConfirm(`La branche "${branch}" n'est pas fusionnée. Forcer la suppression ?`, true);
+    if (!forceDelete) return;
+    terminalLog(`$ git branch -D ${branch}`, 'info');
+    const forceResult = await apiCall('deleteBranch', { branch, force: true });
+    if (forceResult.success) {
+      await afterBranchDeleted(branch, hasUpstream, forceResult.output);
     } else {
-      terminalLog(result.error, 'error');
-      showAlert('error', 'Erreur: ' + result.error);
+      terminalLog(forceResult.error, 'error');
+      showAlert('error', 'Erreur: ' + forceResult.error);
     }
+  } else {
+    terminalLog(result.error, 'error');
+    showAlert('error', 'Erreur: ' + result.error);
   }
+}
+
+// Après suppression locale (normale ou forcée) : proposer la suppression distante si la branche était publiée
+async function afterBranchDeleted(branch, hasUpstream, output) {
+  terminalLog(output, 'success');
+  showAlert('success', output);
+  if (hasUpstream) {
+    const deleteRemote = await showConfirm(`Supprimer aussi la branche "${branch}" sur GitHub ?`, true, 'Oui', 'Non');
+    if (deleteRemote) await deleteRemoteBranch(branch);
+  }
+  loadBranches();
 }
 
 // Supprimer une branche sur le dépôt distant
@@ -1971,7 +1962,8 @@ async function pushBranch(branch) {
 let _diffRaw = '';
 
 function setDiffTitle(titleEl, file, label) {
-  titleEl.innerHTML = `<i class="fas fa-code"></i> ${file} <small style="font-weight:normal;color:var(--text-secondary);">(${label})</small>`;
+  const labelHtml = label ? ` <small style="font-weight:normal;color:var(--text-secondary);">(${escapeHtml(label)})</small>` : '';
+  titleEl.innerHTML = `<i class="fas fa-code"></i> ${escapeHtml(file)}${labelHtml}`;
 }
 
 function renderDiffHtml(raw, emptyMsg = 'Aucune modification détectable') {
@@ -1987,61 +1979,16 @@ async function showFileDiff(file, type) {
   const staged = (type === 'added' || type === 'deleted');
   _diffRaw = '';
 
-  title.innerHTML = `<i class="fas fa-code"></i> ${file}`;
+  setDiffTitle(title, file, '');
   content.innerHTML = '<div class="diff-empty"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>';
   modal.classList.add('active');
 
   let html = '';
 
   if (type === 'modified' || type === 'added') {
-    const [resUnstaged, resStaged] = await Promise.all([
-      apiCall('fileDiff', { file, staged: false }),
-      apiCall('fileDiff', { file, staged: true })
-    ]);
-
-    const hunksUnstaged = parseDiff(resUnstaged.success ? resUnstaged.data.diff : '');
-    const hunksStaged   = parseDiff(resStaged.success   ? resStaged.data.diff   : '');
-    _diffRaw = [resUnstaged.data?.diff, resStaged.data?.diff].filter(Boolean).join('\n');
-
-    if (hunksUnstaged.length === 0 && hunksStaged.length === 0) {
-      html = '<div class="diff-empty">Aucune modification détectable</div>';
-    } else if (hunksStaged.length > 0 && hunksUnstaged.length > 0) {
-      setDiffTitle(title, file, 'stagé + non stagé');
-      html = `
-        <div class="diff-tabs">
-          <button class="diff-tab active" id="diffTabUnstaged" onclick="switchDiffTab('unstaged')">
-            Non stagé (${hunksUnstaged.length} hunk${hunksUnstaged.length > 1 ? 's' : ''})
-          </button>
-          <button class="diff-tab" id="diffTabStaged" onclick="switchDiffTab('staged')">
-            Stagé (${hunksStaged.length} hunk${hunksStaged.length > 1 ? 's' : ''})
-          </button>
-        </div>
-        <div id="diffPaneUnstaged">${renderDiff(hunksUnstaged)}</div>
-        <div id="diffPaneStaged" style="display:none">${renderDiff(hunksStaged)}</div>`;
-    } else {
-      setDiffTitle(title, file, hunksStaged.length ? 'stagé' : 'non stagé');
-      html = renderDiff(hunksUnstaged.length ? hunksUnstaged : hunksStaged);
-    }
+    html = await renderModifiedDiff(title, file);
   } else if (type === 'conflicted') {
-    const res        = await apiCall('fileDiff', { file, staged: false, conflicted: true });
-    _diffRaw         = res.data?.diff ?? '';
-    const hasMarkers = _diffRaw.split('\n').some(l => /^\+[<=>]{7}/.test(l));
-    const hunks      = parseDiff(_diffRaw);
-
-    const bannerStyle = 'padding:8px 12px;margin-bottom:10px;border-radius:4px;font-size:0.88em;border-left:3px solid;';
-    let banner;
-    if (hasMarkers) {
-      banner = `<div style="${bannerStyle}background:color-mix(in srgb,var(--warning-color) 15%,transparent);border-color:var(--warning-color);color:var(--text-primary);">
-        <i class="fas fa-exclamation-triangle" style="color:var(--warning-color);margin-right:6px;"></i>Marqueurs de conflit détectés — résolvez les conflits avant de stager.
-      </div>`;
-      setDiffTitle(title, file, 'conflits à résoudre');
-    } else {
-      banner = `<div style="${bannerStyle}background:color-mix(in srgb,var(--success-color) 15%,transparent);border-color:var(--success-color);color:var(--text-primary);">
-        <i class="fas fa-check-circle" style="color:var(--success-color);margin-right:6px;"></i>Conflit résolu — stagez ce fichier pour finaliser la fusion.
-      </div>`;
-      setDiffTitle(title, file, 'conflit résolu');
-    }
-    html = banner + renderDiffHtml(_diffRaw, 'Aucune modification par rapport à HEAD');
+    html = await renderConflictDiff(title, file);
   } else {
     const res = await apiCall('fileDiff', { file, staged });
     _diffRaw  = res.data?.diff ?? '';
@@ -2050,6 +1997,62 @@ async function showFileDiff(file, type) {
   }
 
   content.innerHTML = html;
+}
+
+const plural = (n, word) => `${n} ${word}${n > 1 ? 's' : ''}`;
+
+// Fichier modifié : diff non stagé et/ou stagé (onglets si les deux existent)
+async function renderModifiedDiff(title, file) {
+  const [resUnstaged, resStaged] = await Promise.all([
+    apiCall('fileDiff', { file, staged: false }),
+    apiCall('fileDiff', { file, staged: true })
+  ]);
+
+  const hunksUnstaged = parseDiff(resUnstaged.success ? resUnstaged.data.diff : '');
+  const hunksStaged   = parseDiff(resStaged.success   ? resStaged.data.diff   : '');
+  _diffRaw = [resUnstaged.data?.diff, resStaged.data?.diff].filter(Boolean).join('\n');
+
+  if (hunksUnstaged.length === 0 && hunksStaged.length === 0) {
+    return '<div class="diff-empty">Aucune modification détectable</div>';
+  }
+  if (hunksStaged.length > 0 && hunksUnstaged.length > 0) {
+    setDiffTitle(title, file, 'stagé + non stagé');
+    return `
+      <div class="diff-tabs">
+        <button class="diff-tab active" id="diffTabUnstaged" onclick="switchDiffTab('unstaged')">
+          Non stagé (${plural(hunksUnstaged.length, 'hunk')})
+        </button>
+        <button class="diff-tab" id="diffTabStaged" onclick="switchDiffTab('staged')">
+          Stagé (${plural(hunksStaged.length, 'hunk')})
+        </button>
+      </div>
+      <div id="diffPaneUnstaged">${renderDiff(hunksUnstaged)}</div>
+      <div id="diffPaneStaged" style="display:none">${renderDiff(hunksStaged)}</div>`;
+  }
+  setDiffTitle(title, file, hunksStaged.length ? 'stagé' : 'non stagé');
+  return renderDiff(hunksUnstaged.length ? hunksUnstaged : hunksStaged);
+}
+
+// Fichier en conflit : bandeau "à résoudre" ou "résolu" selon la présence de marqueurs
+async function renderConflictDiff(title, file) {
+  const res        = await apiCall('fileDiff', { file, staged: false, conflicted: true });
+  _diffRaw         = res.data?.diff ?? '';
+  const hasMarkers = _diffRaw.split('\n').some(l => /^\+[<=>]{7}/.test(l));
+
+  const bannerStyle = 'padding:8px 12px;margin-bottom:10px;border-radius:4px;font-size:0.88em;border-left:3px solid;';
+  let banner;
+  if (hasMarkers) {
+    banner = `<div style="${bannerStyle}background:color-mix(in srgb,var(--warning-color) 15%,transparent);border-color:var(--warning-color);color:var(--text-primary);">
+      <i class="fas fa-exclamation-triangle" style="color:var(--warning-color);margin-right:6px;"></i>Marqueurs de conflit détectés — résolvez les conflits avant de stager.
+    </div>`;
+    setDiffTitle(title, file, 'conflits à résoudre');
+  } else {
+    banner = `<div style="${bannerStyle}background:color-mix(in srgb,var(--success-color) 15%,transparent);border-color:var(--success-color);color:var(--text-primary);">
+      <i class="fas fa-check-circle" style="color:var(--success-color);margin-right:6px;"></i>Conflit résolu — stagez ce fichier pour finaliser la fusion.
+    </div>`;
+    setDiffTitle(title, file, 'conflit résolu');
+  }
+  return banner + renderDiffHtml(_diffRaw, 'Aucune modification par rapport à HEAD');
 }
 
 function switchDiffTab(tab) {
@@ -2061,6 +2064,16 @@ function switchDiffTab(tab) {
 
 function closeDiffModal() {
   document.getElementById('diffModal').classList.remove('active');
+}
+
+// Fermeture de la fenêtre de diff : clic sur le fond, ou touche Échap (équivalent clavier)
+function initDiffModalClose() {
+  const modal = document.getElementById('diffModal');
+  if (!modal) return;
+  modal.addEventListener('click', e => { if (e.target === modal) closeDiffModal(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && modal.classList.contains('active')) closeDiffModal();
+  });
 }
 
 function copyDiff() {
@@ -2075,18 +2088,25 @@ function copyDiff() {
   if (navigator.clipboard && window.isSecureContext) {
     navigator.clipboard.writeText(_diffRaw).then(feedback);
   } else {
+    // Secours pour les contextes non sécurisés (http autre que localhost) : execCommand est
+    // obsolète mais reste le seul moyen de copier sans l'API Clipboard
     const ta = document.createElement('textarea');
     ta.value = _diffRaw;
     ta.style.cssText = 'position:fixed;opacity:0;pointer-events:none;';
     document.body.appendChild(ta);
     ta.select();
-    try { document.execCommand('copy'); feedback(); } catch (e) {}
-    document.body.removeChild(ta);
+    try {
+      document.execCommand('copy'); // NOSONAR — voir commentaire ci-dessus
+      feedback();
+    } catch (e) {
+      console.warn('Copie impossible :', e);
+    }
+    ta.remove();
   }
 }
 
 function parseDiff(diffText) {
-  if (!diffText || !diffText.trim()) return [];
+  if (!diffText?.trim()) return [];
 
   const lines  = diffText.split('\n');
   const hunks  = [];
@@ -2107,6 +2127,8 @@ function parseDiff(diffText) {
   return hunks;
 }
 
+const DIFF_LINE_TYPES = { '-': 'removed', '+': 'added' };
+
 function renderDiff(hunks) {
   let html = '<table class="diff-table"><colgroup><col class="diff-col-num"><col class="diff-col-num"><col></colgroup>';
 
@@ -2118,7 +2140,7 @@ function renderDiff(hunks) {
 
     for (const line of hunk.lines) {
       const ch   = line[0];
-      const type = ch === '-' ? 'removed' : ch === '+' ? 'added' : 'context';
+      const type = DIFF_LINE_TYPES[ch] || 'context';
       const oldN = (type !== 'added')   ? o++ : '';
       const newN = (type !== 'removed') ? n++ : '';
 

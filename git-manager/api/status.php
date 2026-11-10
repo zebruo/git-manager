@@ -101,10 +101,10 @@ switch ($action) {
         $remoteUrl = trim(execGit('git config --get remote.origin.url')['output']);
         $remoteUrl = preg_replace('/^(https?:\/\/)[^@]+@/', '$1', $remoteUrl);
 
+        // "propriétaire/dépôt" : après github.com (HTTPS ou SSH), sinon les deux derniers segments de l'URL
         $repoName = '';
-        if (preg_match('/github\.com[\/:]([^\/]+\/[^\/\.]+)/', $remoteUrl, $matches)) {
-            $repoName = $matches[1];
-        } elseif (preg_match('/([^\/]+\/[^\/\.]+)(\.git)?$/', $remoteUrl, $matches)) {
+        if (preg_match('/github\.com[\/:]([^\/]+\/[^\/\.]+)/', $remoteUrl, $matches)
+            || preg_match('/([^\/]+\/[^\/\.]+)(\.git)?$/', $remoteUrl, $matches)) {
             $repoName = $matches[1];
         }
 

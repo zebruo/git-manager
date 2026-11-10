@@ -41,9 +41,9 @@ async function loadRemoteBranches() {
 
     html += '<div style="display: flex; flex-wrap: wrap; gap: 8px;">';
     remoteBranches.forEach(branch => {
-      html += `<label style="background: var(--bg-color); padding: 8px 12px; border-radius: 8px; font-size: 0.9em; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; border: 2px solid var(--border-color); transition: all 0.2s;">
-        <input type="checkbox" class="branch-checkbox" value="${branch}" checked onchange="updateBranchSelection(this)" style="width: 16px; height: 16px;">
-        <i class="fas fa-code-branch" style="color: var(--accent-color);"></i> ${branch}
+      html += `<label style="background: var(--bg-color); padding: 8px 12px; border-radius: 8px; font-size: 0.9em; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; border: 2px solid var(--border-color); transition: border-color 0.2s, background-color 0.2s;">
+        <input type="checkbox" class="branch-checkbox" value="${escapeHtml(branch)}" checked onchange="updateBranchSelection(this)" style="width: 16px; height: 16px;">
+        <i class="fas fa-code-branch" style="color: var(--accent-color);"></i> ${escapeHtml(branch)}
       </label>`;
     });
     html += '</div>';

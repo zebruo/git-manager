@@ -24,35 +24,45 @@ function navigateBack() {
   window.location.href = repo ? 'git-manager.html?repo=' + encodeURIComponent(repo) : 'git-manager.html';
 }
 
+// Tout texte venant du dépôt (messages de commit, noms de branches, de fichiers, sorties git…)
+// doit passer par escapeHtml avant d'être inséré en HTML : un commit ou une branche piégés
+// pourraient sinon exécuter du code dans la page et piloter l'API.
 function escapeHtml(str) {
   return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
+// Valeur passée en argument dans un attribut onclick="fn(${jsArg(x)})" :
+// littéral JavaScript (JSON) puis échappement HTML de l'attribut
+function jsArg(value) {
+  return escapeHtml(JSON.stringify(String(value)));
 }
 
 // Libellés courts des racines de dépôts (nom du dernier dossier),
 // chemins complets si deux racines portent le même nom
 function rootLabels(paths) {
-  const names = paths.map(p => p.split(/[\\/]/).filter(Boolean).pop() || p);
+  const names = paths.map(p => p.split(/[\\/]/).findLast(Boolean) || p);
   return new Set(names).size === names.length ? names : paths.slice();
 }
 
+const ALERT_ICONS     = { success: 'check-circle', error: 'exclamation-circle', warning: 'exclamation-triangle' };
+const ALERT_DURATIONS = { error: 8000, warning: 6000 };
+
+// message : texte brut (échappé ici — il contient souvent une sortie git)
 function showAlert(type, message) {
   const container = document.getElementById('alertContainer');
   const toast = document.createElement('div');
   toast.className = `alert alert-${type}`;
 
-  let icon = 'info-circle';
-  if (type === 'success') icon = 'check-circle';
-  else if (type === 'error') icon = 'exclamation-circle';
-  else if (type === 'warning') icon = 'exclamation-triangle';
-
-  toast.innerHTML = `<i class="fas fa-${icon}"></i> ${message}`;
+  const icon = ALERT_ICONS[type] || 'info-circle';
+  toast.innerHTML = `<i class="fas fa-${icon}"></i> ${escapeHtml(message)}`;
   container.appendChild(toast);
 
-  const duration = type === 'error' ? 8000 : type === 'warning' ? 6000 : 4000;
+  const duration = ALERT_DURATIONS[type] || 4000;
   const dismiss = () => {
     toast.classList.add('toast-out');
     toast.addEventListener('animationend', () => toast.remove(), { once: true });

@@ -34,9 +34,9 @@ async function loadFolders() {
   const gitCount = r => r.folders.filter(f => f.isGitRepo).length;
 
   // Bandeau : un seul chemin, ou la liste des emplacements possibles
+  const rootItems = roots.map(r => '<li><code class="parent-path">' + escapeHtml(r.path) + '</code></li>').join('');
   document.getElementById('rootsInfo').innerHTML = multi
-    ? `<p>Les dépôts seront placés dans l'emplacement choisi :</p>
-       <ul class="roots-list">${roots.map(r => `<li><code class="parent-path">${escapeHtml(r.path)}</code></li>`).join('')}</ul>`
+    ? `<p>Les dépôts seront placés dans l'emplacement choisi :</p><ul class="roots-list">${rootItems}</ul>`
     : `<p>Les dépôts seront placés dans : <code class="parent-path">${escapeHtml(roots[0].path)}</code></p>`;
 
   // Listes "Emplacement" : affichées seulement s'il y a un choix à faire
@@ -54,26 +54,27 @@ async function loadFolders() {
   container.innerHTML = roots.map(r => `
     <p class="folders-desc">
       Dépôts dans : <span class="parent-path">${escapeHtml(r.path)}</span>
-      ${multi && !r.error ? `<span class="root-count">(${gitCount(r)})</span>` : ''}
+      ${multi && !r.error ? '<span class="root-count">(' + gitCount(r) + ')</span>' : ''}
     </p>
-    <div class="folders-list">
-      ${r.error
-        ? `<div class="folders-empty">${escapeHtml(r.error)}</div>`
-        : r.folders.length === 0
-          ? '<div class="folders-empty">Aucun dossier trouvé</div>'
-          : r.folders.map(folder => `
-            <div class="folder-item">
-              <i class="fas ${folder.isGitRepo ? 'fa-git-alt' : 'fa-folder'}"></i>
-              <span>${escapeHtml(folder.name)}</span>
-              ${folder.isGitRepo ? '<small>(dépôt Git)</small>' : ''}
-            </div>
-          `).join('')}
+    <div class="folders-list">${renderRootFolders(r)}</div>
+  `).join('');
+}
+
+// Contenu d'un bloc "Vos dépôts" : erreur, liste vide ou dossiers de la racine
+function renderRootFolders(root) {
+  if (root.error) return `<div class="folders-empty">${escapeHtml(root.error)}</div>`;
+  if (root.folders.length === 0) return '<div class="folders-empty">Aucun dossier trouvé</div>';
+  return root.folders.map(folder => `
+    <div class="folder-item">
+      <i class="fas ${folder.isGitRepo ? 'fa-git-alt' : 'fa-folder'}"></i>
+      <span>${escapeHtml(folder.name)}</span>
+      ${folder.isGitRepo ? '<small>(dépôt Git)</small>' : ''}
     </div>
   `).join('');
 }
 
 function selectedRoot(selectId) {
-  return parseInt(document.getElementById(selectId).value, 10) || 0;
+  return Number.parseInt(document.getElementById(selectId).value, 10) || 0;
 }
 
 async function cloneRepo() {

@@ -126,7 +126,34 @@ $safeRepoPath = str_replace('\\', '/', $repoPath);
 putenv("GIT_DIR={$repoPath}/.git");
 putenv("GIT_WORK_TREE={$repoPath}");
 
-exec("git config --global --add safe.directory \"{$safeRepoPath}\" 2>&1");
+// safe.directory transmis par l'environnement (portée "command", reconnue par Git comme fiable)
+// plutôt qu'écrit dans le .gitconfig global : l'ancien `git config --global --add` ajoutait une
+// ligne à chaque requête (des milliers de doublons). Ne vaut que pour les commandes de ce processus.
+function trustGitDirectory(string $path): void {
+    putenv('GIT_CONFIG_COUNT=1');
+    putenv('GIT_CONFIG_KEY_0=safe.directory');
+    putenv('GIT_CONFIG_VALUE_0=' . str_replace('\\', '/', $path));
+}
+
+// Identité Git du dépôt (user.name / user.email) : écrite seulement si elle diffère,
+// au lieu de deux écritures de .git/config à chaque requête
+function ensureRepoIdentity(string $path, string $name, string $email): void {
+    $repo = escapeshellarg(str_replace('\\', '/', $path));
+    $current = [];
+    foreach (explode("\n", (string) shell_exec("git -C {$repo} config --local --get-regexp \"^user\\.(name|email)$\" 2>&1")) as $line) {
+        $parts = explode(' ', trim($line), 2);
+        if (count($parts) === 2) {
+            $current[$parts[0]] = $parts[1];
+        }
+    }
+    foreach (['user.name' => $name, 'user.email' => $email] as $key => $value) {
+        if ($value !== '' && ($current[$key] ?? null) !== $value) {
+            exec("git -C {$repo} config {$key} " . escapeshellarg($value) . ' 2>&1');
+        }
+    }
+}
+
+trustGitDirectory($repoPath);
 
 $sshKeyPath = $config['sshKeyPath'] ?? '';
 if (!empty($sshKeyPath) && file_exists($sshKeyPath)) {
@@ -136,8 +163,7 @@ if (!empty($sshKeyPath) && file_exists($sshKeyPath)) {
     putenv("GIT_SSH_COMMAND=ssh -i \"{$sshKeyPath}\" -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=\"{$homeDir}/.ssh/known_hosts\"");
 }
 
-if (!empty($gitUserName))  exec("git -C \"{$safeRepoPath}\" config user.name \"{$gitUserName}\" 2>&1");
-if (!empty($gitUserEmail)) exec("git -C \"{$safeRepoPath}\" config user.email \"{$gitUserEmail}\" 2>&1");
+if ($isGitRepoCheck) ensureRepoIdentity($repoPath, $gitUserName, $gitUserEmail);
 
 // ── Fonctions système (utilisées par setup.php et les actions) ────────────────
 
@@ -292,7 +318,7 @@ function isFileOverwriteError(string $output): bool {
 }
 
 function validateStashId(string $stashId): bool {
-    return preg_match('/^stash@\{[0-9]+\}$/', $stashId) === 1;
+    return preg_match('/^stash@\{\d+\}$/', $stashId) === 1;
 }
 
 // ── Routing ───────────────────────────────────────────────────────────────────

@@ -145,7 +145,7 @@
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.8em;
-  transition: all 0.2s;
+  transition: background-color 0.2s, color 0.2s;
 }
 
 .code-block .copy-btn:hover {
@@ -193,7 +193,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  transition: all 0.2s;
+  transition: filter 0.2s, background-color 0.2s, opacity 0.2s;
 }
 
 .btn-primary {
@@ -244,7 +244,7 @@
   font-size: 1em;
   border-bottom: 2px solid transparent;
   margin-bottom: -2px;
-  transition: all 0.2s;
+  transition: color 0.2s, border-bottom-color 0.2s;
   display: flex;
   align-items: center;
   gap: 8px;

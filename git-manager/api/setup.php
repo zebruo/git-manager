@@ -11,6 +11,10 @@
 /** @var bool        $hasReposRoots */
 // Actions pré-dépôt : checkRepo, clone, initRepo, listFolders, listRemoteBranches, resetRemote
 
+// Caractères autorisés dans un nom de dossier saisi (clone, initRepo) — une seule définition
+// pour que les deux contrôles ne divergent pas
+const FOLDER_NAME_PATTERN = '/^[a-zA-Z0-9_\-\.]+$/';
+
 switch ($action) {
 
     case 'checkRepo':
@@ -54,7 +58,7 @@ switch ($action) {
             } else {
                 $targetDir = 'cloned-repo';
             }
-        } elseif (!preg_match('/^[a-zA-Z0-9_\-\.]+$/', $targetDir)) {
+        } elseif (!preg_match(FOLDER_NAME_PATTERN, $targetDir)) {
             // Nom saisi : refusé plutôt que modifié, pour ne pas cloner sous un autre nom que celui tapé
             echo json_encode(['success' => false, 'error' => 'Nom de dossier invalide : lettres, chiffres, points, tirets (-) et underscores (_) uniquement']); break;
         }
@@ -62,7 +66,6 @@ switch ($action) {
         if (trim($targetDir, '.') === '') { echo json_encode(['success' => false, 'error' => 'Nom de dossier invalide']); break; }
 
         $fullTargetPath = $rootPath . DIRECTORY_SEPARATOR . $targetDir;
-        $safeTargetPath = str_replace('\\', '/', $fullTargetPath);
 
         if (file_exists($fullTargetPath)) {
             echo json_encode(['success' => false, 'error' => "Le dossier '{$targetDir}' existe déjà"]); break;
@@ -79,9 +82,8 @@ switch ($action) {
             echo json_encode(['success' => false, 'error' => implode("\n", $output)]); break;
         }
 
-        exec("git config --global --add safe.directory \"{$safeTargetPath}\" 2>&1");
-        if (!empty($gitUserName)) exec("git -C \"{$safeTargetPath}\" config user.name \"{$gitUserName}\" 2>&1");
-        if (!empty($gitUserEmail)) exec("git -C \"{$safeTargetPath}\" config user.email \"{$gitUserEmail}\" 2>&1");
+        trustGitDirectory($fullTargetPath);
+        ensureRepoIdentity($fullTargetPath, $gitUserName, $gitUserEmail);
 
         echo json_encode([
             'success' => true,
@@ -139,7 +141,7 @@ switch ($action) {
         // Refusé plutôt que nettoyé : un nom modifié en silence ne correspondrait plus au dossier
         // existant visé, et un dossier vide serait créé à côté au lieu d'adopter le bon.
         $newName = $input['name'] ?? '';
-        if (!preg_match('/^[a-zA-Z0-9_\-\.]+$/', $newName)) {
+        if (!preg_match(FOLDER_NAME_PATTERN, $newName)) {
             echo json_encode(['success' => false, 'error' => 'Nom de dépôt invalide : lettres, chiffres, points, tirets (-) et underscores (_) uniquement']); break;
         }
         // "." ou ".." désigneraient la racine elle-même ou son parent, qui seraient alors "adoptés"
@@ -171,9 +173,8 @@ switch ($action) {
             echo json_encode(['success' => false, 'error' => implode("\n", $initOutput)]); break;
         }
 
-        exec("git config --global --add safe.directory \"{$safeNewPath}\" 2>&1");
-        if (!empty($gitUserName))  exec("git -C \"{$safeNewPath}\" config user.name \"{$gitUserName}\" 2>&1");
-        if (!empty($gitUserEmail)) exec("git -C \"{$safeNewPath}\" config user.email \"{$gitUserEmail}\" 2>&1");
+        trustGitDirectory($newPath);
+        ensureRepoIdentity($newPath, $gitUserName, $gitUserEmail);
 
         echo json_encode(['success' => true, 'data' => ['name' => $newName, 'path' => $newPath, 'id' => makeRepoId($rootIndex, $newName)]]);
         break;

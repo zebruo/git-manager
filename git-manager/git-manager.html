@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gestion Git Avec Interface Graphique</title>
   <link rel="icon" href="flavicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="css/common.css">
   <link rel="stylesheet" href="css/git-manager.css">
   <link rel="stylesheet" href="css/git-help.css">
@@ -22,7 +22,7 @@
             <i class="fas fa-spinner fa-spin"></i> Chargement...
           </p>
           <div id="repoSwitcher" style="display:none;">
-            <select id="repoSelect" onchange="switchRepo(this.value)" title="Changer de dépôt">
+            <select id="repoSelect" aria-label="Dépôt actif" onchange="switchRepo(this.value)" title="Changer de dépôt">
             </select>
           </div>
         </div>
@@ -45,7 +45,7 @@
         <button class="btn btn-secondary" onclick="showHelpModal()" title="Ouvrir la documentation">
           <i class="fas fa-question-circle"></i>
         </button>
-        <a href="index.html" class="btn btn-secondary" id="resetRemoteBtn" title="Git Manager - Accueil">
+        <a href="index.html" class="btn btn-secondary" title="Git Manager - Accueil">
           <i class="fa-solid fa-hand-point-up"></i>
         </a>
         <button class="btn btn-secondary" onclick="toggleDarkMode()" id="darkModeBtn" title="Basculer le thème clair/sombre">
@@ -143,7 +143,7 @@
     </div>
 
     <!-- Modal diff visuel -->
-    <div class="modal-overlay" id="diffModal" onclick="if(event.target===this)closeDiffModal()">
+    <div class="modal-overlay" id="diffModal">
       <div class="modal-content modal-large modal-diff">
         <div class="panel-header fixed-header">
           <h3 id="diffModalTitle"><i class="fas fa-code"></i> Diff</h3>
@@ -208,14 +208,14 @@
           </div>
           <div class="branch-section-title"><i class="fas fa-plus-circle"></i> Créer depuis...</div>
           <div class="create-branch-form" style="flex-wrap: wrap;">
-            <select id="sourceBranchSelect" class="file-select" style="min-width: 150px;"
+            <select id="sourceBranchSelect" class="file-select" aria-label="Branche de départ de la nouvelle branche" style="min-width: 150px;"
               title="Branche source (optionnel)">
               <option value="">Depuis: branche en cours</option>
               <option value="__orphan__">🆕 Branche vide (sans fichiers, sans historique)</option>
               <option value="__freshstart__">🔄 Nouveau départ (fichiers actuels, sans historique)</option>
             </select>
-            <input type="text" id="sourceHashInput" placeholder="ou hash / ref..." style="width: 130px;" title="Créer depuis un commit précis — laisser le menu Depuis sur la première option et entrer le hash ici">
-            <input type="text" id="newBranchName" placeholder="Nom de la nouvelle branche" style="flex: 1;">
+            <input type="text" id="sourceHashInput" aria-label="Commit de départ (hash ou référence)" placeholder="ou hash / ref..." style="width: 130px;" title="Créer depuis un commit précis — laisser le menu Depuis sur la première option et entrer le hash ici">
+            <input type="text" id="newBranchName" aria-label="Nom de la nouvelle branche" placeholder="Nom de la nouvelle branche" style="flex: 1;">
             <button class="btn btn-primary" onclick="createBranch()" title="Créer une nouvelle branche">
               <i class="fas fa-plus"></i> Créer
             </button>
@@ -252,7 +252,7 @@
                 </button>
               </div>
               <div class="commit-message-wrapper">
-                <textarea id="commitMessage" placeholder="Message du commit..." oninput="updateClearBtn()"></textarea>
+                <textarea id="commitMessage" aria-label="Message du commit" placeholder="Message du commit..." oninput="updateClearBtn()"></textarea>
                 <button class="clear-message-btn remove-btn" id="clearMessageBtn" onclick="clearMessageField(); document.getElementById('commitMessage').focus();" title="Effacer le message">
                   <i class="fas fa-times"></i>
                 </button>
@@ -285,7 +285,7 @@
           <h2><i class="fas fa-archive"></i> Mettre de côté (Stash)</h2>
           <div id="stashSection">
             <div style="display: flex;gap: 10px;margin-bottom: 10px;flex-wrap: wrap;align-items: baseline;">
-              <input type="text" id="stashMessage" class="file-select" style="flex: 1; min-width: 200px;"
+              <input type="text" id="stashMessage" class="file-select" aria-label="Message du stash (optionnel)" style="flex: 1; min-width: 200px;"
                 placeholder="Message descriptif (optionnel)">
               <label
                 style="display: flex; align-items: center; gap: 5px; color: var(--text-secondary); font-size: 0.9em; white-space: nowrap;">
@@ -313,20 +313,20 @@
         <!-- Récupération Section -->
         <div class="git-section">
           <h2><i class="fas fa-undo"></i> Récupérer un fichier</h2>
-          <select id="checkoutFileSelect" class="file-select" onchange="loadFileCommits()">
+          <select id="checkoutFileSelect" class="file-select" aria-label="Fichier à récupérer" onchange="loadFileCommits()">
             <option value="">-- Sélectionner un fichier --</option>
           </select>
-          <select id="checkoutSource" class="file-select" onchange="onCheckoutSourceChange()">
+          <select id="checkoutSource" class="file-select" aria-label="Version à récupérer" onchange="onCheckoutSourceChange()">
             <option value="HEAD">HEAD (dernier commit)</option>
             <option value="HEAD~1">HEAD~1 (commit précédent)</option>
             <option value="HEAD~2">HEAD~2 (2 commits avant)</option>
             <option value="origin/main">origin/main (distant)</option>
           </select>
           <div id="fileCommitsContainer" style="display:none;">
-            <div class="file-commits-toggle" onclick="toggleFileCommits()">
+            <button type="button" class="file-commits-toggle" aria-controls="fileCommitsList" onclick="toggleFileCommits()">
               <i class="fas fa-chevron-right file-commits-chevron" id="fileCommitsChevron"></i>
               <span class="file-name diff-link">Commits pour ce fichier</span>
-            </div>
+            </button>
             <div id="fileCommitsList" style="display:none;"></div>
           </div>
           <div class="btn-group">
@@ -345,7 +345,7 @@
         <!-- Delete from repo Section -->
         <div class="git-section">
           <h2><i class="fas fa-trash-alt"></i> Supprimer un fichier du dépôt</h2>
-          <select id="deleteFileSelect" class="file-select">
+          <select id="deleteFileSelect" class="file-select" aria-label="Fichier ou dossier à supprimer du dépôt">
             <option value="">-- Sélectionner un fichier ou dossier --</option>
           </select>
           <div class="btn-group">
@@ -387,9 +387,9 @@
           </div>
           <div id="tagsPanel" style="display:none;">
             <div style="display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; align-items: baseline;">
-              <input type="text" id="tagName" class="file-select" style="flex: 1; min-width: 100px; max-width: 160px;"
+              <input type="text" id="tagName" class="file-select" aria-label="Nom du tag" style="flex: 1; min-width: 100px; max-width: 160px;"
                 placeholder="ex : v1.0.0">
-              <input type="text" id="tagMessage" class="file-select" style="flex: 2; min-width: 180px;"
+              <input type="text" id="tagMessage" class="file-select" aria-label="Message du tag (optionnel, tag annoté)" style="flex: 2; min-width: 180px;"
                 placeholder="Message (optionnel — tag annoté)">
             </div>
             <div class="btn-group" style="margin-top: 0;">
@@ -423,7 +423,7 @@
           </h2>
           <div class="gitignore-content">
             <div class="gitignore-add">
-              <label class="label-inline">Ajouter un fichier/dossier à ignorer :</label>
+              <label class="label-inline" for="untrackedFiles">Ajouter un fichier/dossier à ignorer :</label>
               <div style="display:flex;gap:10px;">
                 <select id="untrackedFiles" class="file-select" style="flex:1;margin-bottom:0;">
                   <option value="">-- Fichiers non suivis --</option>
@@ -433,7 +433,7 @@
                 </button>
               </div>
               <div style="margin-top:10px;display:flex;gap:10px;">
-                <input type="text" id="customIgnore" class="file-select" style="flex:1;margin-bottom:0;"
+                <input type="text" id="customIgnore" class="file-select" aria-label="Motif à ajouter au .gitignore" style="flex:1;margin-bottom:0;"
                   placeholder="Ou saisir manuellement (ex: *.log, temp/)">
                 <button class="btn btn-secondary" onclick="addCustomToGitignore()" style="white-space:nowrap;" title="Ajouter le pattern saisi manuellement au .gitignore">
                   <i class="fas fa-plus"></i> Ajouter
