@@ -154,6 +154,14 @@
       </dd>
       <dt><i class="fas fa-columns"></i> Lecture du diff</dt>
       <dd>Le tableau affiche 3 colonnes : numéro de ligne dans l'ancien fichier, numéro dans le nouveau, et le contenu.</dd>
+      <dt><i class="fas fa-search"></i> Détail d'un commit</dt>
+      <dd>Dans l'<strong>Historique des commits</strong> et dans la liste <strong>Commits pour ce fichier</strong>, la loupe
+        <i class="fas fa-search"></i> ouvre une fenêtre avec le hash, l'auteur, la date, le message complet et la liste des fichiers
+        modifiés, avec leurs lignes ajoutées (+) et supprimées (−). Cliquer sur un fichier ouvre <strong>son diff dans ce commit</strong>,
+        par-dessus la fenêtre. Un fichier renommé indique son ancien chemin.</dd>
+      <dt><i class="fas fa-times"></i> Fermer une fenêtre</dt>
+      <dd>Bouton <i class="fas fa-times"></i> ou <strong>Fermer</strong>, clic à côté de la fenêtre, ou touche <strong>Échap</strong>.
+        Quand le diff est ouvert par-dessus le détail d'un commit, Échap ferme d'abord le diff.</dd>
     </dl>
     <div class="help-info-box">
       <div class="mb-8"><strong>Format d'une ligne :</strong></div>
@@ -740,6 +748,7 @@
           <li>Les lignes sans signe → contexte inchangé</li>
         </ul>
       </li>
+      <li>Faire la même lecture sur un commit passé : dans l'<strong>Historique</strong>, cliquer <i class="fas fa-search"></i>, puis sur le nom d'un fichier de la liste</li>
     </ol>
     <div class="help-info-box mt-8">
       Exemple : <code>@@ -26,3 +26,11 @@</code> → bloc à partir de la ligne 26 ; 3 lignes avant, 11 après (8 lignes ajoutées).
@@ -1014,7 +1023,7 @@
     <ol class="mt-8">
       <li>Dans la section <strong>Récupérer un fichier</strong>, sélectionner <code>(ex: notes.md)</code></li>
       <li>La liste <strong>Commits pour ce fichier</strong> apparaît — elle ne montre que les commits qui ont modifié ce fichier (plus court que l'historique global)</li>
-      <li>Pour chaque commit : cliquer <i class="fas fa-search"></i> pour voir le détail (fichiers modifiés, contenu)</li>
+      <li>Pour chaque commit : cliquer <i class="fas fa-search"></i> pour ouvrir le détail du commit, puis cliquer sur le nom du fichier pour voir exactement les lignes modifiées</li>
       <li>Identifier le commit qui a introduit la ligne à annuler</li>
       <li>Cliquer <i class="fas fa-undo"></i> sur le commit <strong>juste en dessous</strong> (le précédent dans la liste) — c'est la version d'avant la modification</li>
       <li>Vérifier le diff → commiter la restauration</li>

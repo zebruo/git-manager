@@ -98,7 +98,7 @@ Interface web pour gérer un dépôt Git sans ligne de commande.
   - Charger le message actuel via le bouton crayon dans l'historique pour l'éditer
   - Avertissement automatique si le commit a déjà été pushé (push --force requis)
 - **Historique** : Liste des 20 derniers commits avec hash, message, auteur et date
-- **Détail d'un commit** : Affiche les fichiers modifiés et les statistiques (`git show --stat`)
+- **Détail d'un commit** : la loupe ouvre une fenêtre avec le message complet, l'auteur, la date et les fichiers modifiés (+/−) ; un clic sur un fichier affiche son diff dans ce commit
 - **Revert** : Annuler un commit en créant un nouveau commit inverse
 - **Checkout sur un commit** : Se placer sur un ancien commit (HEAD détaché)
 - **Créer une branche depuis un HEAD détaché** : Sauvegarder un état exploré dans une nouvelle branche
@@ -288,4 +288,4 @@ Git Manager est une interface web pour gérer un dépôt Git sans ligne de comma
 
 **Il est recommandé de faire un premier essai sur un dépôt test avant de l'utiliser sur un projet existant.**
 
-*Version : v1.5.3 — Novembre 2026*
+*Version : v1.6.0 — Novembre 2026*

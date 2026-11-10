@@ -163,6 +163,27 @@
       </div>
     </div>
 
+    <!-- Modal détail d'un commit (loupe de l'historique) -->
+    <div class="modal-overlay" id="commitModal">
+      <div class="modal-content modal-large modal-diff">
+        <div class="panel-header fixed-header">
+          <h3 id="commitModalTitle"><i class="fas fa-search"></i> Détail du commit</h3>
+          <button class="btn btn-secondary" onclick="closeCommitModal()" style="padding: 5px 10px;" aria-label="Fermer">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="panel-body scrollable" id="commitModalContent"></div>
+        <div class="panel-footer fixed-footer" style="flex-direction: row; justify-content: space-between;">
+          <button class="btn btn-secondary" id="copyHashBtn" onclick="copyCommitHash()">
+            <i class="fas fa-copy"></i> Copier le hash
+          </button>
+          <button class="btn btn-secondary" onclick="closeCommitModal()">
+            <i class="fas fa-times"></i> Fermer
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Contenu principal (quand dépôt Git existe) -->
     <div id="mainContent">
       <div class="git-layout">

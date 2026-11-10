@@ -9,7 +9,7 @@ let activeRepo = new URLSearchParams(window.location.search).get('repo') || '';
 // Initialisation
 document.addEventListener('DOMContentLoaded', async function () {
   initDarkMode();
-  initDiffModalClose();
+  initModalClose();
 
   // Propager ?repo= sur les liens vers les pages secondaires
   if (activeRepo) {
@@ -864,19 +864,109 @@ async function loadHistory() {
   }
 }
 
-// Voir le détail d'un commit (git show --stat)
+// ── Détail d'un commit (fenêtre ouverte par la loupe de l'historique) ────────
+
+let _commitModalHash = '';
+
 async function showCommitDetail(hash) {
-  terminalClear();
-  terminalLog(`$ git show --stat ${hash}`, 'info');
+  const modal   = document.getElementById('commitModal');
+  const title   = document.getElementById('commitModalTitle');
+  const content = document.getElementById('commitModalContent');
+
+  _commitModalHash = '';
+  title.innerHTML = `<i class="fas fa-search"></i> Commit ${escapeHtml(hash)}`;
+  content.innerHTML = '<div class="diff-empty"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>';
+  modal.classList.add('active');
 
   const result = await apiCall('showCommit', { hash });
-
-  if (result.success) {
-    terminalLog(result.output, 'success');
-  } else {
-    terminalLog(result.error, 'error');
-    showAlert('error', 'Erreur : ' + result.error);
+  if (!result.success) {
+    content.innerHTML = `<div class="diff-empty"><i class="fas fa-exclamation-triangle"></i> ${escapeHtml(result.error)}</div>`;
+    return;
   }
+
+  const c = result.data;
+  _commitModalHash = c.hash;
+  title.innerHTML = `<i class="fas fa-search"></i> Commit <code>${escapeHtml(c.hash.slice(0, 7))}</code>`;
+  content.innerHTML = renderCommitDetail(c);
+}
+
+function renderCommitDetail(c) {
+  const date = new Date(c.date);
+  const dateText = Number.isNaN(date.getTime()) ? c.date : date.toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'short' });
+
+  const mergeNote = c.isMerge
+    ? '<div class="commit-detail-note"><i class="fas fa-code-branch"></i> Commit de fusion — fichiers comparés au premier parent</div>'
+    : '';
+
+  const fileRows = c.files.map(f => {
+    const stats = f.added === null
+      ? '<span class="commit-file-binary">binaire</span>'
+      : `<span class="commit-file-added">+${f.added}</span> <span class="commit-file-deleted">−${f.deleted}</span>`;
+    const onclick = `showCommitFileDiff(${jsArg(c.hash)}, ${jsArg(f.newPath)}, ${jsArg(f.oldPath)}, ${f.added === null})`;
+    return `<li class="commit-file"><span class="commit-file-stats">${stats}</span>`
+      + `<button type="button" class="commit-file-path" onclick="${onclick}" title="Voir le diff de ce fichier dans ce commit">${escapeHtml(f.path)}</button></li>`;
+  }).join('');
+
+  const filesBlock = c.files.length
+    ? `<ul class="commit-file-list">${fileRows}</ul>`
+    : '<div class="diff-empty">Aucun fichier modifié</div>';
+
+  return `
+    <div class="commit-detail-meta">
+      <div><i class="fas fa-fingerprint"></i> <code>${escapeHtml(c.hash)}</code></div>
+      <div><i class="fas fa-user"></i> ${escapeHtml(c.author)} <span class="commit-detail-email">&lt;${escapeHtml(c.email)}&gt;</span></div>
+      <div><i class="fas fa-calendar"></i> ${escapeHtml(dateText)}</div>
+    </div>
+    <pre class="commit-detail-message">${escapeHtml(c.message)}</pre>
+    ${mergeNote}
+    <div class="commit-detail-files-title">
+      <i class="fas fa-file-alt"></i> ${plural(c.files.length, 'fichier')} modifié${c.files.length > 1 ? 's' : ''}
+      <span class="commit-file-added">+${c.added}</span> <span class="commit-file-deleted">−${c.deleted}</span>
+    </div>
+    ${filesBlock}`;
+}
+
+// Diff d'un fichier dans un commit passé : ouvert depuis la fenêtre du commit, par-dessus
+async function showCommitFileDiff(hash, file, oldFile, isBinary) {
+  const modal   = document.getElementById('diffModal');
+  const title   = document.getElementById('diffModalTitle');
+  const content = document.getElementById('diffModalContent');
+  const renamed = oldFile && oldFile !== file;
+
+  _diffRaw = '';
+  setDiffTitle(title, file, 'commit ' + hash.slice(0, 7));
+  content.innerHTML = '<div class="diff-empty"><i class="fas fa-spinner fa-spin"></i> Chargement...</div>';
+  modal.classList.add('active');
+
+  if (isBinary) {
+    content.innerHTML = '<div class="diff-empty">Fichier binaire — pas de diff texte</div>';
+    return;
+  }
+
+  const res = await apiCall('commitFileDiff', { hash, file, oldFile: renamed ? oldFile : '' });
+  if (!res.success) {
+    content.innerHTML = `<div class="diff-empty"><i class="fas fa-exclamation-triangle"></i> ${escapeHtml(res.error)}</div>`;
+    return;
+  }
+
+  _diffRaw = res.data.diff;
+  const renameNote = renamed
+    ? `<div class="commit-detail-note diff-rename-note"><i class="fas fa-arrow-right"></i> Renommé depuis ${escapeHtml(oldFile)}</div>`
+    : '';
+  content.innerHTML = renameNote + renderDiffHtml(_diffRaw, renamed ? 'Renommé sans modification de contenu' : 'Aucune modification de contenu');
+}
+
+function closeCommitModal() {
+  document.getElementById('commitModal').classList.remove('active');
+}
+
+function copyCommitHash() {
+  if (!_commitModalHash) return;
+  const btn = document.getElementById('copyHashBtn');
+  navigator.clipboard.writeText(_commitModalHash).then(() => {
+    btn.innerHTML = '<i class="fas fa-check"></i> Copié';
+    setTimeout(() => { btn.innerHTML = '<i class="fas fa-copy"></i> Copier le hash'; }, 2000);
+  }).catch(() => showAlert('error', 'Copie impossible — hash : ' + _commitModalHash));
 }
 
 // Checkout sur un commit (HEAD détaché)
@@ -2066,13 +2156,21 @@ function closeDiffModal() {
   document.getElementById('diffModal').classList.remove('active');
 }
 
-// Fermeture de la fenêtre de diff : clic sur le fond, ou touche Échap (équivalent clavier)
-function initDiffModalClose() {
-  const modal = document.getElementById('diffModal');
-  if (!modal) return;
-  modal.addEventListener('click', e => { if (e.target === modal) closeDiffModal(); });
+// Fermeture des fenêtres diff et détail de commit : clic sur le fond, ou touche Échap (équivalent clavier).
+// Le diff peut être ouvert par-dessus le commit : Échap ne ferme que la fenêtre du dessus (le diff, listé en premier).
+function initModalClose() {
+  const modals = [
+    [document.getElementById('diffModal'), closeDiffModal],
+    [document.getElementById('commitModal'), closeCommitModal],
+  ].filter(([modal]) => modal);
+
+  modals.forEach(([modal, close]) => {
+    modal.addEventListener('click', e => { if (e.target === modal) close(); });
+  });
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && modal.classList.contains('active')) closeDiffModal();
+    if (e.key !== 'Escape') return;
+    const top = modals.find(([modal]) => modal.classList.contains('active'));
+    if (top) top[1]();
   });
 }
 
@@ -2182,7 +2280,7 @@ async function loadRepoSwitcher() {
   const roots  = result.roots || [];
   const labels = rootLabels(roots);
   const groups = roots.length > 1
-    ? roots.map((path, i) => {
+    ? roots.map((_path, i) => {
         const group = document.createElement('optgroup');
         group.label = labels[i];
         return group;

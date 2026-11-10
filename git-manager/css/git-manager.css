@@ -1129,6 +1129,99 @@ body {
 .diff-added .diff-num  { background: rgba(76, 175, 80, 0.08); }
 .diff-added .diff-content { color: #81c784; }
 
+/* ── Détail d'un commit (fenêtre de la loupe) ── */
+.modal-diff #commitModalContent { padding: 15px 20px; }
+
+/* Le diff d'un fichier s'ouvre par-dessus la fenêtre du commit */
+#diffModal { z-index: 1001; }
+.diff-rename-note { padding: 10px 15px 0; }
+
+.commit-detail-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 0.9em;
+  margin-bottom: 12px;
+}
+
+.commit-detail-meta i { width: 1.2em; color: var(--accent-color); }
+.commit-detail-meta code { color: var(--text-primary); word-break: break-all; }
+.commit-detail-email { opacity: 0.8; }
+
+.commit-detail-message {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: inherit;
+  font-size: 0.95em;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  border-left: 3px solid var(--accent-color);
+  border-radius: 4px;
+  padding: 10px 12px;
+  margin: 0 0 12px;
+}
+
+.commit-detail-note {
+  font-size: 0.85em;
+  color: var(--info-color);
+  margin-bottom: 10px;
+}
+
+.commit-detail-files-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 0.9em;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.commit-file-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+}
+
+.commit-file {
+  display: flex;
+  gap: 12px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.88em;
+}
+
+.commit-file:last-child { border-bottom: none; }
+
+.commit-file-stats {
+  flex-shrink: 0;
+  min-width: 80px;
+  font-family: 'Consolas', 'Monaco', monospace;
+}
+
+/* Nom de fichier cliquable (<button> natif présenté comme un lien) */
+.commit-file-path {
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: inherit;
+  color: var(--text-primary);
+  word-break: break-all;
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: underline dotted;
+}
+
+.commit-file-path:hover { color: var(--accent-color); }
+
+.commit-file-added   { color: #81c784; font-family: 'Consolas', 'Monaco', monospace; }
+.commit-file-deleted { color: #f48a83; font-family: 'Consolas', 'Monaco', monospace; }
+.commit-file-binary  { color: var(--text-secondary); font-style: italic; }
+
 .diff-tabs {
   display: flex;
   gap: 0;

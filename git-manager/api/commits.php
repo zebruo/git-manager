@@ -5,7 +5,20 @@
 /** @var string $safeRepoPath */
 // Commits, historique, staging, diff :
 // log, fileLog, stageFiles, unstageFiles, commit, commitAndPush,
-// revertCommit, amendLastCommit, getCommitMessage, showCommit, diff
+// revertCommit, amendLastCommit, getCommitMessage, showCommit, commitFileDiff, diff
+
+// Chemin d'un renommage tel qu'affiché par --numstat -> [ancien, nouveau] :
+// "a.txt => b.txt" ou "dir/{ancien => nouveau}/f.js" ; un chemin simple renvoie [chemin, chemin]
+function splitRenamePath(string $path): array {
+    if (preg_match('/^(.*)\{(.*) => (.*)\}(.*)$/', $path, $m)) {
+        $clean = fn(string $p) => preg_replace('#/{2,}#', '/', ltrim($p, '/'));
+        return [$clean($m[1] . $m[2] . $m[4]), $clean($m[1] . $m[3] . $m[4])];
+    }
+    if (str_contains($path, ' => ')) {
+        return explode(' => ', $path, 2);
+    }
+    return [$path, $path];
+}
 
 switch ($action) {
 
@@ -215,13 +228,70 @@ switch ($action) {
             echo json_encode(['success' => false, 'error' => 'Hash de commit invalide']); break;
         }
 
-        $result = execGit('git show --stat ' . escapeArg($hash));
+        // Métadonnées séparées par \x1f ; shell_exec garde le corps du message intact (voir getCommitMessage)
+        $raw   = shell_exec("git -C \"{$safeRepoPath}\" show -s --format=%H%x1f%an%x1f%ae%x1f%aI%x1f%P%x1f%B " . escapeArg($hash) . ' 2>&1');
+        $parts = explode("\x1f", str_replace("\r\n", "\n", (string) $raw), 6);
+        if (count($parts) < 6) {
+            echo json_encode(['success' => false, 'error' => trim((string) $raw) ?: 'Commit introuvable']); break;
+        }
+        [$fullHash, $author, $email, $date, $parents, $body] = $parts;
+        $isMerge = count(array_filter(explode(' ', trim($parents)))) > 1;
+
+        // Fichiers modifiés (+/-) ; pour un merge, comparaison avec le premier parent
+        $numstat = execGit('git show --numstat --format= -M --diff-merges=first-parent ' . escapeArg($hash));
+        $files = [];
+        $totalAdded = 0;
+        $totalDeleted = 0;
+        foreach (explode("\n", $numstat['output']) as $line) {
+            $cols = explode("\t", rtrim($line, "\r"), 3);
+            if (count($cols) !== 3) continue; // lignes d'avertissement éventuelles
+            $binary = ($cols[0] === '-');
+            [$oldPath, $newPath] = splitRenamePath($cols[2]);
+            $files[] = [
+                'path'    => $cols[2],   // affichage ("ancien => nouveau" pour un renommage)
+                'newPath' => $newPath,
+                'oldPath' => $oldPath,
+                'added'   => $binary ? null : (int) $cols[0],
+                'deleted' => $binary ? null : (int) $cols[1],
+            ];
+            $totalAdded   += $binary ? 0 : (int) $cols[0];
+            $totalDeleted += $binary ? 0 : (int) $cols[1];
+        }
+
+        echo json_encode(['success' => true, 'data' => [
+            'hash'    => trim($fullHash),
+            'author'  => $author,
+            'email'   => $email,
+            'date'    => $date,
+            'isMerge' => $isMerge,
+            'message' => trim($body),
+            'files'   => $files,
+            'added'   => $totalAdded,
+            'deleted' => $totalDeleted,
+        ]]);
+        break;
+
+    case 'commitFileDiff':
+        // Diff d'un fichier tel que modifié par un commit donné (fenêtre de la loupe)
+        $hash    = $input['hash'] ?? '';
+        $file    = $input['file'] ?? '';
+        $oldFile = $input['oldFile'] ?? '';
+
+        if (!preg_match('/^[a-f0-9]{7,40}$/', $hash)) {
+            echo json_encode(['success' => false, 'error' => 'Hash de commit invalide']); break;
+        }
+        if (empty($file) || !isValidFile($file) || ($oldFile !== '' && !isValidFile($oldFile))) {
+            echo json_encode(['success' => false, 'error' => 'Fichier invalide']); break;
+        }
+
+        // Renommage : les deux chemins sont nécessaires pour que git montre la modification, pas un ajout
+        $paths = escapeArg($file) . ($oldFile !== '' && $oldFile !== $file ? ' ' . escapeArg($oldFile) : '');
+        $result = execGit('git show --format= -M --diff-merges=first-parent ' . escapeArg($hash) . ' -- ' . $paths);
 
         if ($result['code'] !== 0) {
             echo json_encode(['success' => false, 'error' => $result['output']]); break;
         }
-
-        echo json_encode(['success' => true, 'output' => $result['output']]);
+        echo json_encode(['success' => true, 'data' => ['diff' => $result['output']]]);
         break;
 
     default:
