@@ -86,7 +86,7 @@ async function loadRepoInfo() {
       `;
       // Icône d'édition quand remote existe
       remoteBtn.innerHTML = '<i class="fas fa-edit"></i>';
-      remoteBtn.title = 'Modifier le remote GitHub';
+      remoteBtn.title = 'Modifier le remote GitHub — $ git remote set-url origin <url>';
       // Afficher le bouton reset remote quand un remote est configuré
       resetRemoteBtn.style.display = 'inline-flex';
     } else {
@@ -97,7 +97,7 @@ async function loadRepoInfo() {
       `;
       // Icône de lien quand pas de remote
       remoteBtn.innerHTML = '<i class="fas fa-link"></i>';
-      remoteBtn.title = 'Lier à GitHub';
+      remoteBtn.title = 'Lier à GitHub — $ git remote add origin <url>';
       // Masquer le bouton reset remote quand pas de remote
       resetRemoteBtn.style.display = 'none';
     }
@@ -152,11 +152,11 @@ function updatePushButtons() {
     pushBtn.title       = "Configurez d'abord le dépôt distant (remote)";
     commitPushBtn.title = "Configurez d'abord le dépôt distant (remote)";
   } else if (firstPublish) {
-    pushBtn.title       = `Première publication : crée la branche ${currentBranchName} sur GitHub`;
-    commitPushBtn.title = 'Commit puis envoi vers GitHub en une seule action';
+    pushBtn.title       = `Première publication : crée la branche ${currentBranchName} sur GitHub — $ git push -u origin ${currentBranchName}`;
+    commitPushBtn.title = `Commit puis envoi vers GitHub en une seule action — $ git commit puis git push -u origin ${currentBranchName}`;
   } else {
-    pushBtn.title       = 'Envoyer vos commits vers GitHub';
-    commitPushBtn.title = 'Commit puis envoi vers GitHub en une seule action';
+    pushBtn.title       = 'Envoyer vos commits vers GitHub — $ git push origin';
+    commitPushBtn.title = 'Commit puis envoi vers GitHub en une seule action — $ git commit puis git push';
   }
 }
 
@@ -496,13 +496,13 @@ async function loadStashList() {
             <div class="stash-item-date">${escapeHtml(s.date)}</div>
           </div>
           <div class="stash-item-actions">
-            <button class="stash-btn-pop" onclick="doStashApply(${jsArg(s.id)}, true)" title="Restaurer et supprimer">
+            <button class="stash-btn-pop" onclick="doStashApply(${jsArg(s.id)}, true)" title="Restaurer et supprimer — $ git stash pop ${escapeHtml(s.id)}">
               <i class="fas fa-redo"></i> Pop
             </button>
-            <button class="stash-btn-apply" onclick="doStashApply(${jsArg(s.id)}, false)" title="Restaurer sans supprimer">
+            <button class="stash-btn-apply" onclick="doStashApply(${jsArg(s.id)}, false)" title="Restaurer sans supprimer — $ git stash apply ${escapeHtml(s.id)}">
               <i class="fas fa-copy"></i> Appliquer
             </button>
-            <button class="stash-btn-drop" onclick="doStashDrop(${jsArg(s.id)})" title="Supprimer ce stash">
+            <button class="stash-btn-drop" onclick="doStashDrop(${jsArg(s.id)})" title="Supprimer ce stash — $ git stash drop ${escapeHtml(s.id)}">
               <i class="fas fa-trash"></i>
             </button>
           </div>
@@ -594,10 +594,10 @@ async function loadTagList() {
             <span class="stash-item-message">${escapeHtml(t.type)}</span>
           </div>
           <div class="stash-item-actions">
-            <button class="stash-btn-apply" onclick="doPushTag(${jsArg(t.name)})" title="Pousser vers origin">
+            <button class="stash-btn-apply" onclick="doPushTag(${jsArg(t.name)})" title="Pousser vers origin — $ git push origin ${escapeHtml(t.name)}">
               <i class="fas fa-upload"></i> Push
             </button>
-            <button class="stash-btn-drop" onclick="doDeleteTag(${jsArg(t.name)})" title="Supprimer le tag">
+            <button class="stash-btn-drop" onclick="doDeleteTag(${jsArg(t.name)})" title="Supprimer le tag — $ git tag -d ${escapeHtml(t.name)}">
               <i class="fas fa-trash"></i>
             </button>
           </div>
@@ -746,8 +746,9 @@ function updateFileList(modified, untracked, staged, stagedDeleted, conflicted, 
 
   fileList.innerHTML = allFiles.map(f => {
       const diffable = f.type !== 'untracked';
+      const stagedFlag = (f.type === 'added' || f.type === 'deleted') ? '--staged ' : '';
       const nameSpan = diffable
-        ? `<span class="file-name diff-link" onclick="showFileDiff(${jsArg(f.name)}, ${jsArg(f.type)})" title="Voir le diff">${escapeHtml(f.name)}</span>`
+        ? `<span class="file-name diff-link" onclick="showFileDiff(${jsArg(f.name)}, ${jsArg(f.type)})" title="Voir le diff — $ git diff ${stagedFlag}${escapeHtml(f.name)}">${escapeHtml(f.name)}</span>`
         : `<span class="file-name">${escapeHtml(f.name)}</span>`;
       return `
       <div class="file-item">
@@ -846,14 +847,14 @@ async function loadHistory() {
           </div>
         </div>
         <div class="commit-actions" style="gap: 5px; display: flex;">
-          ${index === 0 ? `<button class="checkout-commit-btn" onclick="loadCommitMessageToField(${jsArg(commit.hash)})" title="Charger le message complet dans le champ pour l'amender (amend)"><i class="fas fa-pencil-alt"></i></button>` : ''}
-          <button class="checkout-commit-btn" onclick="showCommitDetail(${jsArg(commit.hash)})" title="Voir le détail de ce commit (git show --stat)">
+          ${index === 0 ? `<button class="checkout-commit-btn" onclick="loadCommitMessageToField(${jsArg(commit.hash)})" title="Charger le message complet dans le champ pour l'amender (amend) — $ git log -1 --format=%B"><i class="fas fa-pencil-alt"></i></button>` : ''}
+          <button class="checkout-commit-btn" onclick="showCommitDetail(${jsArg(commit.hash)})" title="Voir le détail de ce commit — $ git show ${escapeHtml(commit.hash)}">
             <i class="fas fa-search"></i>
           </button>
-          <button class="checkout-commit-btn" onclick="checkoutCommit(${jsArg(commit.hash)})" title="Se placer sur ce commit (HEAD détaché) — plutôt pour explorer ou récupérer un fichier précis">
+          <button class="checkout-commit-btn" onclick="checkoutCommit(${jsArg(commit.hash)})" title="Se placer sur ce commit (HEAD détaché) — plutôt pour explorer ou récupérer un fichier précis — $ git checkout ${escapeHtml(commit.hash)}">
             <i class="fas fa-sign-in-alt"></i>
           </button>
-          <button class="revert-commit-btn" data-hash="${escapeHtml(commit.hash)}" data-msg="${escapeHtml(commit.message)}" onclick="revertCommit(this.dataset.hash, this.dataset.msg)" title="Revert — Annuler ce commit (crée un nouveau commit inverse) — solution la plus propre pour annuler des commits déjà pushés">
+          <button class="revert-commit-btn" data-hash="${escapeHtml(commit.hash)}" data-msg="${escapeHtml(commit.message)}" onclick="revertCommit(this.dataset.hash, this.dataset.msg)" title="Revert — Annuler ce commit (crée un nouveau commit inverse) — solution la plus propre pour annuler des commits déjà pushés — $ git revert ${escapeHtml(commit.hash)}">
             <i class="fas fa-undo"></i>
           </button>
         </div>
@@ -904,7 +905,7 @@ function renderCommitDetail(c) {
       : `<span class="commit-file-added">+${f.added}</span> <span class="commit-file-deleted">−${f.deleted}</span>`;
     const onclick = `showCommitFileDiff(${jsArg(c.hash)}, ${jsArg(f.newPath)}, ${jsArg(f.oldPath)}, ${f.added === null})`;
     return `<li class="commit-file"><span class="commit-file-stats">${stats}</span>`
-      + `<button type="button" class="commit-file-path" onclick="${onclick}" title="Voir le diff de ce fichier dans ce commit">${escapeHtml(f.path)}</button></li>`;
+      + `<button type="button" class="commit-file-path" onclick="${onclick}" title="Voir le diff de ce fichier dans ce commit — $ git show ${escapeHtml(c.hash.slice(0, 7))} -- ${escapeHtml(f.newPath)}">${escapeHtml(f.path)}</button></li>`;
   }).join('');
 
   const filesBlock = c.files.length
@@ -1333,10 +1334,10 @@ async function loadFileCommits() {
           <div class="commit-meta"><span><i class="fas fa-calendar"></i>${escapeHtml(commit.date)}</span></div>
         </div>
         <div class="commit-actions" style="gap:5px;display:flex;">
-          <button class="checkout-commit-btn" onclick="showCommitDetail(${jsArg(commit.hash)})" title="Voir le détail de ce commit">
+          <button class="checkout-commit-btn" onclick="showCommitDetail(${jsArg(commit.hash)})" title="Voir le détail de ce commit — $ git show ${escapeHtml(commit.hash)}">
             <i class="fas fa-search"></i>
           </button>
-          <button class="checkout-commit-btn" onclick="doCheckout(${jsArg(commit.hash)})" title="Restaurer le fichier à cette version">
+          <button class="checkout-commit-btn" onclick="doCheckout(${jsArg(commit.hash)})" title="Restaurer le fichier à cette version — $ git checkout ${escapeHtml(commit.hash)} -- ${escapeHtml(file)}">
             <i class="fas fa-undo"></i>
           </button>
         </div>
@@ -1668,22 +1669,23 @@ function renderLocalBranch(branch, current) {
   const isCurrent   = branch.current;
   const hasUpstream = branch.upstream && branch.upstream.length > 0;
   const name        = jsArg(branch.name);
+  const shown       = escapeHtml(branch.name); // pour les infobulles
 
   // Pour la branche actuelle, la publication passe par le bouton Push (libellé "Publier")
   let actions = '';
   if (!hasUpstream && !isCurrent) {
-    actions += `<button class="publish-btn" onclick="pushBranch(${name})" title="Publier sur GitHub"><i class="fas fa-cloud-upload-alt"></i></button>`;
+    actions += `<button class="publish-btn" onclick="pushBranch(${name})" title="Publier sur GitHub — $ git push -u origin ${shown}"><i class="fas fa-cloud-upload-alt"></i></button>`;
   }
-  actions += `<button class="rename-btn" onclick="renameBranch(${name})" title="Renommer"><i class="fas fa-pen"></i></button>`;
+  actions += `<button class="rename-btn" onclick="renameBranch(${name})" title="Renommer — $ git branch -m &lt;nouveau-nom&gt;"><i class="fas fa-pen"></i></button>`;
   if (!isCurrent) {
     actions += `
-      <button class="switch-btn" onclick="switchBranch(${name})" title="Basculer">
+      <button class="switch-btn" onclick="switchBranch(${name})" title="Basculer — $ git checkout ${shown}">
         <i class="fas fa-exchange-alt"></i>
       </button>
-      <button class="merge-btn" onclick="mergeBranch(${name})" title="Fusionner dans ${escapeHtml(current)}">
+      <button class="merge-btn" onclick="mergeBranch(${name})" title="Fusionner dans ${escapeHtml(current)} — $ git merge ${shown}">
         <i class="fas fa-code-branch"></i>
       </button>
-      <button class="delete-btn" onclick="deleteBranch(${name}, ${hasUpstream})" title="Supprimer">
+      <button class="delete-btn" onclick="deleteBranch(${name}, ${hasUpstream})" title="Supprimer — $ git branch -d ${shown}">
         <i class="fas fa-times"></i>
       </button>`;
   }
@@ -1717,10 +1719,10 @@ function renderRemoteBranch(branch) {
         <span class="branch-badge remote-only">distante</span>
       </div>
       <div class="branch-actions">
-        <button class="switch-btn" onclick="switchBranch(${jsArg(branch)})" title="Récupérer et basculer">
+        <button class="switch-btn" onclick="switchBranch(${jsArg(branch)})" title="Récupérer et basculer — $ git checkout -b ${escapeHtml(branchName)} --track ${escapeHtml(branch)}">
           <i class="fas fa-download"></i>
         </button>
-        <button class="delete-btn" onclick="deleteRemoteBranchDirect(${jsArg(branchName)})" title="Supprimer sur origin">
+        <button class="delete-btn" onclick="deleteRemoteBranchDirect(${jsArg(branchName)})" title="Supprimer sur origin — $ git push origin --delete ${escapeHtml(branchName)}">
           <i class="fas fa-times"></i>
         </button>
       </div>

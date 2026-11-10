@@ -28,10 +28,10 @@
         </div>
       </div>
       <div style="display: flex; gap: 10px;">
-        <a href="git-clone.html" class="btn btn-secondary" title="Cloner un dépôt existant ou créer un dépôt vierge">
+        <a href="git-clone.html" class="btn btn-secondary" title="Cloner un dépôt existant ou créer un dépôt vierge — $ git clone &lt;url&gt; / git init">
           <i class="fas fa-clone"></i>
         </a>
-        <button class="btn btn-secondary" onclick="showRemoteForm()" id="remoteBtn" title="Configurer GitHub"
+        <button class="btn btn-secondary" onclick="showRemoteForm()" id="remoteBtn" title="Configurer GitHub — $ git remote add origin &lt;url&gt;"
           style="display: none;">
           <i class="fas fa-link"></i>
         </button>
@@ -210,18 +210,18 @@
             </div>
           </div>
           <div class="btn-group" style="margin-bottom: 10px;">
-            <button class="btn btn-secondary" onclick="doFetch()" id="fetchBtn" title="Vérifier les nouveautés sans modifier les fichiers locaux">
+            <button class="btn btn-secondary" onclick="doFetch()" id="fetchBtn" title="Vérifier les nouveautés sans modifier les fichiers locaux — $ git fetch origin --prune">
               <i class="fas fa-sync"></i> Fetch
             </button>
-            <button class="btn btn-success" onclick="doPush()" id="pushBtn" title="Envoyer vos commits vers GitHub">
+            <button class="btn btn-success" onclick="doPush()" id="pushBtn" title="Envoyer vos commits vers GitHub — $ git push origin">
               <i class="fas fa-upload"></i> Push
             </button>
             <div class="pull-container">
-              <button class="btn btn-primary" onclick="doPull()" id="pullBtn" title="Récupérer et fusionner les modifications depuis GitHub">
+              <button class="btn btn-primary" onclick="doPull()" id="pullBtn" title="Récupérer et fusionner les modifications depuis GitHub — $ git pull origin">
                 <i class="fas fa-download"></i> Pull
               </button>
               <label class="pull-rebase-label" id="pullRebaseLabel"
-                title="Rebase : replace vos commits locaux après les commits distants (historique linéaire, pas de merge commit)">
+                title="Rebase : replace vos commits locaux après les commits distants (historique linéaire, pas de merge commit) — $ git pull --rebase origin">
                 <input type="checkbox" id="pullRebaseCheck" checked>
                 --rebase
               </label>
@@ -237,7 +237,7 @@
             </select>
             <input type="text" id="sourceHashInput" aria-label="Commit de départ (hash ou référence)" placeholder="ou hash / ref..." style="width: 130px;" title="Créer depuis un commit précis — laisser le menu Depuis sur la première option et entrer le hash ici">
             <input type="text" id="newBranchName" aria-label="Nom de la nouvelle branche" placeholder="Nom de la nouvelle branche" style="flex: 1;">
-            <button class="btn btn-primary" onclick="createBranch()" title="Créer une nouvelle branche">
+            <button class="btn btn-primary" onclick="createBranch()" title="Créer une nouvelle branche — $ git checkout -b &lt;branche&gt;">
               <i class="fas fa-plus"></i> Créer
             </button>
           </div>
@@ -264,11 +264,11 @@
             <div class="commit-form">
               <div class="btn-group" style="margin-bottom: 10px;">
                 <button class="btn btn-secondary" onclick="stageFiles()"
-                  title="Ajouter les fichiers cochés à la zone de staging">
+                  title="Ajouter les fichiers cochés à la zone de staging — $ git add &lt;fichiers&gt;">
                   <i class="fas fa-plus-circle"></i> Stager
                 </button>
                 <button class="btn btn-secondary" onclick="unstageFiles()"
-                  title="Retirer les fichiers cochés de la zone de staging">
+                  title="Retirer les fichiers cochés de la zone de staging — $ git reset HEAD -- &lt;fichiers&gt;">
                   <i class="fas fa-minus-circle"></i> Unstager
                 </button>
               </div>
@@ -280,20 +280,20 @@
               </div>
               <div class="btn-group" style="flex-wrap: nowrap;">
                 <button class="btn btn-warning" onclick="doAmendLastCommit()" id="amendBtn"
-                  title="Modifier le dernier commit : ajoute les fichiers sélectionnés et/ou change le message si le champ est renseigné (git commit --amend). À utiliser de préférence avant le Push.">
+                  title="Modifier le dernier commit : ajoute les fichiers sélectionnés et/ou change le message si le champ est renseigné. À utiliser de préférence avant le Push. — $ git commit --amend">
                   <i class="fas fa-pen-to-square"></i> Amend
                 </button>
                 <button class="btn btn-primary" onclick="doCommit()" id="commitBtn"
-                  title="Enregistrer les fichiers cochés dans l'historique local">
+                  title="Enregistrer les fichiers cochés dans l'historique local — $ git commit">
                   <i class="fas fa-check"></i> Commit
                 </button>
                 <button class="btn btn-success" onclick="doCommitAndPush()" id="commitPushBtn"
-                  title="Commit puis envoi vers GitHub en une seule action">
+                  title="Commit puis envoi vers GitHub en une seule action — $ git commit puis git push">
                   <i class="fas fa-upload"></i> Commit & Push
                 </button>
               </div>
               <div class="btn-group" style="padding-top:10px; border-top:1px solid var(--border-color);">
-                <button class="btn btn-danger" onclick="doDiscardAll()" title="Annuler toutes les modifications non committées (irréversible)">
+                <button class="btn btn-danger" onclick="doDiscardAll()" title="Annuler toutes les modifications non committées (irréversible) — $ git checkout -- .">
                   <i class="fas fa-trash"></i> Annuler les modifications
                 </button>
               </div>
@@ -310,11 +310,11 @@
                 placeholder="Message descriptif (optionnel)">
               <label
                 style="display: flex; align-items: center; gap: 5px; color: var(--text-secondary); font-size: 0.9em; white-space: nowrap;">
-                <input type="checkbox" id="stashIncludeUntracked" checked title="Inclure les fichiers non suivis (U) dans le stash"> + non suivis
+                <input type="checkbox" id="stashIncludeUntracked" checked title="Inclure les fichiers non suivis (U) dans le stash — $ git stash push --include-untracked"> + non suivis
               </label>
             </div>
             <div class="btn-group" style="margin-top: 0;">
-              <button class="btn btn-primary" onclick="doStashSave()" title="Sauvegarder temporairement vos modifications sans faire de commit">
+              <button class="btn btn-primary" onclick="doStashSave()" title="Sauvegarder temporairement vos modifications sans faire de commit — $ git stash push">
                 <i class="fas fa-archive"></i> Mettre de côté
               </button>
             </div>
@@ -351,7 +351,7 @@
             <div id="fileCommitsList" style="display:none;"></div>
           </div>
           <div class="btn-group">
-            <button class="btn btn-secondary" onclick="doCheckout()" title="Restaurer le fichier sélectionné à la version choisie (accès rapide)">
+            <button class="btn btn-secondary" onclick="doCheckout()" title="Restaurer le fichier sélectionné à la version choisie (accès rapide) — $ git checkout &lt;version&gt; -- &lt;fichier&gt;">
               <i class="fas fa-undo"></i> Récupérer
             </button>
           </div>
@@ -370,10 +370,10 @@
             <option value="">-- Sélectionner un fichier ou dossier --</option>
           </select>
           <div class="btn-group">
-            <button class="btn btn-danger" onclick="doRemoveFromRepo()" title="Supprimer le fichier du dépôt ET du disque (définitif)">
+            <button class="btn btn-danger" onclick="doRemoveFromRepo()" title="Supprimer le fichier du dépôt ET du disque (définitif) — $ git rm &lt;fichier&gt;">
               <i class="fas fa-trash"></i> Supprimer (dépôt + disque)
             </button>
-            <button class="btn btn-secondary" onclick="doUntrackFile()" title="Retirer du dépôt mais conserver sur le disque">
+            <button class="btn btn-secondary" onclick="doUntrackFile()" title="Retirer du dépôt mais conserver sur le disque — $ git rm --cached &lt;fichier&gt;">
               <i class="fas fa-eye-slash"></i> Arrêter le suivi uniquement
             </button>
           </div>
@@ -414,7 +414,7 @@
                 placeholder="Message (optionnel — tag annoté)">
             </div>
             <div class="btn-group" style="margin-top: 0;">
-              <button class="btn btn-primary" onclick="doCreateTag()" title="Créer un tag sur le commit courant">
+              <button class="btn btn-primary" onclick="doCreateTag()" title="Créer un tag sur le commit courant — $ git tag &lt;nom&gt; (git tag -a avec un message)">
                 <i class="fas fa-tag"></i> Créer
               </button>
             </div>
