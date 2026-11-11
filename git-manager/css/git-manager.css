@@ -673,6 +673,21 @@ body {
   margin-right: 5px;
 }
 
+/* Liste des tags : hauteur limitée, défilement interne */
+.tag-list-scroll {
+  margin-top: 15px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.help-details summary {
+  cursor: pointer;
+}
+
+.help-details[open] summary {
+  margin-bottom: 6px;
+}
+
 /* Stash list */
 .stash-item {
   display: flex;

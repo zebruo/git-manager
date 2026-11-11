@@ -422,14 +422,14 @@
                 <i class="fas fa-tag"></i> Créer
               </button>
             </div>
-            <div id="tagList" style="margin-top: 15px;"></div>
+            <div id="tagList" class="tag-list-scroll"></div>
             <p class="text-muted mt-10">
               <i class="fas fa-info-circle"></i>
               Marque un commit précis (ex : une version de release).<br>
               Avec un message → tag annoté. Sans message → tag léger.
             </p>
-            <p class="text-muted mt-8">
-              <i class="fas fa-code-branch"></i> <strong>Quand faire une release ?</strong><br>
+            <details class="text-muted mt-8 help-details">
+              <summary><i class="fas fa-code-branch"></i> <strong>Quand faire une release ?</strong></summary>
               Quand le projet est dans un état stable et qu'un jalon significatif est atteint :
               nouvelle page fonctionnelle, fonctionnalité importante, refonte visuelle.<br>
               Ne pas créer une release pour chaque petit fix.<br><br>
@@ -437,7 +437,7 @@
               &nbsp;· <code>PATCH</code> (+0.0.1) : correction de bug ou petit ajustement<br>
               &nbsp;· <code>MINOR</code> (+0.1.0) : nouvelle page ou fonctionnalité<br>
               &nbsp;· <code>MAJOR</code> (+1.0.0) : refonte architecturale ou visuelle importante
-            </p>
+            </details>
           </div>
         </div>
 
