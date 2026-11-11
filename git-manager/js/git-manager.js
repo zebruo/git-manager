@@ -4,6 +4,8 @@ let currentAhead = 0;
 let currentHasRemote = null;       // null tant que repoInfo n'a pas répondu
 let currentBranchPublished = null; // la branche actuelle a-t-elle une branche distante suivie ?
 let currentBranchName = '';
+let currentUpstreamUrl = '';       // dépôt original d'un fork (remote "upstream"), vide sinon
+let currentUpstreamBehind = null;  // commits de l'original à récupérer (au dernier Fetch), null si pas de fork
 let activeRepo = new URLSearchParams(window.location.search).get('repo') || '';
 
 // Initialisation
@@ -69,6 +71,7 @@ async function loadRepoInfo() {
     remoteBtn.style.display = 'inline-flex';
 
     currentHasRemote = result.data.hasRemote || false;
+    currentUpstreamUrl = result.data.upstreamUrl || '';
 
     if (result.data.hasRemote && result.data.name && result.data.url) {
       const webUrl = result.data.url.replace(/\.git$/, '').replace('git@github.com:', 'https://github.com/');
@@ -138,7 +141,13 @@ function updatePushButtons() {
   } else if (firstPublish) {
     pullReason = "Rien à récupérer : la branche n'est pas encore publiée sur GitHub — utilisez Publier";
   }
-  setSyncControl(document.getElementById('fetchBtn'), noRemote ? noRemoteReason : '');
+  // Fork : le Fetch récupère aussi l'original (infobulle complétée)
+  const fetchBtn = document.getElementById('fetchBtn');
+  if (fetchBtn) {
+    fetchBtn.dataset.baseTitle ??= fetchBtn.title;
+    fetchBtn.dataset.defaultTitle = fetchBtn.dataset.baseTitle + (currentUpstreamUrl ? ' puis git fetch upstream --prune' : '');
+  }
+  setSyncControl(fetchBtn, noRemote ? noRemoteReason : '');
   setSyncControl(document.getElementById('pullBtn'), pullReason);
   setSyncControl(document.getElementById('pullRebaseLabel'), pullReason);
 
@@ -158,6 +167,57 @@ function updatePushButtons() {
     pushBtn.title       = 'Envoyer vos commits vers GitHub — $ git push origin';
     commitPushBtn.title = 'Commit puis envoi vers GitHub en une seule action — $ git commit puis git push';
   }
+
+  updateUpstreamButton();
+}
+
+// Bouton "Original" : visible seulement pour un fork (remote upstream configuré) ;
+// fusion ou rebase selon la case --rebase, comme le Pull
+function updateUpstreamButton() {
+  const btn = document.getElementById('upstreamBtn');
+  if (!btn) return;
+  btn.style.display = currentUpstreamUrl ? '' : 'none';
+  if (!currentUpstreamUrl) return;
+
+  const branch = currentBranchName || '<branche>';
+  const rebase = document.getElementById('pullRebaseCheck')?.checked;
+  const command = rebase ? `git rebase upstream/${branch}` : `git merge upstream/${branch}`;
+  const behind = currentUpstreamBehind || 0;
+
+  // Libellé : "Original ↓3" quand l'original a des commits à récupérer
+  btn.innerHTML = '<i class="fas fa-code-fork"></i> Original' + (behind > 0 ? ` <span class="upstream-behind">↓${behind}</span>` : '');
+  btn.disabled = !currentBranchName;
+
+  let state = '';
+  if (currentUpstreamBehind !== null) {
+    state = behind > 0 ? ` (${plural(behind, 'commit')} à récupérer)` : ' (à jour au dernier Fetch)';
+  }
+  btn.title = currentBranchName
+    ? `Récupérer les nouveautés du dépôt original (fork) dans la branche ${branch}${state} — $ git fetch upstream puis ${command}`
+    : 'Placez-vous sur une branche pour mettre à jour depuis le dépôt original';
+}
+
+// Fork : récupérer les nouveautés du dépôt original dans la branche courante
+async function doSyncUpstream() {
+  const rebase = document.getElementById('pullRebaseCheck').checked;
+  terminalClear();
+  terminalLog(`$ git fetch upstream && git ${rebase ? 'rebase' : 'merge'} upstream/${currentBranchName}`, 'info');
+
+  const result = await apiCall('syncUpstream', { rebase });
+
+  if (result.success) {
+    terminalLog(result.output, 'success');
+    showAlert('success', 'Branche mise à jour depuis le dépôt original — cliquez Push pour mettre à jour votre fork sur GitHub');
+  } else {
+    terminalLog(result.error, 'error');
+    let message = 'Erreur : ' + result.error;
+    if (result.conflict) {
+      const nextStep = rebase ? ' et cliquez Continuer' : '';
+      message = 'Conflit avec le dépôt original : résolvez les fichiers en conflit (C), puis commitez' + nextStep;
+    }
+    showAlert('error', message);
+  }
+  refreshAll();
 }
 
 // Afficher le formulaire pour configurer le remote
@@ -176,6 +236,16 @@ function showRemoteForm() {
     <p style="color: var(--text-secondary); font-size: 0.85em; margin-bottom: 20px;">
       <i class="fas fa-info-circle"></i> Vous pouvez aussi utiliser le format SSH : git@github.com:username/repo.git
     </p>
+    <label for="upstreamUrlInput" style="display: block; color: var(--text-secondary); margin-bottom: 6px;">
+      <i class="fas fa-code-fork"></i> Dépôt original <span style="font-size: 0.85em;">(fork uniquement, facultatif)</span>
+    </label>
+    <input type="text" id="upstreamUrlInput" class="file-select"
+      placeholder="https://github.com/auteur-original/repo.git"
+      style="width: 100%; margin-bottom: 8px;">
+    <p style="color: var(--text-secondary); font-size: 0.85em; margin-bottom: 20px;">
+      Si ce dépôt est un fork : l'adresse du dépôt d'origine, pour en récupérer les nouveautés avec le bouton
+      <strong>Original</strong>. Laissez vide sinon.
+    </p>
     <div class="modal-buttons">
       <button class="btn btn-secondary" onclick="closeRemoteForm()">Annuler</button>
       <button class="btn btn-danger" onclick="removeRemote()" id="removeRemoteBtn" style="display: none;">
@@ -187,12 +257,16 @@ function showRemoteForm() {
     </div>
   `;
 
-  // Pré-remplir si un remote existe déjà
+  // Pré-remplir si un remote (et éventuellement un upstream) existe déjà
+  _formUpstreamInitial = '';
   apiCall('repoInfo').then(result => {
-    if (result.success && result.data.hasRemote) {
+    if (!result.success) return;
+    if (result.data.hasRemote) {
       document.getElementById('remoteUrlInput').value = result.data.url || '';
       document.getElementById('removeRemoteBtn').style.display = 'inline-flex';
     }
+    _formUpstreamInitial = result.data.upstreamUrl || '';
+    document.getElementById('upstreamUrlInput').value = _formUpstreamInitial;
   });
 
   modal.classList.add('active');
@@ -216,9 +290,13 @@ function closeRemoteForm() {
   modal.classList.remove('active');
 }
 
-// Enregistrer le remote
+// URL du dépôt original telle qu'à l'ouverture du formulaire (pour savoir s'il faut l'ajouter, la changer ou la retirer)
+let _formUpstreamInitial = '';
+
+// Enregistrer le remote (origin) et, pour un fork, le dépôt original (upstream)
 async function saveRemote() {
   const url = document.getElementById('remoteUrlInput').value.trim();
+  const upstreamUrl = document.getElementById('upstreamUrlInput').value.trim();
 
   if (!url) {
     showAlert('error', 'Veuillez entrer une URL');
@@ -226,20 +304,36 @@ async function saveRemote() {
   }
 
   const result = await apiCall('addRemote', { url });
-
-  if (result.success) {
-    if (result.warning) {
-      // Avertissement: fetch a échoué (problème SSH probable)
-      showAlert('warning', result.warning);
-      console.warn('Fetch error:', result.fetchError);
-    } else {
-      showAlert('success', result.output);
-    }
-    closeRemoteForm();
-    loadRepoInfo();
-    loadBranches(); // Recharger les branches distantes
-  } else {
+  if (!result.success) {
     showAlert('error', 'Erreur: ' + result.error);
+    return;
+  }
+  reportRemoteResult(result);
+
+  if (upstreamUrl !== _formUpstreamInitial) {
+    const upstreamResult = upstreamUrl
+      ? await apiCall('setUpstream', { url: upstreamUrl })
+      : await apiCall('removeUpstream');
+    if (upstreamResult.success) {
+      reportRemoteResult(upstreamResult);
+    } else {
+      showAlert('error', 'Dépôt original : ' + upstreamResult.error);
+      return; // formulaire laissé ouvert pour corriger l'URL
+    }
+  }
+
+  closeRemoteForm();
+  loadRepoInfo();
+  loadBranches(); // Recharger les branches distantes
+}
+
+// Message de succès, ou avertissement si le dépôt n'a pas pu être joint (fetch en échec)
+function reportRemoteResult(result) {
+  if (result.warning) {
+    showAlert('warning', result.warning);
+    console.warn('Fetch error:', result.fetchError);
+  } else {
+    showAlert('success', result.output);
   }
 }
 
@@ -403,6 +497,7 @@ async function loadStatus() {
       currentAhead = data.ahead || 0;
       currentBranchPublished = data.isDetached ? null : !!data.hasUpstream;
       currentBranchName      = data.isDetached ? '' : (data.branch || '');
+      currentUpstreamBehind  = data.upstreamBehind ?? null;
       updatePushButtons();
       // Sans branche suivie, ahead/behind n'ont pas de sens : "—" plutôt qu'un 0 trompeur
       const unpublished = currentBranchPublished === false;
@@ -454,6 +549,11 @@ async function loadStatus() {
             <span class="status-label"><span class="behind">↓</span> En retard</span>
             <span class="status-value">${trackingValue(data.behind)}</span>
           </div>
+          ${currentUpstreamBehind === null ? '' : `
+          <div class="status-row" title="Commits du dépôt original absents de votre branche, d'après le dernier Fetch">
+            <span class="status-label"><span class="behind">↓</span> Retard sur l'original</span>
+            <span class="status-value">${currentUpstreamBehind}</span>
+          </div>`}
           <div class="status-row">
             <span class="status-label"><i class="fas fa-archive" style="color: var(--info-color);"></i> Stash</span>
             <span class="status-value">${data.stashCount || 0}</span>
@@ -1249,13 +1349,18 @@ async function doPull() {
 // Fetch
 async function doFetch() {
   terminalClear();
-  terminalLog('$ git fetch origin', 'info');
+  terminalLog('$ git fetch origin --prune' + (currentUpstreamUrl ? ' && git fetch upstream --prune' : ''), 'info');
 
   const result = await apiCall('fetch');
 
   if (result.success) {
     terminalLog(result.output, 'success');
-    showAlert('success', 'Fetch effectué avec succès');
+    if (result.warning) {
+      terminalLog(result.fetchError || '', 'error');
+      showAlert('warning', result.warning);
+    } else {
+      showAlert('success', 'Fetch effectué avec succès');
+    }
     refreshAll();
   } else {
     terminalLog(result.error, 'error');
@@ -1606,10 +1711,11 @@ async function loadBranches() {
       html += '<div class="branch-list">' + sortedLocal.map(branch => renderLocalBranch(branch, current)).join('') + '</div>';
     }
 
-    // Branches distantes non trackées
-    if (remote.length > 0) {
+    // Branches distantes sans copie locale (filtrées côté serveur)
+    const remoteOnly = result.data.remoteOnly ?? remote;
+    if (remoteOnly.length > 0) {
       html += '<div class="branch-section-title"><i class="fas fa-cloud"></i> Branches distantes</div>';
-      html += '<div class="branch-list">' + remote.map(renderRemoteBranch).join('') + '</div>';
+      html += '<div class="branch-list">' + remoteOnly.map(b => renderRemoteBranch(b, result.data.defaultRemote)).join('') + '</div>';
     }
 
     if (filteredLocal.length === 0 && remote.length === 0) {
@@ -1709,22 +1815,34 @@ function renderLocalBranch(branch, current) {
     </div>`;
 }
 
-// Une ligne "branche distante" (origin/xxx non suivie localement)
-function renderRemoteBranch(branch) {
-  const branchName = branch.replace(/^origin\//, '');
+// Une ligne "branche distante" sans copie locale : origin/xxx (votre dépôt) ou upstream/xxx (dépôt original d'un fork)
+function renderRemoteBranch(branch, defaultRemote) {
+  const isUpstream = branch.startsWith('upstream/');
+  const branchName = branch.replace(/^(origin|upstream)\//, '');
+  const shown      = escapeHtml(branchName);
+
+  const switchTitle = isUpstream
+    ? `Récupérer en local depuis le dépôt original (à publier ensuite sur votre fork) — $ git checkout -b ${shown} --no-track ${escapeHtml(branch)}`
+    : `Récupérer et basculer — $ git checkout -b ${shown} --track ${escapeHtml(branch)}`;
+
+  // Suppression sur GitHub : seulement sur votre dépôt, jamais sa branche par défaut
+  const deleteBtn = (!isUpstream && branch !== defaultRemote)
+    ? `<button class="delete-btn" onclick="deleteRemoteBranchDirect(${jsArg(branchName)})" title="Supprimer sur origin — $ git push origin --delete ${shown}">
+         <i class="fas fa-times"></i>
+       </button>`
+    : '';
+
   return `
     <div class="branch-item">
       <div class="branch-info">
         <span class="branch-name">${escapeHtml(branch)}</span>
-        <span class="branch-badge remote-only">distante</span>
+        <span class="branch-badge ${isUpstream ? 'upstream-only' : 'remote-only'}">${isUpstream ? 'original' : 'distante'}</span>
       </div>
       <div class="branch-actions">
-        <button class="switch-btn" onclick="switchBranch(${jsArg(branch)})" title="Récupérer et basculer — $ git checkout -b ${escapeHtml(branchName)} --track ${escapeHtml(branch)}">
+        <button class="switch-btn" onclick="switchBranch(${jsArg(branch)})" title="${switchTitle}">
           <i class="fas fa-download"></i>
         </button>
-        <button class="delete-btn" onclick="deleteRemoteBranchDirect(${jsArg(branchName)})" title="Supprimer sur origin — $ git push origin --delete ${escapeHtml(branchName)}">
-          <i class="fas fa-times"></i>
-        </button>
+        ${deleteBtn}
       </div>
     </div>`;
 }

@@ -2,6 +2,23 @@
 .header h1 i { color: var(--danger-color); }
 .card h2 i   { color: var(--danger-color); }
 
+/* Dépôt ciblé par la réinitialisation, en tête de page */
+.target-repo {
+  margin: 0 0 15px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--bg-color);
+  border-left: 4px solid var(--accent-color);
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.target-repo i { color: var(--accent-color); margin-right: 6px; }
+.target-repo code { color: var(--text-secondary); }
+
+.target-repo.target-repo-error { border-left-color: var(--danger-color); }
+.target-repo.target-repo-error i { color: var(--danger-color); }
+
 .warning-box {
   background: color-mix(in srgb, var(--danger-color) 10%, transparent);
   border: 2px solid var(--danger-color);
@@ -131,15 +148,15 @@
 }
 
 .btn {
-  padding: 12px 24px;
-  border: none;
+  padding: 5px 12px;
+  border: 1px solid transparent;
   border-radius: 8px;
-  font-size: 1em;
+  font-size: 0.85em;
   font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 5px;
   transition: filter 0.3s ease, border-color 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
 }
 
@@ -150,18 +167,18 @@
 
 .btn-danger:hover:not(:disabled) {
   filter: brightness(0.9);
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
 .btn-secondary {
   background: var(--bg-color);
   color: var(--text-primary);
-  border: 2px solid var(--border-color);
+  border: 1px solid var(--border-color);
 }
 
 .btn-secondary:hover:not(:disabled) {
   border-color: var(--accent-color);
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
 .btn:disabled {

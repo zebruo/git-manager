@@ -3,7 +3,7 @@
 /** @var array  $input */
 /** @var string $repoPath */
 /** @var string $safeRepoPath */
-// Statut du dépôt, infos remote : status, repoInfo, addRemote, removeRemote
+// Statut du dépôt, infos remote : status, repoInfo, addRemote, removeRemote, setUpstream, removeUpstream
 
 switch ($action) {
 
@@ -75,6 +75,16 @@ switch ($action) {
             ? count(array_filter(explode("\n", $stashCountResult['output'])))
             : 0;
 
+        // Fork : commits de l'original (upstream/<branche>) absents de la branche courante.
+        // Calcul local, d'après l'état récupéré au dernier Fetch ; null si pas de fork ou branche absente de l'original.
+        $upstreamBehind = null;
+        if (!$isDetached && $branch !== '' && getRemoteUrl('upstream') !== '') {
+            $upstreamRef = escapeArg('refs/remotes/upstream/' . $branch);
+            if (execGit("git rev-parse --verify --quiet {$upstreamRef}")['code'] === 0) {
+                $upstreamBehind = (int) trim(execGit("git rev-list --count HEAD..{$upstreamRef}")['output']);
+            }
+        }
+
         echo json_encode([
             'success' => true,
             'data' => [
@@ -91,6 +101,7 @@ switch ($action) {
                 'ahead'         => $ahead,
                 'behind'        => $behind,
                 'hasUpstream'   => $hasUpstream,
+                'upstreamBehind' => $upstreamBehind,
                 'allFiles'      => array_values($allFiles),
                 'stashCount'    => $stashCount
             ]
@@ -98,8 +109,9 @@ switch ($action) {
         break;
 
     case 'repoInfo':
-        $remoteUrl = trim(execGit('git config --get remote.origin.url')['output']);
-        $remoteUrl = preg_replace('/^(https?:\/\/)[^@]+@/', '$1', $remoteUrl);
+        // Identifiants éventuels (https://token@...) masqués avant envoi au navigateur
+        $remoteUrl   = preg_replace('/^(https?:\/\/)[^@]+@/', '$1', getRemoteUrl('origin'));
+        $upstreamUrl = preg_replace('/^(https?:\/\/)[^@]+@/', '$1', getRemoteUrl('upstream'));
 
         // "propriétaire/dépôt" : après github.com (HTTPS ou SSH), sinon les deux derniers segments de l'URL
         $repoName = '';
@@ -115,24 +127,28 @@ switch ($action) {
                 'name'         => $repoName,
                 'path'         => $repoPath,
                 'hasRemote'    => !empty($remoteUrl),
+                'upstreamUrl'  => $upstreamUrl,   // dépôt original d'un fork (remote "upstream"), vide sinon
                 'configExists' => file_exists(dirname(__DIR__) . '/git-config.php'),
             ]
         ]);
         break;
 
     case 'addRemote':
-        $url = $input['url'] ?? '';
+        $url = trim($input['url'] ?? '');
 
         if (empty($url)) {
             echo json_encode(['success' => false, 'error' => 'URL du dépôt requise']); break;
         }
+        if (!isValidRemoteUrl($url)) {
+            echo json_encode(['success' => false, 'error' => 'URL invalide. Utilisez une URL HTTPS ou SSH.']); break;
+        }
 
-        $existingRemote = trim(execGit('git config --get remote.origin.url')['output']);
+        $existingRemote = getRemoteUrl('origin');
         if (!empty($existingRemote)) {
-            $result = execGit("git remote set-url origin \"{$url}\"");
+            $result = execGit('git remote set-url origin ' . escapeArg($url));
             $message = 'Remote origin mis à jour';
         } else {
-            $result = execGit("git remote add origin \"{$url}\"");
+            $result = execGit('git remote add origin ' . escapeArg($url));
             $message = 'Remote origin ajouté';
         }
 
@@ -157,6 +173,35 @@ switch ($action) {
         } else {
             echo json_encode(['success' => false, 'error' => $result['output']]);
         }
+        break;
+
+    case 'setUpstream':
+        // Dépôt original d'un fork : remote "upstream", à côté d'origin (le fork)
+        $url = trim($input['url'] ?? '');
+        if (!isValidRemoteUrl($url)) {
+            echo json_encode(['success' => false, 'error' => 'URL du dépôt original invalide. Utilisez une URL HTTPS ou SSH.']); break;
+        }
+
+        $existing = getRemoteUrl('upstream');
+        $result = execGit('git remote ' . ($existing !== '' ? 'set-url' : 'add') . ' upstream ' . escapeArg($url));
+        if ($result['code'] !== 0) {
+            echo json_encode(['success' => false, 'error' => $result['output']]); break;
+        }
+
+        $response = ['success' => true, 'output' => 'Dépôt original (upstream) ' . ($existing !== '' ? 'mis à jour' : 'ajouté') . ' : ' . $url];
+        $fetchResult = execGit('git fetch upstream --prune');
+        if ($fetchResult['code'] !== 0) {
+            $response['warning'] = 'Dépôt original enregistré, mais impossible de le joindre (vérifiez l\'URL et l\'authentification)';
+            $response['fetchError'] = $fetchResult['output'];
+        }
+        echo json_encode($response);
+        break;
+
+    case 'removeUpstream':
+        $result = execGit('git remote remove upstream');
+        echo json_encode($result['code'] === 0
+            ? ['success' => true, 'output' => 'Dépôt original (upstream) retiré']
+            : ['success' => false, 'error' => $result['output']]);
         break;
 
     default:

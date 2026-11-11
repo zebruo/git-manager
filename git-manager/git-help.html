@@ -71,9 +71,9 @@
       <dt><i class="fas fa-download"></i> Pull</dt>
       <dd>Récupère les dernières modifications depuis GitHub et les fusionne avec votre code local.</dd>
       <dt><i class="fas fa-sync"></i> Fetch</dt>
-      <dd>Vérifie s'il y a des nouveautés sur GitHub sans modifier vos fichiers locaux.</dd>
-      <dd>Vous créez une nouvelle branche sur Github, ensuite Fetch et bouton <i class="fas fa-sync"></i> elle
-        apparaîtra en branche distante.</dd>
+      <dd>Vérifie s'il y a des nouveautés sur GitHub sans modifier vos fichiers locaux. Pour un fork dont le dépôt original
+        est configuré, Fetch récupère aussi l'état de l'original (voir Fork).</dd>
+      <dd>Une branche créée directement sur GitHub apparaît dans « Branches distantes » après un Fetch.</dd>
     </dl>
     <div class="help-info-box">
       <div class="mb-8"><strong><i class="fas fa-code-branch"></i> Option --rebase (Pull)</strong></div>
@@ -391,9 +391,13 @@
     <dl class="mt-15">
       <dt><i class="fas fa-download"></i> Récupérer une branche distante</dt>
       <dd>Cliquer <i class="fas fa-download"></i> sur une branche distante crée automatiquement une branche locale qui suit la branche distante et bascule dessus.<br>
-      <strong>Cas d'usage :</strong> un collaborateur a poussé une nouvelle branche sur GitHub. Après un <strong>Fetch</strong>, elle apparaît dans "Branches distantes". Ce bouton la rapatrie en local en une seule action — sans avoir à créer la branche manuellement.</dd>
-      <dt><i class="fas fa-trash"></i> Supprimer une branche distante</dt>
-      <dd>Le bouton poubelle à côté des branches distantes permet de les supprimer directement sur GitHub.</dd>
+      <strong>Cas d'usage :</strong> un collaborateur a poussé une nouvelle branche sur GitHub. Après un <strong>Fetch</strong>, elle apparaît dans "Branches distantes". Ce bouton la rapatrie en local en une seule action — sans avoir à créer la branche manuellement.<br>
+      La liste « Branches distantes » ne montre que les branches qui n'ont pas encore de copie locale : <code>origin/main</code>, par
+      exemple, n'y figure pas puisque votre branche <code>main</code> la suit déjà. Pour un fork, les branches du dépôt original portent le
+      badge <strong>original</strong> : les récupérer crée une branche locale non suivie, à envoyer ensuite sur votre fork avec <strong>Publier</strong>.</dd>
+      <dt><i class="fas fa-times"></i> Supprimer une branche distante</dt>
+      <dd>Le bouton <i class="fas fa-times"></i> à côté d'une branche distante la supprime directement sur GitHub. Il n'est pas proposé sur la
+        branche par défaut du dépôt (<code>main</code>), que GitHub refuse de supprimer, ni sur les branches du dépôt original d'un fork.</dd>
       <dt><i class="fas fa-exclamation-triangle text-warning"></i> Forcer le basculement</dt>
       <dd>Si des fichiers non suivis bloquent le changement de branche, une option "Forcer" est proposée.
         <strong>Attention :</strong> les fichiers en conflit seront écrasés.</dd>
@@ -498,9 +502,13 @@
       <dt class="mt-10">Ouvrir une Pull Request</dt>
       <dd>Depuis votre fork sur GitHub.com : onglet <strong>Pull requests</strong> → <strong>New pull request</strong> → GitHub compare automatiquement votre fork avec l'original → <strong>Create pull request</strong>, ajoutez un titre et une description → <strong>Submit</strong>. Le mainteneur reçoit une notification et peut commenter, demander des modifications ou merger.</dd>
       <dt class="mt-10">Récupérer les mises à jour de l'original</dt>
-      <dd>Ajouter un remote <code>upstream</code> pointant vers le dépôt original, puis puller depuis ce remote :<br>
-        <code>git remote add upstream https://github.com/original/repo.git</code><br>
-        <code>git pull upstream main</code>
+      <dd>Dans git-manager : bouton de configuration du remote → champ <strong>Dépôt original</strong> → coller l'adresse du dépôt d'origine.
+        Le bouton <strong><i class="fas fa-code-fork"></i> Original</strong> apparaît à côté de Pull : il récupère les nouveautés
+        de l'original dans votre branche (fusion, ou rebase si <code>--rebase</code> est coché). Cliquez ensuite <strong>Push</strong> pour
+        mettre à jour votre fork sur GitHub.<br>
+        Pour savoir si l'original a des nouveautés : cliquez <strong>Fetch</strong> — le bouton affiche alors le nombre de commits à
+        récupérer (ex. <strong>↓3</strong>), repris dans la ligne <strong>Retard sur l'original</strong> du statut.<br>
+        Alternative sans configuration : bouton <strong>Sync fork</strong> sur la page GitHub de votre fork, puis <strong>Pull</strong>.
       </dd>
     </dl>
     <div class="help-info-box mono center mt-10">
@@ -547,7 +555,7 @@
   <div class="help-category">
     <h4><i class="fas fa-exclamation-triangle"></i> Actions dangereuses</h4>
     <dl>
-      <dt><i class="fas fa-trash"></i> Annuler toutes les modifications</dt>
+      <dt><i class="fas fa-trash"></i> Annuler tout</dt>
       <dd>Supprime TOUTES les modifications non committées. <strong>Irréversible !</strong></dd>
       <dt><i class="fas fa-trash-alt"></i> Supprimer (dépôt + disque)</dt>
       <dd>Supprime le fichier du dépôt ET de votre disque. <strong>Définitif !</strong></dd>
@@ -1041,14 +1049,14 @@
     <p class="mt-5">Remettre tous les fichiers modifiés à l'état du dernier commit en une seule opération.</p>
     <ol class="mt-8">
       <li>Faire des modifications sur plusieurs fichiers sans commiter</li>
-      <li>Dans la section <strong>Fichiers modifiés — Diff &amp; Commit</strong>, cliquer <strong><i class="fas fa-trash"></i> Annuler toutes les modifications</strong> (en bas de la section)</li>
+      <li>Dans la section <strong>Fichiers modifiés — Diff &amp; Commit</strong>, cliquer <strong><i class="fas fa-trash"></i> Annuler tout</strong> (à droite des boutons de commit)</li>
       <li>Confirmer — tous les fichiers <span class="status-badge modified">M</span> reviennent à leur version du dernier commit</li>
     </ol>
     <div class="help-warning-box mt-8">
       <strong>Irréversible</strong> — cette opération équivaut à <code>git checkout -- .</code> : toutes les modifications non commitées sont perdues définitivement. Les fichiers <span class="status-badge untracked">U</span> (non suivis) ne sont pas touchés.
     </div>
     <div class="help-info-box mt-8">
-      <strong>Différence avec Récupérer un fichier :</strong> les deux sections sont séparées — "Récupérer un fichier" cible un seul fichier et peut aller chercher une version ancienne. "Annuler toutes les modifications" est dans la section <strong>Fichiers modifiés</strong> et remet tout à HEAD en une seule fois — utile pour repartir d'un état propre quand les modifications en cours ne valent pas la peine d'être gardées.
+      <strong>Différence avec Récupérer un fichier :</strong> les deux sections sont séparées — "Récupérer un fichier" cible un seul fichier et peut aller chercher une version ancienne. "Annuler tout" est dans la section <strong>Fichiers modifiés</strong> et remet tout à HEAD en une seule fois — utile pour repartir d'un état propre quand les modifications en cours ne valent pas la peine d'être gardées.
     </div>
   </div>
 

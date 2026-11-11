@@ -78,7 +78,7 @@ input[type="checkbox"]:checked::after {
   animation: toast-in 0.25s ease;
   cursor: pointer;
   pointer-events: all;
-  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .alert.toast-out { animation: toast-out 0.25s ease forwards; }
@@ -126,6 +126,7 @@ input[type="checkbox"]:checked::after {
 
 /* Variables CSS communes à toutes les pages - Thème clair */
 :root {
+  --bg-page: #dde3ea;        /* fond de la page principale, distinct des cartes */
   --bg-color: #fdfdfd;
   --bg-primary: #f0f2f5;
   --bg-secondary: #becddd;
@@ -142,6 +143,7 @@ input[type="checkbox"]:checked::after {
 
 /* Thème sombre */
 .dark-mode {
+  --bg-page: #0f172a;
   --bg-color: #1e293b;
   --bg-primary: #1e293b;
   --bg-secondary: #293d58;

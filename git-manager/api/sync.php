@@ -48,14 +48,58 @@ switch ($action) {
         }
         break;
 
+    case 'syncUpstream':
+        // Fork : récupérer les nouveautés du dépôt original (remote "upstream") dans la branche courante
+        $currentBranch = getCurrentBranch();
+        if ($currentBranch === '' || $currentBranch === 'HEAD') {
+            echo json_encode(['success' => false, 'error' => 'HEAD détaché — placez-vous sur une branche avant de mettre à jour']); break;
+        }
+        if (getRemoteUrl('upstream') === '') {
+            echo json_encode(['success' => false, 'error' => 'Aucun dépôt original (upstream) configuré']); break;
+        }
+
+        $fetchResult = execGit('git fetch upstream --prune');
+        if ($fetchResult['code'] !== 0) {
+            echo json_encode(['success' => false, 'error' => "Impossible de joindre le dépôt original :\n" . $fetchResult['output']]); break;
+        }
+
+        $target = 'upstream/' . $currentBranch;
+        if (execGit('git rev-parse --verify --quiet ' . escapeArg('refs/remotes/' . $target))['code'] !== 0) {
+            echo json_encode(['success' => false, 'error' => "La branche '{$currentBranch}' n'existe pas sur le dépôt original"]); break;
+        }
+
+        // --no-edit / GIT_EDITOR : jamais d'éditeur interactif pour le message de fusion
+        putenv('GIT_EDITOR=true');
+        $rebase = !empty($input['rebase']);
+        $result = execGit(($rebase ? 'git rebase ' : 'git merge --no-edit ') . escapeArg($target));
+
+        $output = trim($fetchResult['output'] . "\n" . $result['output']);
+        if ($result['code'] !== 0) {
+            // Conflit : l'interface affiche les fichiers en conflit (merge) ou le bandeau Continuer/Abandonner (rebase)
+            echo json_encode(['success' => false, 'error' => $output, 'conflict' => true]); break;
+        }
+        echo json_encode(['success' => true, 'output' => $output ?: "Branche '{$currentBranch}' à jour avec le dépôt original"]);
+        break;
+
     case 'fetch':
         $result = execGit('git fetch origin --prune');
 
         if ($result['code'] !== 0) {
-            echo json_encode(['success' => false, 'error' => $result['output']]);
-        } else {
-            echo json_encode(['success' => true, 'output' => $result['output'] ?: 'Fetch effectué']);
+            echo json_encode(['success' => false, 'error' => $result['output']]); break;
         }
+        $response = ['success' => true, 'output' => $result['output'] ?: 'Fetch effectué'];
+
+        // Fork : récupérer aussi l'état du dépôt original, pour calculer le retard (statut et bouton « Depuis l'original »)
+        if (getRemoteUrl('upstream') !== '') {
+            $upstreamResult = execGit('git fetch upstream --prune');
+            if ($upstreamResult['code'] !== 0) {
+                $response['warning'] = "Fetch effectué, mais le dépôt original (upstream) n'a pas pu être joint";
+                $response['fetchError'] = $upstreamResult['output'];
+            } elseif ($upstreamResult['output'] !== '') {
+                $response['output'] .= "\n" . $upstreamResult['output'];
+            }
+        }
+        echo json_encode($response);
         break;
 
     case 'rebaseContinue':

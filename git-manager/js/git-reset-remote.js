@@ -1,9 +1,19 @@
 const API_URL = 'git-api.php';
 
+// Dépôt ciblé, transmis par git-manager dans l'adresse (?repo=) — indispensable : sans lui, le serveur refuse d'agir
+const activeRepo = new URLSearchParams(window.location.search).get('repo') || '';
+let targetRepoName = '';
+
 let remoteBranches = [];
 
 document.addEventListener('DOMContentLoaded', function() {
   initDarkMode();
+
+  // Lien "Git Manager" de l'astuce : revenir sur le même dépôt
+  const backLink = document.getElementById('backToManagerLink');
+  if (backLink && activeRepo) backLink.href = 'git-manager.html?repo=' + encodeURIComponent(activeRepo);
+
+  showTargetRepo();
 
   // Activer le bouton seulement si toutes les cases sont cochées
   const checkboxes = document.querySelectorAll('.checkbox-group input[type="checkbox"]');
@@ -58,8 +68,9 @@ async function loadRemoteBranches() {
     html += '</div>';
     list.innerHTML = html;
   } else {
-    // Pas de branches ou erreur
-    list.innerHTML = '<span style="color: var(--text-secondary);">Aucune branche distante trouvée</span>';
+    // Pas de branches, ou erreur (ex. aucun dépôt sélectionné) affichée telle quelle
+    const message = result.success ? 'Aucune branche distante trouvée' : result.error;
+    list.innerHTML = `<span style="color: var(--text-secondary);">${escapeHtml(message)}</span>`;
     box.style.display = 'block';
   }
 }
@@ -116,12 +127,43 @@ function terminalLog(text, type = '') {
   terminal.scrollTop = terminal.scrollHeight;
 }
 
+// Affiche le dépôt concerné en haut de la page ; sans dépôt valide, l'opération est bloquée
+async function showTargetRepo() {
+  const box = document.getElementById('targetRepo');
+  if (!activeRepo) {
+    box.innerHTML = '<i class="fas fa-ban"></i> Aucun dépôt sélectionné — ouvrez cette page depuis git-manager, sur le dépôt concerné.';
+    box.classList.add('target-repo-error');
+    blockReset();
+    return;
+  }
+
+  const result = await apiCall('repoInfo');
+  if (!result.success) {
+    box.innerHTML = `<i class="fas fa-ban"></i> ${escapeHtml(result.error)}`;
+    box.classList.add('target-repo-error');
+    blockReset();
+    return;
+  }
+
+  const d = result.data;
+  targetRepoName = d.name || activeRepo;
+  const remote = d.hasRemote ? `<code>${escapeHtml(d.url)}</code>` : '<em>aucun remote configuré</em>';
+  box.innerHTML = `<i class="fas fa-crosshairs"></i> Dépôt concerné : <strong>${escapeHtml(targetRepoName)}</strong> — origin : ${remote}`;
+  if (!d.hasRemote) blockReset();
+}
+
+// Empêche définitivement l'opération (pas de dépôt valide ou pas de remote)
+function blockReset() {
+  document.getElementById('confirmAll').disabled = true;
+  document.getElementById('resetBtn').disabled = true;
+}
+
 async function apiCall(action, params = {}) {
   try {
     const response = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action, ...params })
+      body: JSON.stringify({ action, ...(activeRepo ? { repo: activeRepo } : {}), ...params })
     });
     return await response.json();
   } catch (error) {
@@ -137,6 +179,7 @@ async function resetRemote() {
   const branchesToDelete = selectedBranchesToDelete.filter(b => b !== branchName);
 
   let confirmMsg = `⚠️ DERNIÈRE CONFIRMATION ⚠️\n\n` +
+    `Dépôt : ${targetRepoName || activeRepo}\n\n` +
     `Vous êtes sur le point de :\n` +
     `• Créer une branche "${branchName}" vide (sans historique)\n`;
 

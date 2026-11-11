@@ -118,9 +118,9 @@ pre {
 .btn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 15px 30px;
-  border-radius: 8px;
+  gap: 6px;
+  padding: 12px 26px;
+  border-radius: 10px;
   text-decoration: none;
   font-weight: 600;
   transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
@@ -128,7 +128,7 @@ pre {
 }
 
 .btn-primary { background: var(--accent-color); color: white; border: none; cursor: pointer; }
-.btn-primary:hover { background: var(--accent-hover); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(69, 183, 175, 0.3); }
+.btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(69, 183, 175, 0.3); }
 
 .tree-view {
   font-family: 'Consolas', monospace;

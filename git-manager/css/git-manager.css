@@ -32,7 +32,7 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
-  background: var(--bg-color);
+  background: var(--bg-page);   /* plus sombre (thème sombre) / plus soutenu (thème clair) que les cartes */
   color: var(--text-primary);
   margin: 0;
   padding: 20px;
@@ -48,7 +48,6 @@ body {
   border-radius: 12px;
   padding: 10px 30px 10px 30px;
   margin-bottom: 10px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -124,7 +123,6 @@ body {
   background: var(--bg-primary);
   border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   flex: 1 1 calc(33.333% - 17px);
   min-width: 300px;
   box-sizing: border-box;
@@ -410,22 +408,54 @@ body {
   line-height: 1;
 }
 
+/* Boutons compacts côte à côte ; retour à la ligne seulement si la place manque vraiment */
 .btn-group {
   display: flex;
-  gap: 20px;
+  gap: 8px;
   margin-top: 15px;
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
 }
 
+/* Boutons-icônes de l'en-tête (cloner, remote, aide, thème, actualiser…) : un peu plus grands que les autres */
+.header-buttons .btn {
+  padding: 7px 12px;
+  font-size: 0.95em;
+}
+
+/* Ligne de synchronisation (Fetch, Push, Pull, Original, --rebase) : toujours sur une seule ligne */
+.btn-group.sync-row {
+  flex-wrap: nowrap;
+  gap: 6px;
+}
+
+.sync-row .pull-container {
+  gap: 4px;
+}
+
+/* Ligne de commit (Amend, Commit, Commit & Push | Annuler tout) : une seule ligne */
+.btn-group.commit-row {
+  flex-wrap: nowrap;
+  gap: 6px;
+}
+
+/* Trait vertical entre deux groupes de boutons d'une même ligne */
+.btn-separator {
+  width: 1px;
+  align-self: stretch;
+  margin: 2px 4px;
+  background: var(--border-color);
+}
+
+/* Pull + Original + --rebase : encadré, la case concerne les deux boutons */
 .pull-container {
   display: flex;
   align-items: center;
-  gap: 4px;
-  border: 1px dashed color-mix(in srgb, var(--border-color) 60%, transparent);
-  padding: 2px 4px;
-  border-radius: 4px;
+  gap: 6px;
+  border: 1px dashed color-mix(in srgb, var(--text-secondary) 70%, transparent);
+  padding: 3px 8px 3px 3px;
+  border-radius: 10px;
 }
 
 .pull-rebase-label {
@@ -436,21 +466,32 @@ body {
   cursor: pointer;
 }
 
+/* Retard sur le dépôt original (fork), affiché dans le bouton « Depuis l'original » */
+.upstream-behind {
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 10px;
+  padding: 1px 7px;
+  font-size: 0.9em;
+}
+
 .pull-rebase-label.is-disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
+/* Boutons en pilule compacte ; bordure transparente sur tous pour que .btn-secondary (bordé) ait la même hauteur */
 .btn {
-  padding: 12px 20px;
-  border: none;
+  padding: 4px 10px;
+  border: 1px solid transparent;
   border-radius: 8px;
-  font-size: 0.8em;
+  font-size: 0.78em;
   font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 5px;
   transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
 }
 
@@ -462,18 +503,18 @@ body {
 /* :not(:disabled) — un bouton désactivé ne réagit pas au survol (évite un !important sur .btn:disabled) */
 .btn-primary:not(:disabled):hover {
   background: var(--accent-hover);
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
 .btn-secondary {
   background: var(--bg-primary);
   color: var(--text-primary);
-  border: 2px solid var(--border-color);
+  border: 1px solid var(--border-color);
 }
 
 .btn-secondary:not(:disabled):hover {
   border-color: var(--accent-color);
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
 .btn-danger {
@@ -483,7 +524,7 @@ body {
 
 .btn-danger:not(:disabled):hover {
   background: color-mix(in srgb, var(--danger-color) 75%, black);
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
 .btn-success {
@@ -493,7 +534,7 @@ body {
 
 .btn-success:not(:disabled):hover {
   background: color-mix(in srgb, var(--success-color) 75%, black);
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
 .btn-warning {
@@ -503,7 +544,7 @@ body {
 
 .btn-warning:not(:disabled):hover {
   background: color-mix(in srgb, var(--warning-color) 75%, black);
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
 .btn:disabled {
@@ -678,7 +719,7 @@ body {
 .stash-item-actions button {
   padding: 4px 8px;
   font-size: 0.8em;
-  border-radius: 4px;
+  border-radius: 6px;
   border: none;
   cursor: pointer;
   transition: background-color 0.2s;
@@ -965,7 +1006,7 @@ body {
   padding: 5px 10px;
   font-size: 0.85em;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   transition: background-color 0.2s;
 }
@@ -1000,6 +1041,11 @@ body {
 
 .branch-badge.tracked {
   background: var(--info-color);
+  font-size: 0.7em;
+}
+
+.branch-badge.upstream-only {
+  background: var(--warning-color);
   font-size: 0.7em;
 }
 

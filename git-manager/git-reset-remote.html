@@ -33,6 +33,9 @@
     <div id="alertContainer"></div>
 
     <div class="card">
+      <!-- Dépôt ciblé, rempli par git-reset-remote.js -->
+      <p class="target-repo" id="targetRepo"><i class="fas fa-spinner fa-spin"></i> Dépôt concerné : chargement…</p>
+
       <div class="warning-box">
         <h3><i class="fas fa-skull-crossbones"></i> Opération IRRÉVERSIBLE</h3>
         <p>Cette action va :</p>
@@ -67,7 +70,7 @@
           <span class="step-number">3</span>
           <div class="step-content">
             <strong>Créer un commit vide</strong><br>
-            <code>git commit --allow-empty -m "Initial commit"</code>
+            <code>git commit --allow-empty -m "Initial commit (reset repository)"</code>
           </div>
         </div>
         <div class="step">
@@ -90,7 +93,8 @@
       <div class="info-box" id="remoteBranchesBox" style="display: none;">
         <h4><i class="fas fa-code-branch"></i> Branches distantes à supprimer</h4>
         <p class="text-muted text-sm mb-10">
-          <i class="fas fa-info-circle"></i> Cochez les branches à <strong>supprimer</strong>. Décochez celles à <strong>conserver</strong>.
+          <i class="fas fa-info-circle"></i> Cochez les branches à <strong>supprimer</strong>. Décochez celles à <strong>conserver</strong>.<br>
+          La branche par défaut ne pourra être supprimée qu'après avoir changé la branche par défaut sur GitHub.
         </p>
         <div id="remoteBranchesList" class="mb-15">
           <i class="fas fa-spinner fa-spin"></i> Chargement...
@@ -126,9 +130,9 @@
       </ol>
       <p class="text-muted mt-15">
         <i class="fas fa-lightbulb text-accent"></i>
-        <strong>Astuce :</strong> Vous pouvez aussi supprimer des branches distantes depuis
-        <a href="git-manager.html" class="link-accent">Git Manager</a>
-        (section Branches distantes → bouton <i class="fas fa-trash"></i>).
+        <strong>Astuce :</strong> une branche distante se supprime aussi depuis
+        <a href="git-manager.html" class="link-accent" id="backToManagerLink">Git Manager</a>
+        (bouton <i class="fas fa-times"></i>).
       </p>
     </div>
   </div>

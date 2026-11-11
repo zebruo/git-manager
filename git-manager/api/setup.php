@@ -9,11 +9,15 @@
 /** @var array       $reposRoots */
 /** @var array       $reposRootsRaw */
 /** @var bool        $hasReposRoots */
+/** @var string      $repoParam */
+/** @var bool        $repoResolved */
 // Actions pré-dépôt : checkRepo, clone, initRepo, listFolders, listRemoteBranches, resetRemote
 
 // Caractères autorisés dans un nom de dossier saisi (clone, initRepo) — une seule définition
 // pour que les deux contrôles ne divergent pas
 const FOLDER_NAME_PATTERN = '/^[a-zA-Z0-9_\-\.]+$/';
+
+const NO_REPO_SELECTED = 'Aucun dépôt sélectionné — ouvrez cette page depuis git-manager, sur le dépôt concerné';
 
 switch ($action) {
 
@@ -41,11 +45,12 @@ switch ($action) {
         if (!$targetRoot) { echo json_encode(['success' => false, 'error' => 'Emplacement invalide']); break; }
         [$rootIndex, $rootPath] = $targetRoot;
 
-        $url = $input['url'] ?? '';
+        $url = trim($input['url'] ?? '');
         $targetDir = $input['targetDir'] ?? '';
 
         if (empty($url)) { echo json_encode(['success' => false, 'error' => 'URL du dépôt requise']); break; }
-        if (!preg_match('/^(https?:\/\/|git@)/', $url)) {
+        // Même règle que pour origin / upstream : HTTPS, ssh:// ou git@…, sans caractère de shell
+        if (!isValidRemoteUrl($url)) {
             echo json_encode(['success' => false, 'error' => 'URL invalide. Utilisez une URL HTTPS ou SSH.']); break;
         }
 
@@ -156,6 +161,11 @@ switch ($action) {
         if ($alreadyExists && !is_dir($newPath)) {
             echo json_encode(['success' => false, 'error' => "'{$newName}' existe déjà mais n'est pas un dossier"]); break;
         }
+        // Dossier existant : sa cible réelle doit rester dans l'emplacement (un lien symbolique pourrait
+        // faire initialiser un dossier situé ailleurs sur le disque, ensuite invisible dans git-manager)
+        if ($alreadyExists && !isInsideRoot((string) realpath($newPath), $rootPath)) {
+            echo json_encode(['success' => false, 'error' => "'{$newName}' pointe hors de l'emplacement des dépôts"]); break;
+        }
 
         // Dossier déjà existant (projet sans .git) : on l'adopte tel quel, on ne crée rien.
         if (!$alreadyExists && !@mkdir($newPath, 0755, true)) {
@@ -180,6 +190,10 @@ switch ($action) {
         break;
 
     case 'listRemoteBranches':
+        // Sans dépôt explicite, git-api.php se rabat sur le dossier de git-manager : refuser plutôt que d'agir dessus
+        if ($hasReposRoots && !$repoResolved) {
+            echo json_encode(['success' => false, 'error' => NO_REPO_SELECTED]); break;
+        }
         if (!$isGitRepoCheck) {
             echo json_encode(['success' => false, 'error' => 'Ce dossier n\'est pas un dépôt Git']); break;
         }
@@ -207,6 +221,10 @@ switch ($action) {
         break;
 
     case 'resetRemote':
+        // Opération destructive (push forcé) : jamais sur le dépôt par défaut faute de paramètre
+        if ($hasReposRoots && !$repoResolved) {
+            echo json_encode(['success' => false, 'error' => NO_REPO_SELECTED]); break;
+        }
         if (!$isGitRepoCheck) {
             echo json_encode(['success' => false, 'error' => 'Ce dossier n\'est pas un dépôt Git']); break;
         }

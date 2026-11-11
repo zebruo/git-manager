@@ -14,7 +14,7 @@
 <body>
   <div class="git-container">
     <header class="git-header">
-      <h1><i class="fab fa-git-alt"></i> Git Manager <span class="version-badge">v1.6.1</span></h1>
+      <h1><i class="fab fa-git-alt"></i> Git Manager <span class="version-badge">v1.7.0</span></h1>
       <p>Interface web intuitive pour la gestion de vos dépôts Git locaux.</p>
     </header>
 
@@ -37,8 +37,18 @@
           <li>Ouvrez <code>http://localhost/git-manager/</code> dans le navigateur.</li>
         </ol>
 
-        <p><i class="fas fa-exclamation-triangle text-warning"></i> N'ouvrez pas les fichiers via l'Explorateur Windows (<code>file://</code>) — PHP doit être exécuté par Apache.</p>
+        <p><i class="fas fa-exclamation-triangle text-warning"></i> N'ouvrez pas les fichiers via l'Explorateur Windows (<code>file://</code>) — PHP doit être exécuté par un serveur web (Apache ou le serveur intégré de PHP).</p>
         <p class="text-note"><i class="fas fa-info-circle"></i> Si git-manager est placé en dehors du dossier public du serveur, créez un virtual host Apache pointant vers ce dossier.</p>
+
+        <h3>Sans Apache — serveur intégré de PHP</h3>
+        <p>PHP 8.x seul suffit (par exemple dans <code>C:\php</code>), pas besoin de XAMPP ou WAMP. Dans un terminal :</p>
+        <pre><code>php -S 127.0.0.1:8080 -t "C:\chemin\vers\git-manager"</code></pre>
+        <p>puis ouvrir <code>http://127.0.0.1:8080/</code>. Le terminal doit rester ouvert tant que vous utilisez git-manager.</p>
+        <ul>
+          <li>Utilisez <code>127.0.0.1</code> (ou <code>localhost</code>) et non <code>0.0.0.0</code> : git-manager reste ainsi inaccessible depuis le réseau.</li>
+          <li>Lancé sous votre compte Windows, le serveur utilise votre configuration Git et votre agent SSH : les clés protégées par une passphrase fonctionnent sans renseigner <code>sshKeyPath</code>.</li>
+          <li>Avec cette méthode, l'adresse est la racine (<code>http://127.0.0.1:8080/</code>), et non <code>/git-manager/</code>.</li>
+        </ul>
 
         <pre><code><span class="code-tag">&lt;?php</span>
 <span class="code-keyword">return</span> [

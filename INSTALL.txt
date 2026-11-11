@@ -3,7 +3,8 @@ Git Manager — Installation rapide
 
 PRÉREQUIS
 ---------
-- PHP 8.x avec Apache (XAMPP, WAMP, Laragon, etc.)
+- PHP 8.x, avec Apache (XAMPP, WAMP, Laragon…) ou le serveur intégré de PHP
+  (voir « SANS APACHE » plus bas)
 - Git installé sur le serveur (vérifier : git --version)
 - Sur Windows : Git for Windows recommandé (https://git-scm.com/download/win)
 
@@ -31,10 +32,30 @@ INSTALLATION
 3. Ouvrez http://localhost/git-manager/ dans le navigateur
 
    IMPORTANT : n'ouvrez pas les fichiers directement via l'Explorateur Windows
-   (file://) — PHP doit être exécuté par Apache.
+   (file://) — PHP doit être exécuté par un serveur web (Apache ou le serveur
+   intégré de PHP).
 
    NOTE : si git-manager est placé en dehors du dossier public du serveur,
    créez un virtual host Apache pointant vers ce dossier.
+
+
+SANS APACHE — SERVEUR INTÉGRÉ DE PHP
+------------------------------------
+PHP 8.x seul suffit (par exemple dans C:\php), pas besoin de XAMPP ou WAMP.
+Dans un terminal :
+
+     php -S 127.0.0.1:8080 -t "C:\chemin\vers\git-manager"
+
+puis ouvrez http://127.0.0.1:8080/ . Le terminal doit rester ouvert tant que
+vous utilisez git-manager.
+
+- Utilisez 127.0.0.1 (ou localhost) et non 0.0.0.0 : git-manager reste ainsi
+  inaccessible depuis le réseau.
+- Lancé sous votre compte Windows, le serveur utilise votre configuration Git
+  et votre agent SSH : les clés protégées par une passphrase fonctionnent sans
+  renseigner sshKeyPath.
+- Avec cette méthode, l'adresse est la racine (http://127.0.0.1:8080/), et non
+  /git-manager/.
 
 
 STRUCTURE

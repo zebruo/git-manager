@@ -137,6 +137,7 @@ Interface web pour gérer un dépôt Git sans ligne de commande.
 - **Push** : Envoyer les commits vers GitHub (détecte automatiquement le premier push)
 - **Pull** : Récupérer et fusionner les modifications depuis GitHub (option `--rebase`)
 - **Fetch** : Vérifier les nouveautés sans modifier les fichiers locaux
+- **Fork** : renseigner le dépôt original dans la configuration du remote fait apparaître le bouton « Original » (`git fetch upstream` puis merge ou rebase)
 
 ### Récupération de fichiers
 
@@ -243,6 +244,20 @@ return [
 
 > Si git-manager est placé en dehors du dossier public du serveur, créez un virtual host Apache pointant vers ce dossier.
 
+### Sans Apache — serveur intégré de PHP
+
+PHP 8.x seul suffit (par exemple dans `C:\php`), pas besoin de XAMPP ou WAMP. Dans un terminal :
+
+```
+php -S 127.0.0.1:8080 -t "C:\chemin\vers\git-manager"
+```
+
+puis ouvrir `http://127.0.0.1:8080/`. Le terminal doit rester ouvert tant que vous utilisez git-manager.
+
+- Utilisez `127.0.0.1` (ou `localhost`) et non `0.0.0.0` : git-manager reste ainsi inaccessible depuis le réseau.
+- Lancé sous votre compte Windows, le serveur utilise votre configuration Git et votre agent SSH : les clés protégées par une passphrase fonctionnent sans renseigner `sshKeyPath`.
+- Avec cette méthode, l'adresse est la racine (`http://127.0.0.1:8080/`), et non `/git-manager/`.
+
 **Mise à jour** : Remplacez le dossier `git-manager/` par la nouvelle version. Votre `git-config.php` n'est pas inclus dans les releases — recopiez-le manuellement.
 
 ```
@@ -288,4 +303,4 @@ Git Manager est une interface web pour gérer un dépôt Git sans ligne de comma
 
 **Il est recommandé de faire un premier essai sur un dépôt test avant de l'utiliser sur un projet existant.**
 
-*Version : v1.6.1 — Novembre 2026*
+*Version : v1.7.0 — Novembre 2026*

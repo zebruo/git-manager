@@ -44,19 +44,34 @@ switch ($action) {
 
         $remoteResult  = execGit('git branch -r --format="%(refname:short)"');
         $remoteBranches = array_map('trim', filterGitWarnings(explode("\n", $remoteResult['output'])));
-        $remoteBranches = array_filter($remoteBranches, function($b) {
+        $remoteBranches = array_values(array_filter($remoteBranches, function($b) {
             if (empty($b)) return false;
             if (strpos($b, '/HEAD') !== false) return false;
             if (strpos($b, '/') === false) return false; // exclut les noms de remote purs (ex. "origin")
             return true;
-        });
+        }));
+
+        // Section "Branches distantes" : seulement celles sans copie locale du même nom
+        // (origin/main est déjà visible comme branche locale "suivie" ; upstream/main se met à jour via le bouton Original)
+        $localNames = array_column($localBranches, 'name');
+        $remoteOnly = array_values(array_filter($remoteBranches, function($b) use ($localNames) {
+            return !in_array(substr($b, strpos($b, '/') + 1), $localNames, true);
+        }));
+
+        // Branche par défaut du dépôt GitHub (jamais supprimable) : origin/HEAD si connu, sinon main/master
+        $defaultRemote = trim(execGit('git symbolic-ref --quiet --short refs/remotes/origin/HEAD')['output']);
+        if (!str_starts_with($defaultRemote, 'origin/')) {
+            $defaultRemote = in_array('origin/main', $remoteBranches, true) ? 'origin/main' : 'origin/master';
+        }
 
         echo json_encode([
             'success' => true,
             'data' => [
                 'current'     => $currentBranch,
                 'local'       => $localBranches,
-                'remote'      => array_values($remoteBranches),
+                'remote'      => $remoteBranches,   // toutes (liste « Créer depuis… »)
+                'remoteOnly'  => $remoteOnly,       // sans copie locale (section « Branches distantes »)
+                'defaultRemote' => $defaultRemote,
                 'isDetached'  => $isDetached,
                 'detachedAt'  => $detachedAt,
                 'isRebasing'  => $isRebasing
@@ -107,8 +122,8 @@ switch ($action) {
             }
         }
 
-        if (preg_match('/^origin\/(.+)$/', $branch, $matches)) {
-            $localBranchName    = $matches[1];
+        if (preg_match('/^(origin|upstream)\/(.+)$/', $branch, $matches)) {
+            $localBranchName    = $matches[2];
             $localBranchEscaped = escapeArg($localBranchName);
             $remoteBranchEscaped = escapeArg($branch);
             $checkResult = execGit("git branch --list {$localBranchEscaped}");
@@ -120,6 +135,10 @@ switch ($action) {
                     $result = execGit("git checkout -f {$localBranchEscaped}");
                 }
                 $message = "Basculé sur la branche '{$localBranchName}'";
+            } elseif ($matches[1] === 'upstream') {
+                // Branche du dépôt original : copie locale non suivie, à publier ensuite sur le fork (pas de droits sur l'original)
+                $result = execGit("git checkout {$forceFlag}-b {$localBranchEscaped} --no-track {$remoteBranchEscaped}");
+                $message = "Branche locale '{$localBranchName}' créée depuis le dépôt original — utilisez Publier pour l'envoyer sur votre fork";
             } else {
                 $result = execGit("git checkout {$forceFlag}-b {$localBranchEscaped} --track {$remoteBranchEscaped}");
                 $message = "Branche locale '{$localBranchName}' créée depuis '{$branch}'";

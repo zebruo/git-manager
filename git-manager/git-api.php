@@ -107,6 +107,9 @@ function getTargetRoot(array $input, array $reposRoots): ?array {
 $defaultRepoPath = dirname(__DIR__);
 $repoParam = $input['repo'] ?? '';
 $repoPath  = $defaultRepoPath;
+// true seulement si ?repo= désigne un dossier valide ; sinon $repoPath retombe sur le dossier de git-manager,
+// ce que les opérations destructives (resetRemote) doivent refuser
+$repoResolved = false;
 
 if (!empty($repoParam) && $hasReposRoots) {
     [$repoRootIndex, $repoName] = parseRepoId($repoParam);
@@ -115,6 +118,7 @@ if (!empty($repoParam) && $hasReposRoots) {
     // Valider uniquement que le dossier est dans sa racine — le check .git est délégué à chaque action
     if ($candidate && isInsideRoot($candidate, $repoRoot) && is_dir($candidate)) {
         $repoPath = $candidate;
+        $repoResolved = true;
     }
 }
 
@@ -154,6 +158,10 @@ function ensureRepoIdentity(string $path, string $name, string $email): void {
 }
 
 trustGitDirectory($repoPath);
+
+// Le serveur n'a pas de terminal : une demande d'identifiant (HTTPS sans identifiants enregistrés)
+// bloquerait la requête jusqu'au délai maximal. Git échoue donc tout de suite avec un message explicite.
+putenv('GIT_TERMINAL_PROMPT=0');
 
 $sshKeyPath = $config['sshKeyPath'] ?? '';
 if (!empty($sshKeyPath) && file_exists($sshKeyPath)) {
@@ -270,6 +278,16 @@ function escapeArg(string $arg): string {
     return escapeshellarg($arg);
 }
 
+// URL d'un remote ('origin', ou 'upstream' pour l'original d'un fork) ; chaîne vide s'il n'existe pas
+function getRemoteUrl(string $remote): string {
+    return trim(execGit("git config --get remote.{$remote}.url")['output']);
+}
+
+// URL de dépôt distant acceptée : HTTPS, SSH (ssh:// ou git@hôte:chemin), sans espace ni caractère de shell
+function isValidRemoteUrl(string $url): bool {
+    return preg_match('#^(https?://|ssh://|git@)[^\s"\'`$\\\\;&|<>]+$#', $url) === 1;
+}
+
 function filterGitWarnings(array $lines): array {
     return array_filter($lines, function($line) {
         $line = trim($line);
@@ -329,6 +347,8 @@ $routes = [
     'repoInfo'            => 'status.php',
     'addRemote'           => 'status.php',
     'removeRemote'        => 'status.php',
+    'setUpstream'         => 'status.php',
+    'removeUpstream'      => 'status.php',
     // Commits & staging
     'log'                 => 'commits.php',
     'fileLog'             => 'commits.php',
@@ -347,6 +367,7 @@ $routes = [
     'fetch'               => 'sync.php',
     'rebaseContinue'      => 'sync.php',
     'rebaseAbort'         => 'sync.php',
+    'syncUpstream'        => 'sync.php',
     // Fichiers
     'checkout'            => 'files.php',
     'discardAll'          => 'files.php',
