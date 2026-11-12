@@ -104,7 +104,7 @@ switch ($action) {
                     'success' => false, 'localChanges' => true,
                     'error' => "Basculement forcé refusé : des fichiers suivis ont des modifications non enregistrées, "
                              . "que -f effacerait. Faites un commit ou un remisage (stash) puis réessayez.\n\n"
-                             . trim($dirty['output']),
+                             . rtrim($dirty['output']),
                 ]);
                 break;
             }
@@ -171,91 +171,41 @@ switch ($action) {
         $branchEscaped = escapeArg($branch);
         $sourceEscaped = !empty($sourceBranch) ? escapeArg($sourceBranch) : '';
 
-        if ($orphan) {
-            $originalBranch = getCurrentBranch();
-            $result = execGit("git checkout --orphan {$branchEscaped}");
-            if ($result['code'] !== 0) { echo json_encode(['success' => false, 'error' => $result['output']]); break; }
+        // Branche sans historique (vide, ou avec l'état actuel des fichiers) : créée directement
+        // par les commandes de bas niveau de git (write-tree / commit-tree), avec un index
+        // temporaire. Le dossier de travail, l'index et la branche courante ne sont jamais
+        // touchés : pas de checkout, pas de copie des fichiers ignorés, pas de `checkout -f`
+        // (qui effaçait les modifications non enregistrées au retour sur la branche d'origine).
+        if ($orphan || $freshStart) {
+            if (trim(execGit("git branch --list {$branchEscaped}")['output']) !== '') {
+                echo json_encode(['success' => false, 'error' => "La branche '{$branch}' existe déjà"]); break;
+            }
+            $tmpIndex = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'git-manager-index-' . uniqid();
+            putenv('GIT_INDEX_FILE=' . $tmpIndex);
+            // Index vide → arbre vide ; « nouveau départ » : tous les fichiers non ignorés, tels
+            // qu'ils sont sur le disque (modifications non enregistrées comprises)
+            $addResult = $freshStart ? execGit("git add -A") : ['code' => 0, 'output' => ''];
+            $treeResult = $addResult['code'] === 0 ? execGit("git write-tree") : $addResult;
+            putenv('GIT_INDEX_FILE');
+            if (file_exists($tmpIndex)) @unlink($tmpIndex);
+            if ($treeResult['code'] !== 0) {
+                echo json_encode(['success' => false, 'error' => $treeResult['output']]); break;
+            }
 
-            execGit("git rm -rf --cached . 2>&1");
-            $commitResult = execGit("git commit --allow-empty -m \"Initial commit (branche vide)\"");
-
+            $commitMsg = $freshStart ? 'Fresh start - nouveau départ sans historique' : 'Initial commit (branche vide)';
+            $commitResult = execGit("git commit-tree " . escapeArg(trim($treeResult['output'])) . " -m " . escapeArg($commitMsg));
             if ($commitResult['code'] !== 0) {
-                echo json_encode(['success' => false, 'error' => "Branche créée mais erreur lors du commit initial: " . $commitResult['output']]); break;
+                echo json_encode(['success' => false, 'error' => "Erreur lors du commit initial : " . $commitResult['output']]); break;
             }
-
-            $returnMessage = "";
-            if (!empty($originalBranch) && $originalBranch !== 'HEAD') {
-                $checkoutBack = execGit("git checkout -f " . escapeArg($originalBranch) . " 2>&1");
-                cleanEmptyDirs($repoPath);
-                $returnMessage = $checkoutBack['code'] === 0
-                    ? "\n✓ Retour sur '{$originalBranch}'"
-                    : "\n⚠️ Impossible de revenir sur '{$originalBranch}'";
-            }
-
-            echo json_encode(['success' => true, 'output' => "Branche '{$branch}' créée (vide)" . $returnMessage]);
-            break;
-        }
-
-        if ($freshStart) {
-            $originalBranch = getCurrentBranch();
-
-            $allUntracked = [];
-            $untrackedResult = execGit("git ls-files --others --exclude-standard");
-            if ($untrackedResult['code'] === 0 && !empty(trim($untrackedResult['output']))) {
-                $allUntracked = array_merge($allUntracked, array_filter(explode("\n", trim($untrackedResult['output']))));
-            }
-            $ignoredResult = execGit("git ls-files --others --ignored --exclude-standard");
-            if ($ignoredResult['code'] === 0 && !empty(trim($ignoredResult['output']))) {
-                $allUntracked = array_merge($allUntracked, array_filter(explode("\n", trim($ignoredResult['output']))));
-            }
-
-            $untrackedBackupPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'git-untracked-backup-' . uniqid();
-            $untrackedBackupCreated = false;
-            if (!empty($allUntracked)) {
-                mkdir($untrackedBackupPath, 0755, true);
-                foreach ($allUntracked as $file) {
-                    $file = trim($file);
-                    if (empty($file)) continue;
-                    $srcFile = $repoPath . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $file);
-                    $dstFile = $untrackedBackupPath . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $file);
-                    if (file_exists($srcFile)) {
-                        $dstDir = dirname($dstFile);
-                        if (!is_dir($dstDir)) mkdir($dstDir, 0755, true);
-                        copy($srcFile, $dstFile);
-                        $untrackedBackupCreated = true;
-                    }
-                }
-            }
-
-            $result = execGit("git checkout --orphan {$branchEscaped}");
+            $result = execGit("git branch {$branchEscaped} " . escapeArg(trim($commitResult['output'])));
             if ($result['code'] !== 0) {
-                if ($untrackedBackupCreated && is_dir($untrackedBackupPath)) recurseDelete($untrackedBackupPath);
                 echo json_encode(['success' => false, 'error' => $result['output']]); break;
             }
 
-            execGit("git add -A");
-            $commitResult = execGit("git commit -m \"Fresh start - nouveau départ sans historique\"");
-            if ($commitResult['code'] !== 0) {
-                if ($untrackedBackupCreated && is_dir($untrackedBackupPath)) recurseDelete($untrackedBackupPath);
-                echo json_encode(['success' => false, 'error' => "Branche créée mais erreur lors du commit: " . $commitResult['output']]); break;
-            }
-
-            $returnMessage = "";
-            if (!empty($originalBranch) && $originalBranch !== 'HEAD') {
-                $checkoutBack = execGit("git checkout -f " . escapeArg($originalBranch) . " 2>&1");
-                if ($untrackedBackupCreated && is_dir($untrackedBackupPath)) {
-                    recurseCopy($untrackedBackupPath, $repoPath);
-                    recurseDelete($untrackedBackupPath);
-                }
-                cleanEmptyDirs($repoPath);
-                $returnMessage = $checkoutBack['code'] === 0
-                    ? "\n✓ Retour sur '{$originalBranch}'"
-                    : "\n⚠️ Impossible de revenir sur '{$originalBranch}'";
-            } else {
-                if ($untrackedBackupCreated && is_dir($untrackedBackupPath)) recurseDelete($untrackedBackupPath);
-            }
-
-            echo json_encode(['success' => true, 'output' => "Branche '{$branch}' créée avec tous les fichiers (sans historique)" . $returnMessage]);
+            $what = $freshStart ? 'avec tous les fichiers (sans historique)' : '(vide)';
+            $current = getCurrentBranch();
+            echo json_encode(['success' => true, 'output' => "Branche '{$branch}' créée {$what}"
+                . (!empty($current) && $current !== 'HEAD' ? "\n✓ Vous restez sur '{$current}', vos fichiers n'ont pas été modifiés" : '')]);
             break;
         }
 

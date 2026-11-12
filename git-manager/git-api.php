@@ -173,59 +173,6 @@ if (!empty($sshKeyPath) && file_exists($sshKeyPath)) {
 
 if ($isGitRepoCheck) ensureRepoIdentity($repoPath, $gitUserName, $gitUserEmail);
 
-// ── Fonctions système (utilisées par setup.php et les actions) ────────────────
-
-function recurseCopy(string $src, string $dst): bool {
-    if (!is_dir($src)) return false;
-    if (!is_dir($dst)) mkdir($dst, 0755, true);
-    $dir = opendir($src);
-    while (($file = readdir($dir)) !== false) {
-        if ($file === '.' || $file === '..') continue;
-        $srcPath = $src . DIRECTORY_SEPARATOR . $file;
-        $dstPath = $dst . DIRECTORY_SEPARATOR . $file;
-        is_dir($srcPath) ? recurseCopy($srcPath, $dstPath) : copy($srcPath, $dstPath);
-    }
-    closedir($dir);
-    return true;
-}
-
-function recurseDelete(string $dir): bool {
-    if (!is_dir($dir)) return false;
-    foreach (array_diff(scandir($dir), ['.', '..']) as $file) {
-        $path = $dir . DIRECTORY_SEPARATOR . $file;
-        is_dir($path) ? recurseDelete($path) : unlink($path);
-    }
-    return rmdir($dir);
-}
-
-function cleanEmptyDirs(string $dir, array $excludeDirs = ['.git', 'git-manager']): void {
-    if (!is_dir($dir)) return;
-    $systemFiles = ['Thumbs.db', 'desktop.ini', '.DS_Store', '.localized', '.gitkeep'];
-    $items = array_diff(scandir($dir), ['.', '..']);
-
-    foreach ($items as $item) {
-        $path = $dir . DIRECTORY_SEPARATOR . $item;
-        if (!is_dir($path) || in_array($item, $excludeDirs)) continue;
-        cleanEmptyDirs($path, $excludeDirs);
-        $subItems = @scandir($path);
-        if ($subItems !== false) {
-            foreach ($subItems as $subItem) {
-                if (in_array($subItem, $systemFiles)) @unlink($path . DIRECTORY_SEPARATOR . $subItem);
-            }
-        }
-        $remaining = @scandir($path);
-        if ($remaining !== false && empty(array_diff($remaining, ['.', '..']))) @rmdir($path);
-    }
-
-    // Deuxième passe
-    foreach (array_diff(scandir($dir), ['.', '..']) as $item) {
-        $path = $dir . DIRECTORY_SEPARATOR . $item;
-        if (!is_dir($path) || in_array($item, $excludeDirs)) continue;
-        $remaining = @scandir($path);
-        if ($remaining !== false && empty(array_diff($remaining, ['.', '..']))) @rmdir($path);
-    }
-}
-
 // ── Dispatcher ────────────────────────────────────────────────────────────────
 
 // Actions pré-dépôt (pas besoin d'un dépôt Git existant)
