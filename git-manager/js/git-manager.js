@@ -1932,7 +1932,7 @@ async function switchBranch(branch, force = false) {
       const forceConfirmed = await showConfirm(
         `Des fichiers non suivis bloquent le basculement.\n\n` +
         `⚠️ Forcer le basculement ?\n\n` +
-        `ATTENTION : Les fichiers locaux en conflit seront écrasés par ceux de la branche "${branch}".`,
+        `ATTENTION : les fichiers non suivis listés ci-dessus seront remplacés par ceux de la branche "${branch}".`,
         true
       );
       if (forceConfirmed) {

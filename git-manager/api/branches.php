@@ -90,37 +90,26 @@ switch ($action) {
             echo json_encode(['success' => false, 'error' => 'Nom de branche invalide']); break;
         }
 
-        $forceFlag = $force ? '-f ' : '';
-
-        // Sauvegarder fichiers non suivis
-        $allUntrackedFiles = [];
-        $untrackedTempBackup = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'git-untracked-switch-' . uniqid();
-        $untrackedTempCreated = false;
-
-        $untrackedResult = execGit("git ls-files --others --exclude-standard");
-        if ($untrackedResult['code'] === 0 && !empty(trim($untrackedResult['output']))) {
-            $allUntrackedFiles = array_merge($allUntrackedFiles, array_filter(explode("\n", trim($untrackedResult['output']))));
-        }
-        $ignoredResult = execGit("git ls-files --others --ignored --exclude-standard");
-        if ($ignoredResult['code'] === 0 && !empty(trim($ignoredResult['output']))) {
-            $allUntrackedFiles = array_merge($allUntrackedFiles, array_filter(explode("\n", trim($ignoredResult['output']))));
-        }
-
-        if (!empty($allUntrackedFiles)) {
-            mkdir($untrackedTempBackup, 0755, true);
-            foreach ($allUntrackedFiles as $file) {
-                $file = trim($file);
-                if (empty($file)) continue;
-                $srcFile = $repoPath . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $file);
-                $dstFile = $untrackedTempBackup . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $file);
-                if (file_exists($srcFile) && is_file($srcFile)) {
-                    $dstDir = dirname($dstFile);
-                    if (!is_dir($dstDir)) mkdir($dstDir, 0755, true);
-                    copy($srcFile, $dstFile);
-                    $untrackedTempCreated = true;
-                }
+        // git checkout ne touche ni aux fichiers non suivis ni aux fichiers ignorés, et conserve
+        // les modifications locales quand elles ne sont pas en conflit avec la branche cible :
+        // aucune copie de sauvegarde n'est nécessaire (elle copiait aussi les fichiers ignorés,
+        // node_modules / dist compris, au point de dépasser le temps maximum de PHP).
+        //
+        // Forcer (-f) écrase TOUTES les modifications locales des fichiers suivis, pas seulement
+        // les fichiers en conflit : on le refuse tant qu'il en existe (commit ou remisage d'abord).
+        if ($force) {
+            $dirty = execGit("git status --porcelain --untracked-files=no");
+            if (trim($dirty['output']) !== '') {
+                echo json_encode([
+                    'success' => false, 'localChanges' => true,
+                    'error' => "Basculement forcé refusé : des fichiers suivis ont des modifications non enregistrées, "
+                             . "que -f effacerait. Faites un commit ou un remisage (stash) puis réessayez.\n\n"
+                             . trim($dirty['output']),
+                ]);
+                break;
             }
         }
+        $forceFlag = $force ? '-f ' : '';
 
         if (preg_match('/^(origin|upstream)\/(.+)$/', $branch, $matches)) {
             $localBranchName    = $matches[2];
@@ -131,9 +120,6 @@ switch ($action) {
 
             if ($localExists) {
                 $result = execGit("git checkout {$forceFlag}{$localBranchEscaped}");
-                if ($result['code'] !== 0 && isFileOverwriteError($result['output'])) {
-                    $result = execGit("git checkout -f {$localBranchEscaped}");
-                }
                 $message = "Basculé sur la branche '{$localBranchName}'";
             } elseif ($matches[1] === 'upstream') {
                 // Branche du dépôt original : copie locale non suivie, à publier ensuite sur le fork (pas de droits sur l'original)
@@ -146,34 +132,20 @@ switch ($action) {
         } else {
             $branchEscaped = escapeArg($branch);
             $result = execGit("git checkout {$forceFlag}{$branchEscaped}");
-            if ($result['code'] !== 0 && isFileOverwriteError($result['output'])) {
-                $result = execGit("git checkout -f {$branchEscaped}");
-            }
             $message = "Basculé sur la branche '{$branch}'";
         }
 
-        if ($result['code'] === 0) {
-            $trackedFiles = execGit("git ls-files");
-            $trackedList = array_filter(explode("\n", trim($trackedFiles['output'])));
-            $isEmptyBranch = empty($trackedList);
-            if ($isEmptyBranch) {
-                execGit("git clean -fd");
-            }
-            if ($untrackedTempCreated && is_dir($untrackedTempBackup)) {
-                recurseCopy($untrackedTempBackup, $repoPath);
-                recurseDelete($untrackedTempBackup);
-            }
-            cleanEmptyDirs($repoPath);
-        } else {
-            if ($untrackedTempCreated && is_dir($untrackedTempBackup)) {
-                recurseDelete($untrackedTempBackup);
-            }
-        }
-
         if ($result['code'] !== 0) {
+            // Fichiers non suivis qui seraient écrasés : le forçage peut être proposé
             $needsForce = strpos($result['output'], 'untracked working tree files would be overwritten') !== false
                        || strpos($result['output'], 'Please move or remove them') !== false;
-            echo json_encode(['success' => false, 'error' => $result['output'], 'needsForce' => $needsForce]);
+            // Modifications locales en conflit avec la branche cible : jamais de forçage automatique
+            $localChanges = !$needsForce && isFileOverwriteError($result['output']);
+            $error = $localChanges
+                ? "Vos modifications locales seraient écrasées par la branche '{$branch}' : faites un commit "
+                  . "ou un remisage (stash) avant de basculer. Rien n'a été modifié.\n\n" . $result['output']
+                : $result['output'];
+            echo json_encode(['success' => false, 'error' => $error, 'needsForce' => $needsForce, 'localChanges' => $localChanges]);
         } else {
             echo json_encode(['success' => true, 'output' => $message]);
         }
