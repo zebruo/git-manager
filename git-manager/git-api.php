@@ -141,10 +141,25 @@ function trustGitDirectory(string $path): void {
 
 // Identité Git du dépôt (user.name / user.email) : écrite seulement si elle diffère,
 // au lieu de deux écritures de .git/config à chaque requête
+// Lance git SANS shell : les arguments sont passés sous forme de tableau (proc_open), donc jamais
+// interprétés par cmd.exe ou sh — aucune injection d'argument possible, quel que soit leur contenu.
+// Retourne la sortie standard ; les erreurs (stderr) sont ignorées.
+function runGit(array $args): string {
+    $null = PHP_OS_FAMILY === 'Windows' ? 'NUL' : '/dev/null';
+    $process = proc_open(array_merge(['git'], $args), [0 => ['file', $null, 'r'], 1 => ['pipe', 'w'], 2 => ['file', $null, 'w']], $pipes);
+    if (!is_resource($process)) {
+        return '';
+    }
+    $output = (string) stream_get_contents($pipes[1]);
+    fclose($pipes[1]);
+    proc_close($process);
+    return $output;
+}
+
 function ensureRepoIdentity(string $path, string $name, string $email): void {
-    $repo = escapeshellarg(str_replace('\\', '/', $path));
+    $repo = str_replace('\\', '/', $path);
     $current = [];
-    foreach (explode("\n", (string) shell_exec("git -C {$repo} config --local --get-regexp \"^user\\.(name|email)$\" 2>&1")) as $line) {
+    foreach (explode("\n", runGit(['-C', $repo, 'config', '--local', '--get-regexp', '^user\.(name|email)$'])) as $line) {
         $parts = explode(' ', trim($line), 2);
         if (count($parts) === 2) {
             $current[$parts[0]] = $parts[1];
@@ -152,7 +167,7 @@ function ensureRepoIdentity(string $path, string $name, string $email): void {
     }
     foreach (['user.name' => $name, 'user.email' => $email] as $key => $value) {
         if ($value !== '' && ($current[$key] ?? null) !== $value) {
-            exec("git -C {$repo} config {$key} " . escapeshellarg($value) . ' 2>&1');
+            runGit(['-C', $repo, 'config', '--', $key, $value]);
         }
     }
 }
