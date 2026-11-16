@@ -12,6 +12,7 @@ git-manager/git-config.php
 
 # ── Scripts locaux ────────────────────────────────────────────────────────────
 release.sh
+tests/
 
 # ── Audits & notes locales ───────────────────────────────────────────────────
 audit-*.md

@@ -1962,13 +1962,14 @@ async function createBranch() {
 
   terminalClear();
   if (isOrphan) {
-    terminalLog(`$ git checkout --orphan ${branchName}`, 'info');
-    terminalLog(`$ git rm -rf --cached .`, 'info');
-    terminalLog(`$ git commit --allow-empty -m "Initial commit"`, 'info');
+    terminalLog('$ git write-tree        (index temporaire vide → arbre vide)', 'info');
+    terminalLog('$ git commit-tree <arbre> -m "Initial commit (branche vide)"', 'info');
+    terminalLog(`$ git branch ${branchName} <commit>`, 'info');
   } else if (isFreshStart) {
-    terminalLog(`$ git checkout --orphan ${branchName}`, 'info');
-    terminalLog(`$ git add -A`, 'info');
-    terminalLog(`$ git commit -m "Fresh start"`, 'info');
+    terminalLog('$ git add -A            (index temporaire, vos fichiers ne sont pas stagés)', 'info');
+    terminalLog('$ git write-tree', 'info');
+    terminalLog('$ git commit-tree <arbre> -m "Fresh start - nouveau départ sans historique"', 'info');
+    terminalLog(`$ git branch ${branchName} <commit>`, 'info');
   } else if (sourceBranch) {
     terminalLog(`$ git checkout -b ${branchName} ${sourceBranch}`, 'info');
   } else {
