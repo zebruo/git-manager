@@ -34,10 +34,11 @@ Interface web pour gérer un dépôt Git sans ligne de commande.
 | `api/gitignore.php` | getGitignore, addToGitignore, removeFromGitignore |
 | `api/setup.php` | checkRepo, clone, initRepo, listFolders, listRemoteBranches, resetRemote |
 | `api/stash.php` | stashList, stashSave, stashApply, stashDrop |
-| `api/status.php` | status, repoInfo, addRemote, removeRemote |
-| `api/sync.php` | push, pull, fetch |
+| `api/status.php` | status, repoInfo, addRemote, removeRemote, setUpstream, removeUpstream |
+| `api/sync.php` | push, pull, fetch, syncUpstream |
 | `api/tags.php` | listTags, createTag, deleteTag, pushTag, deleteRemoteTag |
 | `api/repos.php` | listRepos |
+| `api/upstream-helpers.php` | Fonctions partagées, sans action propre : branches de l'original d'un fork, cible par défaut, retard (chargées par `status.php` et `sync.php`) |
 
 ### Feuilles de style (`css/`)
 
@@ -122,6 +123,7 @@ Interface web pour gérer un dépôt Git sans ligne de commande.
 | Fusionner | Intégrer une branche dans la branche courante |
 | Publier | Envoyer une branche locale vers GitHub |
 | Supprimer | Supprimer localement (et optionnellement sur GitHub) |
+| Indicateur d'état | Une icône à côté du badge « locale » ou « suivie » signale une branche déjà fusionnée dans la branche par défaut (grise), identique à elle (grise) ou non fusionnée (orange, l'infobulle donne le nombre de commits) |
 
 ### Mettre de côté (Stash)
 
@@ -137,7 +139,7 @@ Interface web pour gérer un dépôt Git sans ligne de commande.
 - **Push** : Envoyer les commits vers GitHub (détecte automatiquement le premier push)
 - **Pull** : Récupérer et fusionner les modifications depuis GitHub (option `--rebase`)
 - **Fetch** : Vérifier les nouveautés sans modifier les fichiers locaux
-- **Fork** : renseigner le dépôt original dans la configuration du remote fait apparaître le bouton « Original » (`git fetch upstream` puis merge ou rebase)
+- **Fork** : renseigner le dépôt original dans la configuration du remote fait apparaître le bouton « Original » (`git fetch upstream` puis merge ou rebase), accompagné d'une liste des branches de l'original (avec leur retard) pour choisir celle à récupérer ; après un rebase d'une branche déjà publiée, un push forcé en ligne de commande est nécessaire (`git push --force-with-lease`)
 
 ### Récupération de fichiers
 

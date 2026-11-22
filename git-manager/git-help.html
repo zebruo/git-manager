@@ -516,7 +516,8 @@
         de l'original dans votre branche (fusion, ou rebase si <code>--rebase</code> est coché). La liste déroulante à côté du bouton
         choisit la branche de l'original visée : par défaut celle du même nom, et pour une branche de travail qui n'existe que chez vous
         (ex. <code>tests-gcode</code>) la branche principale, <code>upstream/main</code>. Le nombre <strong>↓</strong> indique le retard sur chacune. Cliquez ensuite <strong>Push</strong> pour
-        mettre à jour votre fork sur GitHub.<br>
+        mettre à jour votre fork sur GitHub. <strong>Attention :</strong> après un rebase d'une branche déjà publiée, le Push est refusé car l'historique
+        est réécrit ; il faut un push forcé en ligne de commande : <code>git push --force-with-lease origin &lt;branche&gt;</code>.<br>
         Pour savoir si l'original a des nouveautés : cliquez <strong>Fetch</strong> — le bouton affiche alors le nombre de commits à
         récupérer (ex. <strong>↓3</strong>), repris dans la ligne <strong>Retard sur l'original</strong> du statut.<br>
         Alternative sans configuration : bouton <strong>Sync fork</strong> sur la page GitHub de votre fork, puis <strong>Pull</strong>.
@@ -674,7 +675,7 @@
     </ol>
     <div class="help-warning-box mt-8">
       <strong><i class="fas fa-exclamation-triangle text-danger"></i> Ce qui arrive si vous ne le faites pas :</strong>
-      Git tente d'emporter vos modifications non commitées vers la branche cible. Si la branche cible a ses propres versions commitées des mêmes fichiers, Git écrase silencieusement votre working tree au retour — <strong>les modifications sont perdues sans avertissement</strong>.
+      Git emporte vos modifications non commitées vers la branche cible quand elles n'entrent pas en conflit : les fichiers « voyagent » avec vous. Si la branche cible a ses propres versions des mêmes fichiers, Git Manager <strong>refuse le basculement</strong> et vous demande un commit ou un remisage (stash) : rien n'est modifié.
     </div>
   </div>
 
