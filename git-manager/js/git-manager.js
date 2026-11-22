@@ -1863,10 +1863,10 @@ function renderLocalBranch(branch, current, baseBranch = '') {
     const base = escapeHtml(baseBranch);
     let text, icon;
     if (branch.merged) {
-      text = `Fusionnée dans ${base} : tous ses commits sont déjà dans ${base}, la supprimer ne perd rien — $ git branch --merged ${base}`;
+      text = `Fusionnée dans ${base} : sa pointe est strictement en arrière de ${base}, tous ses commits y sont déjà, la supprimer ne perd rien — $ git branch --merged ${base}`;
       icon = 'fa-code-merge';
     } else if (branch.sameAsBase) {
-      text = `Identique à ${base} : aucun commit en plus — $ git branch --merged ${base}`;
+      text = `Identique à ${base} : les pointes sont égales (branche neuve, ou déjà fusionnée en avance rapide), la supprimer ne perd rien — $ git branch --merged ${base}`;
       icon = 'fa-equals';
     } else {
       text = branch.unmerged === 1
