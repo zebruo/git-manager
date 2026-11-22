@@ -39,8 +39,10 @@ body {
 }
 
 .git-container {
-  max-width: 1450px;
-  margin: 5px auto;
+  /* Plafond élargi (1450 → 1600 px) : les trois colonnes (égales) profitent de la largeur de la fenêtre, pour que
+     la ligne Fetch / Push / Pull / Original / liste / --rebase de « Branches & Synchronisation » tienne sur une ligne */
+  max-width: 1600px;
+  margin: auto;
 }
 
 .git-header {
@@ -427,7 +429,7 @@ body {
 /* Ligne de synchronisation (Fetch, Push, Pull, Original, --rebase) : toujours sur une seule ligne */
 .btn-group.sync-row {
   flex-wrap: nowrap;
-  gap: 6px;
+  gap: 4px;
 }
 
 .sync-row .pull-container {
@@ -463,14 +465,24 @@ body {
   align-items: center;
   flex-direction: row;
   font-size: 0.8em;
+  white-space: nowrap; /* « --rebase » ne se coupe plus en deux lignes quand la place manque */
   cursor: pointer;
 }
 
-/* Liste des branches de l'original (fork), à côté du bouton « Original » */
-.upstream-target {
-  width: auto;
+/* Liste des branches de l'original (fork), à côté du bouton « Original ».
+   Sélecteur à deux classes : .file-select (plus bas dans ce fichier) imposait sinon width 100 %,
+   padding 12 px et margin-bottom 10 px, ce qui décalait le champ vers le haut des boutons voisins */
+.pull-container .upstream-target {
+  /* Tout reste sur une ligne : le champ rétrécit (190 px → 80 px) et tronque le nom de la branche si la colonne est étroite */
+  flex: 0 1 190px;
+  min-width: 70px;
   max-width: 190px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin: 0;
   padding: 3px 6px;
+  border-width: 1px;
   font-size: 0.8em;
 }
 
@@ -798,6 +810,10 @@ body {
 
 .terminal-output .info {
   color: var(--info-color);
+}
+
+.terminal-output .warning {
+  color: var(--warning-color);
 }
 
 .loading {

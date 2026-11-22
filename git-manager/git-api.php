@@ -139,8 +139,6 @@ function trustGitDirectory(string $path): void {
     putenv('GIT_CONFIG_VALUE_0=' . str_replace('\\', '/', $path));
 }
 
-// Identité Git du dépôt (user.name / user.email) : écrite seulement si elle diffère,
-// au lieu de deux écritures de .git/config à chaque requête
 // Lance git SANS shell : les arguments sont passés sous forme de tableau (proc_open), donc jamais
 // interprétés par cmd.exe ou sh — aucune injection d'argument possible, quel que soit leur contenu.
 // Retourne la sortie standard ; les erreurs (stderr) sont ignorées.
@@ -156,6 +154,8 @@ function runGit(array $args): string {
     return $output;
 }
 
+// Identité Git du dépôt (user.name / user.email) : écrite seulement si elle diffère,
+// au lieu de deux écritures de .git/config à chaque requête
 function ensureRepoIdentity(string $path, string $name, string $email): void {
     $repo = str_replace('\\', '/', $path);
     $current = [];

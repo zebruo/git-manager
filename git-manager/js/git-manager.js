@@ -250,7 +250,14 @@ async function doSyncUpstream() {
 
   if (result.success) {
     terminalLog(result.output, 'success');
-    showAlert('success', 'Branche mise à jour depuis le dépôt original — cliquez Push pour mettre à jour votre fork sur GitHub');
+    if (rebase && currentBranchPublished === true) {
+      // Un rebase réécrit les commits : si la branche est déjà publiée, un push normal sera refusé
+      const warning = `Branche rebasée sur le dépôt original. Elle est déjà publiée : si des commits ont été réécrits, le Push sera refusé et il faudra un push forcé en ligne de commande — $ git push --force-with-lease origin ${currentBranchName}`;
+      showAlert('warning', warning);
+      terminalLog(warning, 'warning'); // le toast disparaît vite : le terminal garde le message lisible
+    } else {
+      showAlert('success', 'Branche mise à jour depuis le dépôt original — cliquez Push pour mettre à jour votre fork sur GitHub');
+    }
   } else {
     terminalLog(result.error, 'error');
     let message = 'Erreur : ' + result.error;
