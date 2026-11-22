@@ -1762,7 +1762,7 @@ async function loadBranches() {
       });
 
       html += '<div class="branch-section-title"><i class="fas fa-laptop"></i> Branches locales</div>';
-      html += '<div class="branch-list">' + sortedLocal.map(branch => renderLocalBranch(branch, current)).join('') + '</div>';
+      html += '<div class="branch-list">' + sortedLocal.map(branch => renderLocalBranch(branch, current, result.data.baseBranch || '')).join('') + '</div>';
     }
 
     // Branches distantes sans copie locale (filtrées côté serveur)
@@ -1825,7 +1825,7 @@ function renderHeadBanner(isRebasing, isDetached, detachedAt) {
 }
 
 // Une ligne "branche locale" (noms échappés : un nom de branche peut contenir ' ou des balises)
-function renderLocalBranch(branch, current) {
+function renderLocalBranch(branch, current, baseBranch = '') {
   const isCurrent   = branch.current;
   const hasUpstream = branch.upstream && branch.upstream.length > 0;
   const name        = jsArg(branch.name);
@@ -1854,12 +1854,35 @@ function renderLocalBranch(branch, current) {
     ? '<span class="branch-badge tracked"><i class="fas fa-cloud"></i> suivie</span>'
     : '<span class="branch-badge local-only" title="Pas encore sur GitHub — utilisez Publier">locale</span>';
 
+  // Indicateur (non cliquable, volontairement discret : ce n'est pas un bouton d'action) : branche déjà fusionnée
+  // dans la branche par défaut, ou identique à elle. Le sens est aussi dans l'infobulle et l'aria-label.
+  let mergeHint = '';
+  // commits propres, pas encore dans la branche par défaut (nombre calculé par le serveur) ; « fusionnée » et « identique » priment
+  const pending = !branch.merged && !branch.sameAsBase && branch.unmerged > 0;
+  if (baseBranch && (branch.merged || branch.sameAsBase || pending)) {
+    const base = escapeHtml(baseBranch);
+    let text, icon;
+    if (branch.merged) {
+      text = `Fusionnée dans ${base} : tous ses commits sont déjà dans ${base}, la supprimer ne perd rien — $ git branch --merged ${base}`;
+      icon = 'fa-code-merge';
+    } else if (branch.sameAsBase) {
+      text = `Identique à ${base} : aucun commit en plus — $ git branch --merged ${base}`;
+      icon = 'fa-equals';
+    } else {
+      text = branch.unmerged === 1
+        ? `Non fusionnée : 1 commit n'est pas encore dans ${base} — $ git log ${base}..${shown}`
+        : `Non fusionnée : ${branch.unmerged} commits ne sont pas encore dans ${base} — $ git log ${base}..${shown}`;
+      icon = 'fa-code-commit';
+    }
+    mergeHint = `<span class="branch-merge-hint${pending ? ' pending' : ''}" role="img" aria-label="${text}" title="${text}"><i class="fas ${icon}"></i></span>`;
+  }
+
   return `
     <div class="branch-item ${isCurrent ? 'current' : ''}">
       <div class="branch-info">
         <span class="branch-name ${isCurrent ? 'current' : ''}">${escapeHtml(branch.name)}</span>
         <span class="branch-badge ${isCurrent ? '' : 'hidden'}">${isCurrent ? 'actuelle' : ''}</span>
-        ${trackingBadge}
+        <span class="branch-state">${trackingBadge}${mergeHint}</span>
         <span class="branch-tracking">
           ${branch.ahead > 0 ? `<span class="ahead">↑${branch.ahead}</span>` : ''}
           ${branch.behind > 0 ? `<span class="behind">↓${branch.behind}</span>` : ''}

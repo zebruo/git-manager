@@ -398,6 +398,15 @@
       <dt><i class="fas fa-times"></i> Supprimer une branche distante</dt>
       <dd>Le bouton <i class="fas fa-times"></i> à côté d'une branche distante la supprime directement sur GitHub. Il n'est pas proposé sur la
         branche par défaut du dépôt (<code>main</code>), que GitHub refuse de supprimer, ni sur les branches du dépôt original d'un fork.</dd>
+      <dt><i class="fas fa-code-merge"></i> Branche déjà fusionnée</dt>
+      <dd>Dans « Branches locales », l'icône grise <i class="fas fa-code-merge"></i> après le badge signale une branche dont tous les commits sont déjà
+        dans la branche par défaut (<code>main</code>) : la supprimer ne perd rien. L'icône <i class="fas fa-equals"></i> signale une branche identique à
+        la branche par défaut, sans commit en plus (par exemple une branche créée à l'instant). L'icône orange <i class="fas fa-code-commit text-warning"></i>
+        signale une branche qui a des commits pas encore dans la branche par défaut : l'infobulle en donne le nombre. Ce nombre est différent du
+        <code>↑</code> affiché à droite, qui compte les commits pas encore envoyés sur GitHub. Ce sont des indicateurs, pas des boutons : la
+        suppression se fait avec la croix rouge. <strong>Limite :</strong> une fusion « squash » ou « rebase » (par exemple depuis une pull request
+        GitHub) n'est pas reconnue par Git comme une fusion ; la branche apparaît alors comme non fusionnée, avec des commits qui sont pourtant déjà
+        dans la branche par défaut.</dd>
       <dt><i class="fas fa-exclamation-triangle text-warning"></i> Forcer le basculement</dt>
       <dd>Si des fichiers non suivis bloquent le changement de branche, une option "Forcer" est proposée.
         <strong>Attention :</strong> les fichiers en conflit seront écrasés.</dd>

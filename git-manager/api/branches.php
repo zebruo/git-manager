@@ -19,7 +19,7 @@ switch ($action) {
         $isRebasing    = (is_dir($repoPath . '/.git/rebase-merge') && file_exists($repoPath . '/.git/rebase-merge/head-name'))
                       || (is_dir($repoPath . '/.git/rebase-apply') && file_exists($repoPath . '/.git/rebase-apply/head-name'));
 
-        $localResult = execGit('git branch --format="%(refname:short)|%(upstream:short)|%(upstream:track)"');
+        $localResult = execGit('git branch --format="%(refname:short)|%(upstream:short)|%(upstream:track)|%(objectname)"');
         $localBranches = [];
 
         foreach (explode("\n", $localResult['output']) as $line) {
@@ -34,12 +34,13 @@ switch ($action) {
             if (preg_match('/behind (\d+)/', $track, $m)) $behind = (int)$m[1];
             $localBranches[] = [
                 'name' => $name, 'current' => ($name === $currentBranch),
-                'upstream' => $upstream, 'ahead' => $ahead, 'behind' => $behind
+                'upstream' => $upstream, 'ahead' => $ahead, 'behind' => $behind,
+                'tip' => $parts[3] ?? ''   // retiré plus bas : sert seulement à repérer une branche identique à la branche par défaut
             ];
         }
 
         if (empty($localBranches) && !empty($currentBranch)) {
-            $localBranches[] = ['name' => $currentBranch, 'current' => true, 'upstream' => '', 'ahead' => 0, 'behind' => 0];
+            $localBranches[] = ['name' => $currentBranch, 'current' => true, 'upstream' => '', 'ahead' => 0, 'behind' => 0, 'tip' => ''];
         }
 
         $remoteResult  = execGit('git branch -r --format="%(refname:short)"');
@@ -64,10 +65,48 @@ switch ($action) {
             $defaultRemote = in_array('origin/main', $remoteBranches, true) ? 'origin/main' : 'origin/master';
         }
 
+        // Indicateur « fusionnée » : branche de référence = branche par défaut en local (celle d'origin/HEAD si elle existe
+        // en local, sinon main, sinon master). Une branche est « fusionnée » si tous ses commits sont déjà dans la
+        // référence (git branch --merged) ; « identique » si elle pointe exactement sur le même commit (branche neuve,
+        // sans commit propre : techniquement fusionnée, mais pas utile de le dire de la même façon).
+        // Sans branche de référence ou sans commit, aucun indicateur. Une fusion « squash » ou « rebase » n'est pas
+        // reconnue par Git comme une fusion : la branche n'a alors pas d'indicateur.
+        $baseBranch = '';
+        foreach ([preg_replace('#^origin/#', '', $defaultRemote), 'main', 'master'] as $candidate) {
+            if ($candidate !== '' && in_array($candidate, $localNames, true)) { $baseBranch = $candidate; break; }
+        }
+        $mergedNames = [];
+        if ($baseBranch !== '') {
+            $mergedResult = execGit('git branch --merged ' . escapeArg($baseBranch) . ' --format="%(refname:short)"');
+            if ($mergedResult['code'] === 0) {
+                $mergedNames = array_map('trim', explode("\n", $mergedResult['output']));
+            }
+        }
+        $baseTip = '';
+        foreach ($localBranches as $b) {
+            if ($b['name'] === $baseBranch) $baseTip = $b['tip'];
+        }
+        // unmerged : nombre de commits de la branche absents de la référence (git rev-list --count référence..branche),
+        // pour les branches ni fusionnées ni identiques ; null sinon, et au-delà de 30 branches (un appel git par branche)
+        $counted = 0;
+        foreach ($localBranches as &$b) {
+            $isOther = $baseBranch !== '' && $b['name'] !== $baseBranch;
+            $b['sameAsBase'] = $isOther && $baseTip !== '' && $b['tip'] === $baseTip;
+            $b['merged']     = $isOther && !$b['sameAsBase'] && in_array($b['name'], $mergedNames, true);
+            $b['unmerged']   = null;
+            if ($isOther && $baseTip !== '' && !$b['sameAsBase'] && !$b['merged'] && $counted < 30) {
+                $counted++;
+                $b['unmerged'] = (int) trim(execGit('git rev-list --count ' . escapeArg($baseBranch . '..' . $b['name']))['output']);
+            }
+            unset($b['tip']);
+        }
+        unset($b);
+
         echo json_encode([
             'success' => true,
             'data' => [
                 'current'     => $currentBranch,
+                'baseBranch'  => $baseBranch,       // référence de l'indicateur « fusionnée » ('' si aucune)
                 'local'       => $localBranches,
                 'remote'      => $remoteBranches,   // toutes (liste « Créer depuis… »)
                 'remoteOnly'  => $remoteOnly,       // sans copie locale (section « Branches distantes »)

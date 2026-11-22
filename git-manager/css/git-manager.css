@@ -1073,6 +1073,27 @@ body {
 .branch-actions .rename-btn { color: var(--warning-color); }
 .branch-actions .rename-btn:hover { background: color-mix(in srgb, var(--warning-color) 25%, transparent); }
 
+/* Badge « locale » / « suivie » + indicateur « fusionnée » / « identique » dans la même cellule de la grille */
+.branch-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px; /* même écart que les colonnes de la grille .branch-info : l'icône ne colle pas au badge */
+}
+
+/* Indicateur d'information, non cliquable : gris atténué, sans bordure ni survol, pour ne pas ressembler aux boutons d'action */
+.branch-merge-hint {
+  color: var(--text-secondary);
+  opacity: 0.75;
+  font-size: 0.8em;
+  cursor: help;
+}
+
+/* Branche non fusionnée (commits pas encore dans la branche par défaut) : un peu colorée pour attirer l'œil */
+.branch-merge-hint.pending {
+  color: var(--warning-color);
+  opacity: 0.9;
+}
+
 .branch-badge.local-only {
   background: var(--purple-color);
   font-size: 0.7em;
