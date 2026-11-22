@@ -75,14 +75,21 @@ switch ($action) {
             ? count(array_filter(explode("\n", $stashCountResult['output'])))
             : 0;
 
-        // Fork : commits de l'original (upstream/<branche>) absents de la branche courante.
-        // Calcul local, d'après l'état récupéré au dernier Fetch ; null si pas de fork ou branche absente de l'original.
+        // Fork : commits de l'original absents de la branche courante, pour chaque branche de l'original.
+        // Calcul local, d'après l'état récupéré au dernier Fetch. La cible par défaut est la branche du même
+        // nom chez l'original, sinon sa branche principale (une branche de travail n'existe que chez vous).
+        // upstreamBehind : retard sur la cible par défaut ; null si pas de fork ou pas de branche connue.
         $upstreamBehind = null;
+        $upstreamTarget = '';
+        $upstreamBranches = [];
         if (!$isDetached && $branch !== '' && getRemoteUrl('upstream') !== '') {
-            $upstreamRef = escapeArg('refs/remotes/upstream/' . $branch);
-            if (execGit("git rev-parse --verify --quiet {$upstreamRef}")['code'] === 0) {
-                $upstreamBehind = (int) trim(execGit("git rev-list --count HEAD..{$upstreamRef}")['output']);
+            require_once __DIR__ . '/upstream-helpers.php';
+            $upstreamNames  = getUpstreamBranches();
+            $upstreamTarget = getUpstreamDefaultTarget($branch, $upstreamNames);
+            foreach (array_slice($upstreamNames, 0, 50) as $name) {
+                $upstreamBranches[] = ['name' => $name, 'behind' => countUpstreamBehind($name)];
             }
+            if ($upstreamTarget !== '') $upstreamBehind = countUpstreamBehind($upstreamTarget);
         }
 
         echo json_encode([
@@ -102,6 +109,8 @@ switch ($action) {
                 'behind'        => $behind,
                 'hasUpstream'   => $hasUpstream,
                 'upstreamBehind' => $upstreamBehind,
+                'upstreamTarget' => $upstreamTarget,
+                'upstreamBranches' => $upstreamBranches,
                 'allFiles'      => array_values($allFiles),
                 'stashCount'    => $stashCount
             ]

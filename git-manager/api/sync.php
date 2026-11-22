@@ -63,10 +63,24 @@ switch ($action) {
             echo json_encode(['success' => false, 'error' => "Impossible de joindre le dépôt original :\n" . $fetchResult['output']]); break;
         }
 
-        $target = 'upstream/' . $currentBranch;
-        if (execGit('git rev-parse --verify --quiet ' . escapeArg('refs/remotes/' . $target))['code'] !== 0) {
-            echo json_encode(['success' => false, 'error' => "La branche '{$currentBranch}' n'existe pas sur le dépôt original"]); break;
+        // Branche cible chez l'original : celle choisie dans la liste déroulante ; sans choix, la branche du même nom
+        // si elle existe, sinon la branche principale de l'original (une branche de travail n'existe que chez vous).
+        // Le choix doit être une branche connue de l'original : jamais une expression Git quelconque.
+        require_once __DIR__ . '/upstream-helpers.php';
+        $upstreamNames = getUpstreamBranches();
+        $requested = trim((string) ($input['target'] ?? ''));
+        if ($requested !== '') {
+            if (!in_array($requested, $upstreamNames, true)) {
+                echo json_encode(['success' => false, 'error' => "La branche '{$requested}' n'existe pas sur le dépôt original"]); break;
+            }
+            $targetName = $requested;
+        } else {
+            $targetName = getUpstreamDefaultTarget($currentBranch, $upstreamNames);
+            if ($targetName === '') {
+                echo json_encode(['success' => false, 'error' => "Le dépôt original n'a aucune branche connue : faites un Fetch d'abord"]); break;
+            }
         }
+        $target = 'upstream/' . $targetName;
 
         // --no-edit / GIT_EDITOR : jamais d'éditeur interactif pour le message de fusion
         putenv('GIT_EDITOR=true');

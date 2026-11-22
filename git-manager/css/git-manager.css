@@ -466,6 +466,14 @@ body {
   cursor: pointer;
 }
 
+/* Liste des branches de l'original (fork), à côté du bouton « Original » */
+.upstream-target {
+  width: auto;
+  max-width: 190px;
+  padding: 3px 6px;
+  font-size: 0.8em;
+}
+
 /* Retard sur le dépôt original (fork), affiché dans le bouton « Depuis l'original » */
 .upstream-behind {
   background: rgba(255, 255, 255, 0.25);

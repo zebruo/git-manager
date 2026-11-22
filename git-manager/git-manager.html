@@ -224,6 +224,10 @@
               <button class="btn btn-primary" onclick="doSyncUpstream()" id="upstreamBtn" style="display: none;">
                 <i class="fas fa-code-fork"></i> Original
               </button>
+              <!-- Branche de l'original visée par le bouton ci-dessus : même nom que la branche courante si elle existe chez l'original, sinon sa branche principale -->
+              <select class="file-select upstream-target" id="upstreamTarget" aria-label="Branche du dépôt original" onchange="onUpstreamTargetChange()" style="display: none;"
+                title="Branche du dépôt original à récupérer. Une branche de travail (ex. tests-gcode) n'existe que chez vous : choisissez alors upstream/main">
+              </select>
               <label class="pull-rebase-label" id="pullRebaseLabel"
                 title="Rebase : replace vos commits locaux après les commits distants (historique linéaire, pas de merge commit) — $ git pull --rebase origin">
                 <input type="checkbox" id="pullRebaseCheck" checked onchange="updateUpstreamButton()">

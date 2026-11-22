@@ -6,6 +6,10 @@ let currentBranchPublished = null; // la branche actuelle a-t-elle une branche d
 let currentBranchName = '';
 let currentUpstreamUrl = '';       // dépôt original d'un fork (remote "upstream"), vide sinon
 let currentUpstreamBehind = null;  // commits de l'original à récupérer (au dernier Fetch), null si pas de fork
+let currentUpstreamBranches = [];  // branches de l'original : [{ name, behind }]
+let currentUpstreamTarget = '';    // cible par défaut : même nom chez l'original, sinon sa branche principale
+let upstreamTargetChoice = '';     // cible choisie dans la liste déroulante ('' = cible par défaut)
+let upstreamChoiceBranch = '';     // branche locale pour laquelle ce choix a été fait
 let activeRepo = new URLSearchParams(window.location.search).get('repo') || '';
 
 // Initialisation
@@ -171,39 +175,78 @@ function updatePushButtons() {
   updateUpstreamButton();
 }
 
+// Branche de l'original visée par le bouton « Original » : le choix de la liste déroulante s'il est valide,
+// sinon la cible par défaut (même nom chez l'original, ou sa branche principale pour une branche de travail)
+function getUpstreamTarget() {
+  const known = name => currentUpstreamBranches.some(b => b.name === name);
+  if (upstreamTargetChoice && known(upstreamTargetChoice)) return upstreamTargetChoice;
+  return currentUpstreamTarget;
+}
+
+// Liste déroulante des branches de l'original ; visible seulement si le fork en connaît au moins une
+function renderUpstreamSelect() {
+  const select = document.getElementById('upstreamTarget');
+  if (!select) return;
+  const visible = !!currentUpstreamUrl && currentUpstreamBranches.length > 0;
+  select.style.display = visible ? '' : 'none';
+  if (!visible) return;
+
+  const selected = getUpstreamTarget();
+  select.replaceChildren(...currentUpstreamBranches.map(b => {
+    const option = document.createElement('option');
+    option.value = b.name;
+    option.textContent = `upstream/${b.name}` + (b.behind > 0 ? ` ↓${b.behind}` : '');
+    return option;
+  }));
+  select.value = selected;
+}
+
+// Choix d'une autre branche de l'original dans la liste déroulante
+function onUpstreamTargetChange() {
+  upstreamTargetChoice = document.getElementById('upstreamTarget').value;
+  upstreamChoiceBranch = currentBranchName;
+  updateUpstreamButton();
+}
+
 // Bouton "Original" : visible seulement pour un fork (remote upstream configuré) ;
-// fusion ou rebase selon la case --rebase, comme le Pull
+// fusion ou rebase selon la case --rebase, comme le Pull ; la branche visée se choisit dans la liste déroulante
 function updateUpstreamButton() {
   const btn = document.getElementById('upstreamBtn');
   if (!btn) return;
   btn.style.display = currentUpstreamUrl ? '' : 'none';
+  renderUpstreamSelect();
   if (!currentUpstreamUrl) return;
 
   const branch = currentBranchName || '<branche>';
+  const target = getUpstreamTarget();
   const rebase = document.getElementById('pullRebaseCheck')?.checked;
-  const command = rebase ? `git rebase upstream/${branch}` : `git merge upstream/${branch}`;
-  const behind = currentUpstreamBehind || 0;
+  const command = rebase ? `git rebase upstream/${target || branch}` : `git merge upstream/${target || branch}`;
+  const targetInfo = currentUpstreamBranches.find(b => b.name === target);
+  const behind = targetInfo?.behind || 0;
+  const targetBehind = targetInfo ? (targetInfo.behind ?? null) : null;
 
   // Libellé : "Original ↓3" quand l'original a des commits à récupérer
   btn.innerHTML = '<i class="fas fa-code-fork"></i> Original' + (behind > 0 ? ` <span class="upstream-behind">↓${behind}</span>` : '');
   btn.disabled = !currentBranchName;
 
   let state = '';
-  if (currentUpstreamBehind !== null) {
+  if (targetBehind !== null) {
     state = behind > 0 ? ` (${plural(behind, 'commit')} à récupérer)` : ' (à jour au dernier Fetch)';
   }
   btn.title = currentBranchName
-    ? `Récupérer les nouveautés du dépôt original (fork) dans la branche ${branch}${state} — $ git fetch upstream puis ${command}`
+    ? `Récupérer les nouveautés de upstream/${target || branch} dans la branche ${branch}${state} — $ git fetch upstream puis ${command}`
     : 'Placez-vous sur une branche pour mettre à jour depuis le dépôt original';
 }
 
 // Fork : récupérer les nouveautés du dépôt original dans la branche courante
 async function doSyncUpstream() {
   const rebase = document.getElementById('pullRebaseCheck').checked;
+  const target = getUpstreamTarget();
   terminalClear();
-  terminalLog(`$ git fetch upstream && git ${rebase ? 'rebase' : 'merge'} upstream/${currentBranchName}`, 'info');
+  terminalLog(`$ git fetch upstream && git ${rebase ? 'rebase' : 'merge'} upstream/${target || currentBranchName}`, 'info');
 
-  const result = await apiCall('syncUpstream', { rebase });
+  // target vide : le serveur choisit lui-même (même nom chez l'original, sinon sa branche principale)
+  const result = await apiCall('syncUpstream', { rebase, target });
 
   if (result.success) {
     terminalLog(result.output, 'success');
@@ -498,6 +541,10 @@ async function loadStatus() {
       currentBranchPublished = data.isDetached ? null : !!data.hasUpstream;
       currentBranchName      = data.isDetached ? '' : (data.branch || '');
       currentUpstreamBehind  = data.upstreamBehind ?? null;
+      currentUpstreamBranches = data.upstreamBranches || [];
+      currentUpstreamTarget   = data.upstreamTarget || '';
+      // Le choix de la liste ne vaut que pour la branche sur laquelle il a été fait
+      if (upstreamChoiceBranch !== currentBranchName) { upstreamTargetChoice = ''; upstreamChoiceBranch = currentBranchName; }
       updatePushButtons();
       // Sans branche suivie, ahead/behind n'ont pas de sens : "—" plutôt qu'un 0 trompeur
       const unpublished = currentBranchPublished === false;

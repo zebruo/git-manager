@@ -504,7 +504,9 @@
       <dt class="mt-10">Récupérer les mises à jour de l'original</dt>
       <dd>Dans git-manager : bouton de configuration du remote → champ <strong>Dépôt original</strong> → coller l'adresse du dépôt d'origine.
         Le bouton <strong><i class="fas fa-code-fork"></i> Original</strong> apparaît à côté de Pull : il récupère les nouveautés
-        de l'original dans votre branche (fusion, ou rebase si <code>--rebase</code> est coché). Cliquez ensuite <strong>Push</strong> pour
+        de l'original dans votre branche (fusion, ou rebase si <code>--rebase</code> est coché). La liste déroulante à côté du bouton
+        choisit la branche de l'original visée : par défaut celle du même nom, et pour une branche de travail qui n'existe que chez vous
+        (ex. <code>tests-gcode</code>) la branche principale, <code>upstream/main</code>. Le nombre <strong>↓</strong> indique le retard sur chacune. Cliquez ensuite <strong>Push</strong> pour
         mettre à jour votre fork sur GitHub.<br>
         Pour savoir si l'original a des nouveautés : cliquez <strong>Fetch</strong> — le bouton affiche alors le nombre de commits à
         récupérer (ex. <strong>↓3</strong>), repris dans la ligne <strong>Retard sur l'original</strong> du statut.<br>
